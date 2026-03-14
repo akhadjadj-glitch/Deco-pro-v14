@@ -211,6 +211,7 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-bar{height:3px;border-radius:2px;margin:2px 2px 0}
 .cal-bar.prepa{background:#f59e0b}
 .cal-bar.shoot{background:#ec4899}
+.cal-bar.demo{background:#8b5cf6}
 .cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
 .cal-badge{width:6px;height:6px;border-radius:50%}
 .cal-badge.red{background:#ef4444}
@@ -657,21 +658,7 @@ function rNavbar(){
 }
 
 window.calSel=function(ds){
-  CALSEL=ds;
-  // Naviguer vers le décor prévu ce jour
-  var alerts=getAlertsForDate(new Date(ds));
-  if(alerts.shoot.length){
-    var x=alerts.shoot[0];
-    for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===x.p.id){P=D.projets[i];break}
-    if(P&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===x.d.id){DC=P.decors[i];break}
-    if(DC){V="dec";TB="rub";R();return;}
-  }
-  if(alerts.prepa.length){
-    var x=alerts.prepa[0];
-    for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===x.p.id){P=D.projets[i];break}
-    if(P&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===x.d.id){DC=P.decors[i];break}
-    if(DC){V="dec";TB="rub";R();return;}
-  }
+  if(CALSEL===ds){CALSEL=null;}else{CALSEL=ds;}
   R();
 };
 window.calNav=function(d){CALOFF+=d;R();};
@@ -705,6 +692,7 @@ function rCalendarStrip(){
     h+='<div class="day-num">'+d.getDate()+'</div>';
     if(alerts.prepa.length)h+='<div class="cal-bar prepa"></div>';
     if(alerts.shoot.length)h+='<div class="cal-bar shoot"></div>';
+    if(alerts.demontage.length)h+='<div class="cal-bar demo"></div>';
     h+='<div class="cal-badges">';
     if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
     if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
@@ -713,18 +701,44 @@ function rCalendarStrip(){
     if(alerts.retours.length)h+='<div class="cal-badge" style="background:#14b8a6"></div>';
     h+='</div></div>';
   }
-  h+='</div></div>';
+  h+='</div>';
+  
+  // Detail du jour selectionne
+  if(CALSEL){
+    var selDate=new Date(CALSEL);
+    var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+    var selAlerts=getAlertsForDate(selDate);
+    var total=selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
+    h+='<div class="cal-detail">';
+    h+='<div style="font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:6px">'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' — '+total+' evnt</div>';
+    if(total>0){
+      for(var i=0;i<selAlerts.prepa.length;i++){var x=selAlerts.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#f59e0b;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Prépa</span></div>';}
+      for(var i=0;i<selAlerts.shoot.length;i++){var x=selAlerts.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#ec4899;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#ec4899;margin-left:auto;font-size:11px">Tournage</span></div>';}
+      for(var i=0;i<selAlerts.demontage.length;i++){var x=selAlerts.demontage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#8b5cf6;margin-left:auto;font-size:11px">Démontage</span></div>';}
+      for(var i=0;i<selAlerts.urgents.length;i++){var x=selAlerts.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🚨 <strong>'+x.e.nom+'</strong><span style="color:#ef4444;margin-left:auto;font-size:11px">Urgent</span></div>';}
+      for(var i=0;i<selAlerts.tournage.length;i++){var x=selAlerts.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🎬 <strong>'+x.e.nom+'</strong><span style="color:#ec4899;margin-left:auto;font-size:11px">Jeu</span></div>';}
+      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong><span style="color:#6366f1;margin-left:auto;font-size:11px">Départ</span></div>';}
+      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong><span style="color:#14b8a6;margin-left:auto;font-size:11px">Retour</span></div>';}
+      for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong><span style="color:#3b82f6;margin-left:auto;font-size:11px">Non prêt</span></div>';}
+      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Retard</span></div>';}
+    } else {
+      h+='<div style="font-size:12px;color:#64748b;padding:4px 0">Rien de prévu</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
   return h;
 }
 
 function getAlertsForDate(date){
   var d0=new Date(date);d0.setHours(0,0,0,0);
-  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[]};
+  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[]};
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
     for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];
-      // Dates décor : installation (prépa) et tournage
+      // Dates décor : installation (prépa), tournage, démontage
       if(dc.dateInstallation){var di=new Date(dc.dateInstallation);di.setHours(0,0,0,0);if(di.getTime()===d0.getTime())items.prepa.push({d:dc,p:p});}
       if(dc.dateTournage){var dt=new Date(dc.dateTournage);dt.setHours(0,0,0,0);if(dt.getTime()===d0.getTime())items.shoot.push({d:dc,p:p});}
+      if(dc.dateDemontage){var dm=new Date(dc.dateDemontage);dm.setHours(0,0,0,0);if(dm.getTime()===d0.getTime())items.demontage.push({d:dc,p:p});}
       if(!dc.elements)continue;
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];
         if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(0,0,0,0);
@@ -1022,11 +1036,19 @@ function rDec(){
   }else if(TB==="info"){
     h+='<div class="box">';
     h+='<div class="row"><span>Type</span><span>'+(DC.interieur?'Intérieur':'Extérieur')+' • '+(DC.studio?'Studio':'Naturel')+'</span></div>';
-    if(DC.dateInstallation)h+='<div class="row"><span>Installation</span><span>'+fd(DC.dateInstallation)+'</span></div>';
-    if(DC.dateTournage)h+='<div class="row"><span>Tournage</span><span>'+fd(DC.dateTournage)+'</span></div>';
     if(DC.elements)h+='<div class="row"><span>Éléments</span><span>'+DC.elements.length+'</span></div>';
-    if(DC.notes)h+='<div class="row"><span>Notes</span><span>'+DC.notes+'</span></div>';
     h+='</div>';
+    
+    // Dates du decor avec couleurs
+    h+='<div class="box" style="padding:10px">';
+    h+='<div style="font-weight:600;font-size:13px;margin-bottom:8px">Planning décor</div>';
+    if(DC.dateInstallation)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Prépa</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateInstallation)+'</span></div>';
+    if(DC.dateTournage)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><div style="width:12px;height:12px;border-radius:3px;background:#ec4899;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Tournage</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateTournage)+'</span></div>';
+    if(DC.dateDemontage)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div style="width:12px;height:12px;border-radius:3px;background:#8b5cf6;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Démontage</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateDemontage)+'</span></div>';
+    if(!DC.dateInstallation&&!DC.dateTournage&&!DC.dateDemontage)h+='<div style="font-size:12px;color:#64748b;text-align:center;padding:8px">Aucune date renseignée</div>';
+    h+='</div>';
+    
+    if(DC.notes)h+='<div class="box"><div class="row"><span>Notes</span><span>'+DC.notes+'</span></div></div>';
     h+='<div class="acts"><div class="abtn p" onclick="edit(\'decor\',DC)">✏️ Modifier</div><div class="abtn d" onclick="delD()">🗑️ Supprimer</div></div>';
   }
   h+='<button class="fab" onclick="modal(\'ne\')">+</button>';
@@ -1258,7 +1280,7 @@ function rModal(){
     c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Appartement Marie"></div>';
     c+='<div class="fld-row"><div class="fld"><label>Type</label><select id="f3"><option value="1">🏠 Int.</option><option value="0">🌳 Ext.</option></select></div><div class="fld"><label>Nature</label><select id="f4"><option value="0">Naturel</option><option value="1">Studio</option></select></div></div>';
     c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲':'▼ Plus')+'</div>';
-    c+='<div class="form-section'+(MORE?'':' hidden')+'"><div class="fld"><label>Adresse</label><input id="f2"></div><div class="fld"><label>Statut</label><select id="f5">';for(var i=0;i<STATD.length;i++)c+='<option value="'+STATD[i].id+'">'+STATD[i].l+'</option>';c+='</select></div><div class="fld-row"><div class="fld"><label>Installation</label><input type="date" id="f6"></div><div class="fld"><label>Tournage</label><input type="date" id="f7"></div></div><div class="fld"><label>Notes</label><textarea id="f8"></textarea></div></div>';
+    c+='<div class="form-section'+(MORE?'':' hidden')+'"><div class="fld"><label>Adresse</label><input id="f2"></div><div class="fld"><label>Statut</label><select id="f5">';for(var i=0;i<STATD.length;i++)c+='<option value="'+STATD[i].id+'">'+STATD[i].l+'</option>';c+='</select></div><div class="fld-row"><div class="fld"><label>Prépa</label><input type="date" id="f6"></div><div class="fld"><label>Tournage</label><input type="date" id="f7"></div></div><div class="fld"><label>Démontage</label><input type="date" id="f9"></div><div class="fld"><label>Notes</label><textarea id="f8"></textarea></div></div>';
     c+='<button class="btn p" onclick="saveDC()">Créer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
   else if(M==="edit_decor"&&EDIT){
@@ -1267,7 +1289,8 @@ function rModal(){
     c+='<div class="fld"><label>Adresse</label><input id="f2" value="'+(EDIT.adresse||"")+'"></div>';
     c+='<div class="fld-row"><div class="fld"><label>Type</label><select id="f3"><option value="1"'+(EDIT.interieur?' selected':'')+'>🏠 Int.</option><option value="0"'+(!EDIT.interieur?' selected':'')+'>🌳 Ext.</option></select></div><div class="fld"><label>Nature</label><select id="f4"><option value="0"'+(!EDIT.studio?' selected':'')+'>Naturel</option><option value="1"'+(EDIT.studio?' selected':'')+'>Studio</option></select></div></div>';
     c+='<div class="fld"><label>Statut</label><select id="f5">';for(var i=0;i<STATD.length;i++)c+='<option value="'+STATD[i].id+'"'+(STATD[i].id===EDIT.statut?' selected':'')+'>'+STATD[i].l+'</option>';c+='</select></div>';
-    c+='<div class="fld-row"><div class="fld"><label>Installation</label><input type="date" id="f6" value="'+(EDIT.dateInstallation||"")+'"></div><div class="fld"><label>Tournage</label><input type="date" id="f7" value="'+(EDIT.dateTournage||"")+'"></div></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Prépa</label><input type="date" id="f6" value="'+(EDIT.dateInstallation||"")+'"></div><div class="fld"><label>Tournage</label><input type="date" id="f7" value="'+(EDIT.dateTournage||"")+'"></div></div>';
+    c+='<div class="fld"><label>Démontage</label><input type="date" id="f9" value="'+(EDIT.dateDemontage||"")+'"></div>';
     c+='<div class="fld"><label>Notes</label><textarea id="f8">'+(EDIT.notes||"")+'</textarea></div>';
     c+='<button class="btn p" onclick="updateDC()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
@@ -1387,8 +1410,8 @@ function gv(id){var el=document.getElementById(id);return el?el.value.trim():"";
 
 window.saveP=function(){var n=gv("f1");if(!n)return alert("Nom requis");D.projets.push({id:uid(),nom:n,type:gv("f2")||"film",production:gv("f3"),realisateur:gv("f4"),chefDeco:gv("f5"),notes:gv("f6"),decors:[]});sv();M=null;R();};
 window.updateP=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.type=gv("f2");EDIT.production=gv("f3");EDIT.realisateur=gv("f4");EDIT.chefDeco=gv("f5");EDIT.notes=gv("f6");sv();M=null;R();};
-window.saveDC=function(){var n=gv("f1");if(!n)return alert("Nom requis");if(!P.decors)P.decors=[];P.decors.push({id:uid(),nom:n,adresse:gv("f2"),interieur:gv("f3")==="1",studio:gv("f4")==="1",statut:gv("f5")||"a_preparer",dateInstallation:gv("f6"),dateTournage:gv("f7"),notes:gv("f8"),elements:[]});sv();M=null;R();};
-window.updateDC=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.adresse=gv("f2");EDIT.interieur=gv("f3")==="1";EDIT.studio=gv("f4")==="1";EDIT.statut=gv("f5");EDIT.dateInstallation=gv("f6");EDIT.dateTournage=gv("f7");EDIT.notes=gv("f8");sv();M=null;R();};
+window.saveDC=function(){var n=gv("f1");if(!n)return alert("Nom requis");if(!P.decors)P.decors=[];P.decors.push({id:uid(),nom:n,adresse:gv("f2"),interieur:gv("f3")==="1",studio:gv("f4")==="1",statut:gv("f5")||"a_preparer",dateInstallation:gv("f6"),dateTournage:gv("f7"),dateDemontage:gv("f9"),notes:gv("f8"),elements:[]});sv();M=null;R();};
+window.updateDC=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.adresse=gv("f2");EDIT.interieur=gv("f3")==="1";EDIT.studio=gv("f4")==="1";EDIT.statut=gv("f5");EDIT.dateInstallation=gv("f6");EDIT.dateTournage=gv("f7");EDIT.dateDemontage=gv("f9");EDIT.notes=gv("f8");sv();M=null;R();};
 
 window.saveEl=function(){
   var n=gv("f1");if(!n)return alert("Nom requis");
