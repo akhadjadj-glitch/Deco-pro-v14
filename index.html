@@ -456,18 +456,18 @@ function uploadPhoto(file, callback){
 }
 
 function getAlerts(){
-  var today=new Date();today.setHours(0,0,0,0);
+  var today=new Date();today.setHours(12,0,0,0);
   var tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
   var a={urgents:[],retards:[],nonPrets:[],aujourdhui:[],demain:[]};
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
     for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;
       for(var k=0;k<d.elements.length;k++){var e=d.elements[k];
         if(e.urgent)a.urgents.push({e:e,d:d,p:p});
-        if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(0,0,0,0);
+        if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(12,0,0,0);
           if(dj.getTime()===today.getTime())a.aujourdhui.push({e:e,d:d,p:p});
           else if(dj.getTime()===tomorrow.getTime())a.demain.push({e:e,d:d,p:p});
           if(dj<=tomorrow&&e.statut!=="installe"&&e.statut!=="livre")a.nonPrets.push({e:e,d:d,p:p});}
-        if(e.dateRetour){var dr=new Date(e.dateRetour);dr.setHours(0,0,0,0);
+        if(e.dateRetour){var dr=new Date(e.dateRetour);dr.setHours(12,0,0,0);
           if(dr<today&&e.statut!=="restitue")a.retards.push({e:e,d:d,p:p});}}}}
   return a;
 }
@@ -811,29 +811,32 @@ window.calSel=function(ds){
 window.calNav=function(d){CALOFF+=d;R();};
 
 function rCalendarStrip(){
-  var today=new Date();today.setHours(0,0,0,0);
+  var today=new Date();today.setHours(12,0,0,0);
   var start=new Date(today);
   start.setDate(start.getDate()-7+(CALOFF*7));
   var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
   var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
   var NB_DAYS=28;
   
+  function toDS(dt){var y=dt.getFullYear(),m=dt.getMonth()+1,d=dt.getDate();return y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d;}
+  var todayDS=toDS(today);
+  
   var h='<div class="cal-strip compact">';
   h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
   h+='<span>📅 '+MOIS[today.getMonth()]+' '+today.getFullYear()+'</span>';
   h+='<button onclick="calNav(1)">▶</button></div>';
-  h+='<div class="cal-days">';
+  h+='<div class="cal-days" id="cal-scroll">';
   
   for(var i=0;i<NB_DAYS;i++){
-    var d=new Date(start);d.setDate(start.getDate()+i);
-    var ds=d.toISOString().split("T")[0];
-    var isToday=d.getTime()===today.getTime();
+    var d=new Date(start);d.setDate(start.getDate()+i);d.setHours(12,0,0,0);
+    var ds=toDS(d);
+    var isToday=ds===todayDS;
     var isSel=CALSEL===ds;
     var isSun=d.getDay()===0;
     var isNewMonth=(i===0||d.getDate()===1);
     var alerts=getAlertsForDate(d);
     
-    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')">';
+    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')"'+(isToday?' id="cal-today"':'')+'>';
     if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
     h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
     h+='<div class="day-num">'+d.getDate()+'</div>';
@@ -852,7 +855,7 @@ function rCalendarStrip(){
   
   // Detail du jour selectionne
   if(CALSEL){
-    var selDate=new Date(CALSEL);
+    var selDate=new Date(CALSEL+"T12:00:00");
     var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
     var selAlerts=getAlertsForDate(selDate);
     var total=selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
@@ -878,49 +881,33 @@ function rCalendarStrip(){
 }
 
 function getAlertsForDate(date){
-  var d0=new Date(date);d0.setHours(0,0,0,0);var d0t=d0.getTime();
+  var d0=new Date(date);d0.setHours(12,0,0,0);var d0t=d0.getTime();
   var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[]};
+  function normD(s){if(!s)return null;var parts=s.split("-");return new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0,0).getTime();}
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
     for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];
-      // Prepa : du dateInstallation au dateTournage (ou juste le jour si pas de tournage)
-      if(dc.dateInstallation){
-        var pStart=new Date(dc.dateInstallation);pStart.setHours(0,0,0,0);
-        var pEnd=dc.dateTournage?new Date(dc.dateTournage):new Date(pStart);pEnd.setHours(0,0,0,0);
-        if(d0t>=pStart.getTime()&&d0t<pEnd.getTime())items.prepa.push({d:dc,p:p});
-        if(d0t===pStart.getTime())items.prepa.push({d:dc,p:p}); // toujours montrer le 1er jour
-      }
-      // Tournage : du dateTournage au dateTournageFin (ou juste le jour)
-      if(dc.dateTournage){
-        var tStart=new Date(dc.dateTournage);tStart.setHours(0,0,0,0);
-        var tEnd=dc.dateTournageFin?new Date(dc.dateTournageFin):new Date(tStart);tEnd.setHours(0,0,0,0);
-        if(d0t>=tStart.getTime()&&d0t<=tEnd.getTime())items.shoot.push({d:dc,p:p});
-      }
-      // Demontage : juste le jour
-      if(dc.dateDemontage){var dm=new Date(dc.dateDemontage);dm.setHours(0,0,0,0);if(dm.getTime()===d0t)items.demontage.push({d:dc,p:p});}
+      var pS=normD(dc.dateInstallation),pE=normD(dc.dateTournage);
+      if(pS!==null){if(pE===null)pE=pS+86400000;if(d0t>=pS&&d0t<pE)items.prepa.push({d:dc,p:p});}
+      var tS=normD(dc.dateTournage),tE=normD(dc.dateTournageFin);
+      if(tS!==null){if(tE===null)tE=tS;if(d0t>=tS&&d0t<=tE)items.shoot.push({d:dc,p:p});}
+      var dmD=normD(dc.dateDemontage);
+      if(dmD!==null&&d0t===dmD)items.demontage.push({d:dc,p:p});
       if(!dc.elements)continue;
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];
-        if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(0,0,0,0);
-          if(dj.getTime()===d0t){
-            items.tournage.push({e:e,d:dc,p:p});
-            if(e.statut!=="installe")items.nonPrets.push({e:e,d:dc,p:p});
-          }
-        }
-        if(e.dateDepart){var dd=new Date(e.dateDepart);dd.setHours(0,0,0,0);
-          if(dd.getTime()===d0t)items.departs.push({e:e,d:dc,p:p});
-        }
-        if(e.dateRetour){var dr=new Date(e.dateRetour);dr.setHours(0,0,0,0);
-          if(dr.getTime()===d0t)items.retours.push({e:e,d:dc,p:p});
-          if(dr.getTime()===d0t&&e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});
-        }
-        if(e.urgent&&e.dateJeu){var dj2=new Date(e.dateJeu);dj2.setHours(0,0,0,0);if(dj2.getTime()===d0t)items.urgents.push({e:e,d:dc,p:p});}
+        var djt=normD(e.dateJeu);
+        if(djt!==null&&d0t===djt){items.tournage.push({e:e,d:dc,p:p});if(e.statut!=="installe")items.nonPrets.push({e:e,d:dc,p:p});}
+        var ddt=normD(e.dateDepart);if(ddt!==null&&d0t===ddt)items.departs.push({e:e,d:dc,p:p});
+        var drt=normD(e.dateRetour);
+        if(drt!==null&&d0t===drt){items.retours.push({e:e,d:dc,p:p});if(e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});}
+        if(e.urgent&&djt!==null&&d0t===djt)items.urgents.push({e:e,d:dc,p:p});
       }}}
-  // Deduplicate prepa (peut avoir doublon si date = dateInstallation)
   var seen={};items.prepa=items.prepa.filter(function(x){var k=x.d.id;if(seen[k])return false;seen[k]=true;return true;});
+  var seen2={};items.shoot=items.shoot.filter(function(x){var k=x.d.id;if(seen2[k])return false;seen2[k]=true;return true;});
   return items;
 }
 
 function rCalendar(){
-  var today=new Date();today.setHours(0,0,0,0);
+  var today=new Date();today.setHours(12,0,0,0);
   var start=new Date(today);
   start.setDate(start.getDate()-7+(CALOFF*7));
   var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
@@ -966,7 +953,7 @@ function rCalendar(){
   
   // Detail du jour sélectionné
   if(CALSEL){
-    var selDate=new Date(CALSEL);
+    var selDate=new Date(CALSEL+"T12:00:00");
     var selAlerts=getAlertsForDate(selDate);
     var total=selAlerts.urgents.length+selAlerts.retards.length+selAlerts.tournage.length+selAlerts.nonPrets.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.prepa.length+selAlerts.shoot.length;
     if(total>0){
