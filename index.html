@@ -533,63 +533,75 @@ function rTimeline(){
   var decors=P.decors.filter(function(d){return d.dateInstallation||d.dateTournage||d.dateDemontage;});
   if(!decors.length)return "";
   
-  // Trouver la plage de dates
-  var allDates=[];
-  for(var i=0;i<decors.length;i++){
-    var d=decors[i];
-    if(d.dateInstallation)allDates.push(new Date(d.dateInstallation));
-    if(d.dateTournage)allDates.push(new Date(d.dateTournage));
-    if(d.dateTournageFin)allDates.push(new Date(d.dateTournageFin));
-    if(d.dateDemontage)allDates.push(new Date(d.dateDemontage));
-  }
-  if(!allDates.length)return "";
+  function pDate(s){if(!s)return null;var p=s.split("-");return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]),12,0,0,0);}
+  function diffD(a,b){return Math.round((b-a)/(1000*60*60*24));}
+  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  function fmtD(d){return d.getDate()+' '+MOIS[d.getMonth()];}
   
-  var minD=new Date(Math.min.apply(null,allDates));minD.setDate(minD.getDate()-1);
-  var maxD=new Date(Math.max.apply(null,allDates));maxD.setDate(maxD.getDate()+1);
-  var totalDays=Math.ceil((maxD-minD)/(1000*60*60*24))+1;
-  if(totalDays<2)totalDays=2;
-  if(totalDays>60)totalDays=60;
-  var dayW=28;
-  var JMIN=["D","L","M","M","J","V","S"];
+  // Trier par date de prepa/tournage
+  decors.sort(function(a,b){
+    var da=pDate(a.dateInstallation||a.dateTournage)||new Date(9999,0);
+    var db=pDate(b.dateInstallation||b.dateTournage)||new Date(9999,0);
+    return da-db;
+  });
   
-  var h='<div class="box" style="padding:10px;overflow-x:auto">';
-  h+='<div style="font-weight:600;font-size:13px;margin-bottom:8px">📅 Planning décors</div>';
-  h+='<div class="timeline" style="min-width:'+(100+totalDays*dayW)+'px">';
+  var h='<div class="box" style="padding:12px">';
+  h+='<div style="font-weight:600;font-size:14px;margin-bottom:10px">📅 Planning décors</div>';
   
-  // Header jours
-  h+='<div class="timeline-header"><div style="width:100px;flex-shrink:0"></div>';
-  for(var i=0;i<totalDays;i++){
-    var dd=new Date(minD);dd.setDate(minD.getDate()+i);
-    h+='<span style="width:'+dayW+'px">'+dd.getDate()+'</span>';
-  }
+  // Legende
+  h+='<div style="display:flex;gap:12px;margin-bottom:10px;font-size:11px">';
+  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block"></span>Prépa</span>';
+  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ec4899;display:inline-block"></span>Tournage</span>';
+  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;display:inline-block"></span>Démontage</span>';
   h+='</div>';
   
   for(var i=0;i<decors.length;i++){
     var d=decors[i];
-    h+='<div class="timeline-row">';
-    h+='<div class="timeline-label" onclick="go(\'dec\',\''+d.id+'\')">'+d.nom+'</div>';
-    h+='<div class="timeline-track" style="width:'+(totalDays*dayW)+'px">';
+    h+='<div style="margin-bottom:10px;cursor:pointer" onclick="go(\'dec\',\''+d.id+'\')">';
+    h+='<div style="font-size:13px;font-weight:600;margin-bottom:4px">'+d.nom+(d.sequences?' <span style="color:#64748b;font-weight:400">Sq.'+d.sequences+'</span>':'')+'</div>';
+    h+='<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,0.03)">';
     
-    // Barre prepa
-    if(d.dateInstallation){
-      var pStart=Math.floor((new Date(d.dateInstallation)-minD)/(1000*60*60*24));
-      var pEnd=d.dateTournage?Math.floor((new Date(d.dateTournage)-minD)/(1000*60*60*24)):pStart+1;
-      h+='<div class="timeline-bar" style="left:'+(pStart*dayW)+'px;width:'+((pEnd-pStart)*dayW)+'px;background:#f59e0b" onclick="go(\'dec\',\''+d.id+'\')">P</div>';
+    var segments=[];
+    var pi=pDate(d.dateInstallation),pt=pDate(d.dateTournage),ptf=pDate(d.dateTournageFin),pdm=pDate(d.dateDemontage);
+    
+    if(pi&&pt){
+      var days=diffD(pi,pt);if(days<1)days=1;
+      segments.push({color:'#f59e0b',label:'Prépa '+fmtD(pi),days:days});
+    } else if(pi){
+      segments.push({color:'#f59e0b',label:'Prépa '+fmtD(pi),days:1});
     }
-    // Barre tournage
-    if(d.dateTournage){
-      var tStart=Math.floor((new Date(d.dateTournage)-minD)/(1000*60*60*24));
-      var tEnd=d.dateTournageFin?Math.floor((new Date(d.dateTournageFin)-minD)/(1000*60*60*24)):tStart+1;
-      h+='<div class="timeline-bar" style="left:'+(tStart*dayW)+'px;width:'+((tEnd-tStart+1)*dayW)+'px;background:#ec4899" onclick="go(\'dec\',\''+d.id+'\')">T</div>';
+    
+    if(pt){
+      var end=ptf||pt;
+      var days=diffD(pt,end)+1;if(days<1)days=1;
+      segments.push({color:'#ec4899',label:'Tournage '+fmtD(pt)+(ptf?' → '+fmtD(ptf):''),days:days});
     }
-    // Point demontage
-    if(d.dateDemontage){
-      var dmStart=Math.floor((new Date(d.dateDemontage)-minD)/(1000*60*60*24));
-      h+='<div class="timeline-bar" style="left:'+(dmStart*dayW)+'px;width:'+dayW+'px;background:#8b5cf6" onclick="go(\'dec\',\''+d.id+'\')">D</div>';
+    
+    if(pdm){
+      // Espace entre tournage fin et demontage
+      if(ptf||pt){
+        var last=ptf||pt;
+        var gap=diffD(last,pdm)-1;
+        if(gap>0)segments.push({color:'transparent',label:'',days:gap});
+      }
+      segments.push({color:'#8b5cf6',label:'Démont. '+fmtD(pdm),days:1});
+    }
+    
+    var totalSeg=0;for(var j=0;j<segments.length;j++)totalSeg+=segments[j].days;
+    if(totalSeg<1)totalSeg=1;
+    
+    for(var j=0;j<segments.length;j++){
+      var seg=segments[j];
+      var pct=Math.max(seg.days/totalSeg*100,2);
+      if(seg.color!=='transparent'){
+        h+='<div style="width:'+pct+'%;background:'+seg.color+';display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:600;padding:0 4px;white-space:nowrap;overflow:hidden">'+(pct>15?seg.label:'')+'</div>';
+      } else {
+        h+='<div style="width:'+pct+'%"></div>';
+      }
     }
     h+='</div></div>';
   }
-  h+='</div></div>';
+  h+='</div>';
   return h;
 }
 
