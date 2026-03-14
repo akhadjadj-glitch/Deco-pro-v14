@@ -878,34 +878,44 @@ function rCalendarStrip(){
 }
 
 function getAlertsForDate(date){
-  var d0=new Date(date);d0.setHours(0,0,0,0);
+  var d0=new Date(date);d0.setHours(0,0,0,0);var d0t=d0.getTime();
   var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[]};
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
     for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];
-      // Dates décor : installation (prépa), tournage, démontage
-      if(dc.dateInstallation){var di=new Date(dc.dateInstallation);di.setHours(0,0,0,0);if(di.getTime()===d0.getTime())items.prepa.push({d:dc,p:p});}
-      if(dc.dateTournage){var dt=new Date(dc.dateTournage);dt.setHours(0,0,0,0);if(dt.getTime()===d0.getTime())items.shoot.push({d:dc,p:p});}
-      if(dc.dateTournageFin){var dtf=new Date(dc.dateTournageFin);dtf.setHours(0,0,0,0);if(dtf.getTime()===d0.getTime())items.shoot.push({d:dc,p:p});}
-      if(dc.dateDemontage){var dm=new Date(dc.dateDemontage);dm.setHours(0,0,0,0);if(dm.getTime()===d0.getTime())items.demontage.push({d:dc,p:p});}
+      // Prepa : du dateInstallation au dateTournage (ou juste le jour si pas de tournage)
+      if(dc.dateInstallation){
+        var pStart=new Date(dc.dateInstallation);pStart.setHours(0,0,0,0);
+        var pEnd=dc.dateTournage?new Date(dc.dateTournage):new Date(pStart);pEnd.setHours(0,0,0,0);
+        if(d0t>=pStart.getTime()&&d0t<pEnd.getTime())items.prepa.push({d:dc,p:p});
+        if(d0t===pStart.getTime())items.prepa.push({d:dc,p:p}); // toujours montrer le 1er jour
+      }
+      // Tournage : du dateTournage au dateTournageFin (ou juste le jour)
+      if(dc.dateTournage){
+        var tStart=new Date(dc.dateTournage);tStart.setHours(0,0,0,0);
+        var tEnd=dc.dateTournageFin?new Date(dc.dateTournageFin):new Date(tStart);tEnd.setHours(0,0,0,0);
+        if(d0t>=tStart.getTime()&&d0t<=tEnd.getTime())items.shoot.push({d:dc,p:p});
+      }
+      // Demontage : juste le jour
+      if(dc.dateDemontage){var dm=new Date(dc.dateDemontage);dm.setHours(0,0,0,0);if(dm.getTime()===d0t)items.demontage.push({d:dc,p:p});}
       if(!dc.elements)continue;
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];
         if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(0,0,0,0);
-          if(dj.getTime()===d0.getTime()){
+          if(dj.getTime()===d0t){
             items.tournage.push({e:e,d:dc,p:p});
-            if(e.statut!=="installe"&&e.statut!=="livre")items.nonPrets.push({e:e,d:dc,p:p});
+            if(e.statut!=="installe")items.nonPrets.push({e:e,d:dc,p:p});
           }
         }
         if(e.dateDepart){var dd=new Date(e.dateDepart);dd.setHours(0,0,0,0);
-          if(dd.getTime()===d0.getTime())items.departs.push({e:e,d:dc,p:p});
+          if(dd.getTime()===d0t)items.departs.push({e:e,d:dc,p:p});
         }
         if(e.dateRetour){var dr=new Date(e.dateRetour);dr.setHours(0,0,0,0);
-          if(dr.getTime()===d0.getTime())items.retours.push({e:e,d:dc,p:p});
-          if(dr.getTime()===d0.getTime()&&e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});
+          if(dr.getTime()===d0t)items.retours.push({e:e,d:dc,p:p});
+          if(dr.getTime()===d0t&&e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});
         }
-        if(e.urgent){
-          if(e.dateJeu){var dj2=new Date(e.dateJeu);dj2.setHours(0,0,0,0);if(dj2.getTime()===d0.getTime())items.urgents.push({e:e,d:dc,p:p});}
-        }
+        if(e.urgent&&e.dateJeu){var dj2=new Date(e.dateJeu);dj2.setHours(0,0,0,0);if(dj2.getTime()===d0t)items.urgents.push({e:e,d:dc,p:p});}
       }}}
+  // Deduplicate prepa (peut avoir doublon si date = dateInstallation)
+  var seen={};items.prepa=items.prepa.filter(function(x){var k=x.d.id;if(seen[k])return false;seen[k]=true;return true;});
   return items;
 }
 
@@ -1157,7 +1167,16 @@ function rProj(){
   
   var h='<div class="back-btn" onclick="go(\'home\')">← Accueil</div>';
   h+='<div class="page-title">'+t.i+' '+P.nom+'</div>';
-  h+='<div class="page-sub">'+(P.production||t.l)+' • '+nd+' décors'+(P.datePrepa?' • Prépa '+fd(P.datePrepa):'')+(P.dateTournage?' • Tournage '+fd(P.dateTournage)+(P.dateTournageFin?' → '+fd(P.dateTournageFin):''):'')+'</div>';
+  h+='<div class="page-sub">'+(P.production||t.l)+' • '+nd+' décors</div>';
+  
+  // Bloc dates projet
+  if(P.datePrepa||P.dateTournage){
+    h+='<div class="box" style="padding:10px;margin-top:8px">';
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    if(P.datePrepa)h+='<div style="padding:5px 10px;border-radius:8px;background:rgba(245,158,11,0.15);color:#fcd34d;font-size:12px;font-weight:600">🔧 Prépa '+fd(P.datePrepa)+'</div>';
+    if(P.dateTournage)h+='<div style="padding:5px 10px;border-radius:8px;background:rgba(236,72,153,0.15);color:#f9a8d4;font-size:12px;font-weight:600">🎬 Tournage '+fd(P.dateTournage)+(P.dateTournageFin?' → '+fd(P.dateTournageFin):'')+'</div>';
+    h+='</div></div>';
+  }
   
   if(totalBudget>0)h+='<div class="total-box"><span>Budget total</span><strong>'+fm(totalBudget)+'</strong></div>';
   
