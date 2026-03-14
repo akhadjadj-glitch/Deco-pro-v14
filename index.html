@@ -220,6 +220,11 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-detail{margin-top:8px}
 .cal-detail-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer}
 .cal-detail-item:active{background:rgba(255,255,255,0.08)}
+.cal-strip.compact{margin-bottom:0}
+.cal-strip.compact .cal-header{margin-bottom:4px}
+.cal-strip.compact .cal-header span{font-size:11px}
+.cal-strip.compact .cal-day{width:42px;padding:4px 2px}
+.cal-strip.compact .day-num{font-size:14px}
 </style>
 </head>
 <body>
@@ -615,7 +620,8 @@ function rHeader(){
   h+='<div class="sync-status '+syncClass+'"><div class="sync-dot"></div>'+syncText+'</div>';
   h+='<button onclick="menu(true)" style="font-size:20px;padding:6px">☰</button>';
   h+='</div></div>';
-  h+='<div class="hdr-search"><input placeholder="Rechercher..." value="'+GSQ+'" oninput="setGSQ(this.value)" onfocus="go(\'search\')"></div></header>';
+  h+=rCalendarStrip();
+  h+='</header>';
   if(V!=="home"&&V!=="search")h+=rBread();
   return h;
 }
@@ -644,8 +650,66 @@ function rNavbar(){
   return h;
 }
 
-window.calSel=function(ds){CALSEL=ds;R();};
+window.calSel=function(ds){
+  CALSEL=ds;
+  // Naviguer vers le décor prévu ce jour
+  var alerts=getAlertsForDate(new Date(ds));
+  if(alerts.shoot.length){
+    var x=alerts.shoot[0];
+    for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===x.p.id){P=D.projets[i];break}
+    if(P&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===x.d.id){DC=P.decors[i];break}
+    if(DC){V="dec";TB="rub";R();return;}
+  }
+  if(alerts.prepa.length){
+    var x=alerts.prepa[0];
+    for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===x.p.id){P=D.projets[i];break}
+    if(P&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===x.d.id){DC=P.decors[i];break}
+    if(DC){V="dec";TB="rub";R();return;}
+  }
+  R();
+};
 window.calNav=function(d){CALOFF+=d;R();};
+
+function rCalendarStrip(){
+  var today=new Date();today.setHours(0,0,0,0);
+  var start=new Date(today);
+  start.setDate(start.getDate()-7+(CALOFF*7));
+  var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  var NB_DAYS=28;
+  
+  var h='<div class="cal-strip compact">';
+  h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
+  h+='<span>📅 '+MOIS[today.getMonth()]+' '+today.getFullYear()+'</span>';
+  h+='<button onclick="calNav(1)">▶</button></div>';
+  h+='<div class="cal-days">';
+  
+  for(var i=0;i<NB_DAYS;i++){
+    var d=new Date(start);d.setDate(start.getDate()+i);
+    var ds=d.toISOString().split("T")[0];
+    var isToday=d.getTime()===today.getTime();
+    var isSel=CALSEL===ds;
+    var isSun=d.getDay()===0;
+    var isNewMonth=(i===0||d.getDate()===1);
+    var alerts=getAlertsForDate(d);
+    
+    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')">';
+    if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
+    h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
+    h+='<div class="day-num">'+d.getDate()+'</div>';
+    if(alerts.prepa.length)h+='<div class="cal-bar prepa"></div>';
+    if(alerts.shoot.length)h+='<div class="cal-bar shoot"></div>';
+    h+='<div class="cal-badges">';
+    if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
+    if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
+    if(alerts.tournage.length)h+='<div class="cal-badge pink"></div>';
+    if(alerts.departs.length)h+='<div class="cal-badge" style="background:#6366f1"></div>';
+    if(alerts.retours.length)h+='<div class="cal-badge" style="background:#14b8a6"></div>';
+    h+='</div></div>';
+  }
+  h+='</div></div>';
+  return h;
+}
 
 function getAlertsForDate(date){
   var d0=new Date(date);d0.setHours(0,0,0,0);
