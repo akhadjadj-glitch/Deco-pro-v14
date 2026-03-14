@@ -811,35 +811,36 @@ window.calSel=function(ds){
 window.calNav=function(d){CALOFF+=d;R();};
 
 function rCalendarStrip(){
-  var today=new Date();today.setHours(12,0,0,0);
-  var start=new Date(today);
-  start.setDate(start.getDate()-7+(CALOFF*7));
+  var now=new Date();
+  var todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
+  var todayDS=todayY+'-'+(todayM+1<10?'0':'')+(todayM+1)+'-'+(todayD<10?'0':'')+todayD;
+  
+  // Start 7 jours avant aujourd'hui + offset
+  var startDate=new Date(todayY,todayM,todayD-7+(CALOFF*7),12,0,0,0);
   var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
   var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
   var NB_DAYS=28;
   
-  function toDS(dt){var y=dt.getFullYear(),m=dt.getMonth()+1,d=dt.getDate();return y+'-'+(m<10?'0':'')+m+'-'+(d<10?'0':'')+d;}
-  var todayDS=toDS(today);
-  
   var h='<div class="cal-strip compact">';
   h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
-  h+='<span>📅 '+MOIS[today.getMonth()]+' '+today.getFullYear()+'</span>';
+  h+='<span>📅 '+MOIS[now.getMonth()]+' '+now.getFullYear()+'</span>';
   h+='<button onclick="calNav(1)">▶</button></div>';
   h+='<div class="cal-days" id="cal-scroll">';
   
   for(var i=0;i<NB_DAYS;i++){
-    var d=new Date(start);d.setDate(start.getDate()+i);d.setHours(12,0,0,0);
-    var ds=toDS(d);
-    var isToday=ds===todayDS;
-    var isSel=CALSEL===ds;
-    var isSun=d.getDay()===0;
-    var isNewMonth=(i===0||d.getDate()===1);
+    var d=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()+i,12,0,0,0);
+    var dy=d.getFullYear(),dm=d.getMonth()+1,dd=d.getDate();
+    var ds=dy+'-'+(dm<10?'0':'')+dm+'-'+(dd<10?'0':'')+dd;
+    var isToday=(ds===todayDS);
+    var isSel=(CALSEL===ds);
+    var isSun=(d.getDay()===0);
+    var isNewMonth=(i===0||dd===1);
     var alerts=getAlertsForDate(d);
     
     h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')"'+(isToday?' id="cal-today"':'')+'>';
     if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
     h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
-    h+='<div class="day-num">'+d.getDate()+'</div>';
+    h+='<div class="day-num">'+dd+'</div>';
     if(alerts.prepa.length)h+='<div class="cal-bar prepa"></div>';
     if(alerts.shoot.length)h+='<div class="cal-bar shoot"></div>';
     if(alerts.demontage.length)h+='<div class="cal-bar demo"></div>';
@@ -855,7 +856,7 @@ function rCalendarStrip(){
   
   // Detail du jour selectionne
   if(CALSEL){
-    var selDate=new Date(CALSEL+"T12:00:00");
+    var sp=CALSEL.split("-");var selDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2]),12,0,0,0);
     var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
     var selAlerts=getAlertsForDate(selDate);
     var total=selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
@@ -906,74 +907,7 @@ function getAlertsForDate(date){
   return items;
 }
 
-function rCalendar(){
-  var today=new Date();today.setHours(12,0,0,0);
-  var start=new Date(today);
-  start.setDate(start.getDate()-7+(CALOFF*7));
-  var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
-  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
-  var NB_DAYS=28;
-  
-  var h='<div class="cal-strip">';
-  h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
-  h+='<span>📅 '+MOIS[today.getMonth()]+' '+today.getFullYear()+'</span>';
-  h+='<button onclick="calNav(1)">▶</button></div>';
-  h+='<div class="cal-days">';
-  
-  for(var i=0;i<NB_DAYS;i++){
-    var d=new Date(start);d.setDate(start.getDate()+i);
-    var ds=d.toISOString().split("T")[0];
-    var isToday=d.getTime()===today.getTime();
-    var isSel=CALSEL===ds;
-    var isSun=d.getDay()===0;
-    var isNewMonth=(i===0||d.getDate()===1);
-    var alerts=getAlertsForDate(d);
-    var hasAlerts=alerts.urgents.length||alerts.retards.length||alerts.tournage.length||alerts.nonPrets.length||alerts.departs.length||alerts.retours.length||alerts.prepa.length||alerts.shoot.length;
-    
-    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')">';
-    if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
-    h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
-    h+='<div class="day-num">'+d.getDate()+'</div>';
-    
-    // Barrettes prépa (orange) et tournage (rose)
-    if(alerts.prepa.length)h+='<div class="cal-bar prepa" title="Prépa: '+alerts.prepa[0].d.nom+'"></div>';
-    if(alerts.shoot.length)h+='<div class="cal-bar shoot" title="Tournage: '+alerts.shoot[0].d.nom+'"></div>';
-    
-    // Badges événements
-    h+='<div class="cal-badges">';
-    if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
-    if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
-    if(alerts.tournage.length)h+='<div class="cal-badge pink"></div>';
-    if(alerts.departs.length)h+='<div class="cal-badge" style="background:#6366f1"></div>';
-    if(alerts.retours.length)h+='<div class="cal-badge" style="background:#14b8a6"></div>';
-    if(alerts.nonPrets.length)h+='<div class="cal-badge blue"></div>';
-    h+='</div></div>';
-  }
-  h+='</div>';
-  
-  // Detail du jour sélectionné
-  if(CALSEL){
-    var selDate=new Date(CALSEL+"T12:00:00");
-    var selAlerts=getAlertsForDate(selDate);
-    var total=selAlerts.urgents.length+selAlerts.retards.length+selAlerts.tournage.length+selAlerts.nonPrets.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.prepa.length+selAlerts.shoot.length;
-    if(total>0){
-      h+='<div class="cal-detail">';
-      for(var i=0;i<selAlerts.prepa.length;i++){var x=selAlerts.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')">🔧 <strong>'+x.d.nom+'</strong> <span style="color:#f59e0b">installation/prépa</span></div>';}
-      for(var i=0;i<selAlerts.shoot.length;i++){var x=selAlerts.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')">🎬 <strong>'+x.d.nom+'</strong> <span style="color:#ec4899">tournage décor</span></div>';}
-      for(var i=0;i<selAlerts.urgents.length;i++){var x=selAlerts.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🚨 <strong>'+x.e.nom+'</strong> <span style="color:#ef4444">urgent</span></div>';}
-      for(var i=0;i<selAlerts.tournage.length;i++){var x=selAlerts.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🎬 <strong>'+x.e.nom+'</strong> <span style="color:#ec4899">tournage</span></div>';}
-      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong> <span style="color:#6366f1">départ</span></div>';}
-      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong> <span style="color:#14b8a6">retour</span></div>';}
-      for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong> <span style="color:#3b82f6">non prêt</span></div>';}
-      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong> <span style="color:#f59e0b">retard</span></div>';}
-      h+='</div>';
-    } else {
-      h+='<div style="text-align:center;padding:8px;font-size:12px;color:#64748b">Rien de prévu ce jour</div>';
-    }
-  }
-  h+='</div>';
-  return h;
-}
+function rCalendar(){return rCalendarStrip();}
 
 function rPrint(){
   var h='<div class="page-title">🖨️ Impression</div>';
