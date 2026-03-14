@@ -503,6 +503,45 @@ window.createProject=function(){
   }).then(function(){ subscribeToProject(CODE); });
 };
 
+window.exportData=function(){
+  var data=JSON.stringify(D,null,2);
+  var blob=new Blob([data],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;
+  a.download="decor-pro-"+CODE+"-"+(new Date().toISOString().split("T")[0])+".json";
+  a.click();
+  URL.revokeObjectURL(url);
+  MN=false;R();
+};
+
+window.importData=function(){
+  var input=document.createElement("input");
+  input.type="file";
+  input.accept=".json";
+  input.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var imported=JSON.parse(ev.target.result);
+        if(!imported.projets&&!imported.loueurs&&!imported.depenses){alert("Fichier invalide");return;}
+        if(!confirm("Importer ces données ? Cela remplacera les données actuelles."))return;
+        if(imported.projets)D.projets=imported.projets;
+        if(imported.loueurs)D.loueurs=imported.loueurs;
+        if(imported.depenses)D.depenses=imported.depenses;
+        sv();
+        MN=false;
+        R();
+        alert("Données importées !");
+      }catch(err){alert("Erreur: fichier JSON invalide");}
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
 window.leaveProject=function(){
   if(!confirm("Quitter ce projet ?"))return;
   if(UNSUB)UNSUB();
@@ -1115,8 +1154,11 @@ function rMenu(){
   h+='<div class="menu-item" onclick="go(\'dep\');menu(false)">💰 Dépenses</div>';
   h+='<div class="menu-item" onclick="go(\'lou\');menu(false)">🏪 Loueurs</div>';
   h+='<div style="border-top:1px solid rgba(255,255,255,0.1);margin:16px 0"></div>';
+  h+='<div class="menu-item" onclick="exportData()">📤 Exporter les données</div>';
+  h+='<div class="menu-item" onclick="importData()">📥 Importer des données</div>';
+  h+='<div style="border-top:1px solid rgba(255,255,255,0.1);margin:16px 0"></div>';
   h+='<div class="menu-item" style="color:#ef4444" onclick="leaveProject()">🚪 Quitter le projet</div>';
-  h+='<div style="margin-top:20px;font-size:11px;color:#64748b"><p>Décor Pro v8.0 Cloud</p><p>'+D.projets.length+' projets • Synchronisé</p></div>';
+  h+='<div style="margin-top:20px;font-size:11px;color:#64748b"><p>Décor Pro v13</p><p>'+D.projets.length+' projets'+(HAS_FIREBASE?' • Synchronisé':' • Local')+'</p></div>';
   h+='</div></div>';
   return h;
 }
