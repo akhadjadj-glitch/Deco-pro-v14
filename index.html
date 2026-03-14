@@ -197,17 +197,22 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .cal-header span{font-size:13px;font-weight:600;color:#a5b4fc}
 .cal-header button{background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px 8px}
-.cal-days{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
-.cal-day{flex-shrink:0;width:52px;padding:8px 4px;border-radius:12px;background:rgba(255,255,255,0.05);text-align:center;cursor:pointer;position:relative;transition:all 0.2s}
+.cal-days{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.cal-day{flex-shrink:0;width:46px;padding:6px 3px;border-radius:10px;background:rgba(255,255,255,0.04);text-align:center;cursor:pointer;position:relative;transition:all 0.2s;scroll-snap-align:start}
 .cal-day:active{transform:scale(0.96)}
 .cal-day.today{background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4)}
 .cal-day.selected{background:rgba(99,102,241,0.35);border:1px solid #6366f1}
-.cal-day .day-name{font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:2px}
+.cal-day.sunday{opacity:0.5}
+.cal-day .day-month{font-size:8px;color:#a5b4fc;text-transform:uppercase;font-weight:700;margin-bottom:1px}
+.cal-day .day-name{font-size:9px;color:#64748b;text-transform:uppercase;margin-bottom:1px}
 .cal-day.today .day-name{color:#a5b4fc}
-.cal-day .day-num{font-size:16px;font-weight:700}
+.cal-day .day-num{font-size:15px;font-weight:700}
 .cal-day.today .day-num{color:#a5b4fc}
-.cal-badges{display:flex;gap:3px;justify-content:center;margin-top:4px;min-height:8px}
-.cal-badge{width:8px;height:8px;border-radius:50%}
+.cal-bar{height:3px;border-radius:2px;margin:2px 2px 0}
+.cal-bar.prepa{background:#f59e0b}
+.cal-bar.shoot{background:#ec4899}
+.cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
+.cal-badge{width:6px;height:6px;border-radius:50%}
 .cal-badge.red{background:#ef4444}
 .cal-badge.orange{background:#f59e0b}
 .cal-badge.pink{background:#ec4899}
@@ -272,7 +277,7 @@ function fileToDataUrl(file, callback){
 }
 
 (function(){
-var RUB=[{id:"mobilier",n:"Ensembliage",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires de Jeu",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie D'ex",i:"🏢",c:"#14b8a6"},{id:"graphiques",n:"Graphiques",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"}];
+var RUB=[{id:"mobilier",n:"Ensembliage",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires de Jeu",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie D'ex",i:"🏢",c:"#14b8a6"},{id:"graphiques",n:"Graphismes",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"}];
 var STAT=[{id:"a_sourcer",l:"À sourcer",c:"#64748b"},{id:"a_valider",l:"À valider",c:"#f59e0b"},{id:"valide",l:"Validé",c:"#3b82f6"},{id:"loue",l:"Loué",c:"#ec4899"},{id:"installe",l:"Installé",c:"#10b981"},{id:"restitue",l:"Restitué",c:"#22c55e"}];
 var STATD=[{id:"a_preparer",l:"À préparer",c:"#64748b"},{id:"en_cours",l:"En cours",c:"#f59e0b"},{id:"pret",l:"Prêt",c:"#10b981"},{id:"en_tournage",l:"En tournage",c:"#6366f1"},{id:"termine",l:"Terminé",c:"#22c55e"}];
 var TPROJ=[{id:"film",l:"Film",i:"🎬"},{id:"serie",l:"Série",i:"📺"},{id:"pub",l:"Pub",i:"📢"},{id:"clip",l:"Clip",i:"🎵"},{id:"autre",l:"Autre",i:"📁"}];
@@ -605,9 +610,13 @@ window.calNav=function(d){CALOFF+=d;R();};
 
 function getAlertsForDate(date){
   var d0=new Date(date);d0.setHours(0,0,0,0);
-  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[]};
+  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[]};
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
-    for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];if(!dc.elements)continue;
+    for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];
+      // Dates décor : installation (prépa) et tournage
+      if(dc.dateInstallation){var di=new Date(dc.dateInstallation);di.setHours(0,0,0,0);if(di.getTime()===d0.getTime())items.prepa.push({d:dc,p:p});}
+      if(dc.dateTournage){var dt=new Date(dc.dateTournage);dt.setHours(0,0,0,0);if(dt.getTime()===d0.getTime())items.shoot.push({d:dc,p:p});}
+      if(!dc.elements)continue;
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];
         if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(0,0,0,0);
           if(dj.getTime()===d0.getTime()){
@@ -631,28 +640,38 @@ function getAlertsForDate(date){
 
 function rCalendar(){
   var today=new Date();today.setHours(0,0,0,0);
-  var monday=new Date(today);
-  monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+(CALOFF*7));
-  var JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+  var start=new Date(today);
+  start.setDate(start.getDate()-7+(CALOFF*7));
+  var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
   var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  var NB_DAYS=28;
   
   var h='<div class="cal-strip">';
   h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
-  h+='<span>📅 Semaine du '+monday.getDate()+' '+MOIS[monday.getMonth()]+'</span>';
+  h+='<span>📅 '+MOIS[today.getMonth()]+' '+today.getFullYear()+'</span>';
   h+='<button onclick="calNav(1)">▶</button></div>';
   h+='<div class="cal-days">';
   
-  for(var i=0;i<7;i++){
-    var d=new Date(monday);d.setDate(monday.getDate()+i);
+  for(var i=0;i<NB_DAYS;i++){
+    var d=new Date(start);d.setDate(start.getDate()+i);
     var ds=d.toISOString().split("T")[0];
     var isToday=d.getTime()===today.getTime();
     var isSel=CALSEL===ds;
+    var isSun=d.getDay()===0;
+    var isNewMonth=(i===0||d.getDate()===1);
     var alerts=getAlertsForDate(d);
-    var hasAlerts=alerts.urgents.length||alerts.retards.length||alerts.tournage.length||alerts.nonPrets.length||alerts.departs.length||alerts.retours.length;
+    var hasAlerts=alerts.urgents.length||alerts.retards.length||alerts.tournage.length||alerts.nonPrets.length||alerts.departs.length||alerts.retours.length||alerts.prepa.length||alerts.shoot.length;
     
-    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+'" onclick="calSel(\''+ds+'\')">';
-    h+='<div class="day-name">'+JOURS[i]+'</div>';
+    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')">';
+    if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
+    h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
     h+='<div class="day-num">'+d.getDate()+'</div>';
+    
+    // Barrettes prépa (orange) et tournage (rose)
+    if(alerts.prepa.length)h+='<div class="cal-bar prepa" title="Prépa: '+alerts.prepa[0].d.nom+'"></div>';
+    if(alerts.shoot.length)h+='<div class="cal-bar shoot" title="Tournage: '+alerts.shoot[0].d.nom+'"></div>';
+    
+    // Badges événements
     h+='<div class="cal-badges">';
     if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
     if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
@@ -668,15 +687,17 @@ function rCalendar(){
   if(CALSEL){
     var selDate=new Date(CALSEL);
     var selAlerts=getAlertsForDate(selDate);
-    var total=selAlerts.urgents.length+selAlerts.retards.length+selAlerts.tournage.length+selAlerts.nonPrets.length+selAlerts.departs.length+selAlerts.retours.length;
+    var total=selAlerts.urgents.length+selAlerts.retards.length+selAlerts.tournage.length+selAlerts.nonPrets.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.prepa.length+selAlerts.shoot.length;
     if(total>0){
       h+='<div class="cal-detail">';
+      for(var i=0;i<selAlerts.prepa.length;i++){var x=selAlerts.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')">🔧 <strong>'+x.d.nom+'</strong> <span style="color:#f59e0b">installation/prépa</span></div>';}
+      for(var i=0;i<selAlerts.shoot.length;i++){var x=selAlerts.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')">🎬 <strong>'+x.d.nom+'</strong> <span style="color:#ec4899">tournage décor</span></div>';}
       for(var i=0;i<selAlerts.urgents.length;i++){var x=selAlerts.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🚨 <strong>'+x.e.nom+'</strong> <span style="color:#ef4444">urgent</span></div>';}
       for(var i=0;i<selAlerts.tournage.length;i++){var x=selAlerts.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🎬 <strong>'+x.e.nom+'</strong> <span style="color:#ec4899">tournage</span></div>';}
-      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong> <span style="color:#6366f1">départ location</span></div>';}
-      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong> <span style="color:#14b8a6">retour location</span></div>';}
+      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong> <span style="color:#6366f1">départ</span></div>';}
+      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong> <span style="color:#14b8a6">retour</span></div>';}
       for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong> <span style="color:#3b82f6">non prêt</span></div>';}
-      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong> <span style="color:#f59e0b">retard retour</span></div>';}
+      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong> <span style="color:#f59e0b">retard</span></div>';}
       h+='</div>';
     } else {
       h+='<div style="text-align:center;padding:8px;font-size:12px;color:#64748b">Rien de prévu ce jour</div>';
@@ -1143,7 +1164,7 @@ function rModal(){
   }
   else if(M==="ne"){
     var rb=RB?gr(RB):null;
-    c='<div class="mbar"></div><div class="mtit">🎭 Accessoire de jeu</div>';
+    c='<div class="mbar"></div><div class="mtit">'+(rb?rb.i+' '+rb.n:'📦 Nouvel élément')+'</div>';
     c+='<div class="drop" onclick="document.getElementById(\'phi\').click()"><div id="phpr"></div><div id="phpl"><span class="icon">📸</span><p>Ajouter photos</p></div><input type="file" accept="image/*" multiple id="phi" style="display:none" onchange="prvPh(event)"></div>';
     c+='<div id="upload-status"></div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Vase bleu"></div>';
@@ -1163,7 +1184,8 @@ function rModal(){
     c+='<button class="btn p" id="save-el-btn" onclick="saveEl()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
   else if(M==="edit_element"&&EDIT){
-    c='<div class="mbar"></div><div class="mtit">✏️ Modifier accessoire</div>';
+    var editRb=gr(EDIT.rubrique);
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier '+(editRb?editRb.n:'élément')+'</div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
     c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'"'+(STAT[i].id===EDIT.statut?' selected':'')+'>'+STAT[i].l+'</option>';c+='</select></div>';
     c+='<input type="hidden" id="f2" value="'+(EDIT.rubrique||'accessoires')+'">';
