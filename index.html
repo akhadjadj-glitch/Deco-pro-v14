@@ -191,6 +191,30 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .upload-fill{height:100%;background:#6366f1;border-radius:2px;transition:width 0.3s}
 
 @media print{.hdr,.navbar,.fab,.modal,.viewer,.menu{display:none!important}body{background:#fff!important;color:#000!important;padding:10px}}
+
+/* Calendar strip */
+.cal-strip{margin-bottom:16px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-header span{font-size:13px;font-weight:600;color:#a5b4fc}
+.cal-header button{background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px 8px}
+.cal-days{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.cal-day{flex-shrink:0;width:52px;padding:8px 4px;border-radius:12px;background:rgba(255,255,255,0.05);text-align:center;cursor:pointer;position:relative;transition:all 0.2s}
+.cal-day:active{transform:scale(0.96)}
+.cal-day.today{background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4)}
+.cal-day.selected{background:rgba(99,102,241,0.35);border:1px solid #6366f1}
+.cal-day .day-name{font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:2px}
+.cal-day.today .day-name{color:#a5b4fc}
+.cal-day .day-num{font-size:16px;font-weight:700}
+.cal-day.today .day-num{color:#a5b4fc}
+.cal-badges{display:flex;gap:3px;justify-content:center;margin-top:4px;min-height:8px}
+.cal-badge{width:8px;height:8px;border-radius:50%}
+.cal-badge.red{background:#ef4444}
+.cal-badge.orange{background:#f59e0b}
+.cal-badge.pink{background:#ec4899}
+.cal-badge.blue{background:#3b82f6}
+.cal-detail{margin-top:8px}
+.cal-detail-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer}
+.cal-detail-item:active{background:rgba(255,255,255,0.08)}
 </style>
 </head>
 <body>
@@ -206,12 +230,12 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 // 🔥 FIREBASE CONFIG - REMPLACEZ PAR VOS VALEURS
 // ============================================
 const firebaseConfig = {
-  apiKey: "AIzaSyC8ODVc9s7ItdYpETiKfegRSFsPyFC7mpY",
-  authDomain: "decor-pro-7a94a.firebaseapp.com",
-  projectId: "decor-pro-7a94a",
-  storageBucket: "decor-pro-7a94a.firebasestorage.app",
-  messagingSenderId: "243517980120",
-  appId: "1:243517980120:web:2ef30c160b56b91b8786ad"
+  apiKey: "VOTRE_API_KEY",
+  authDomain: "VOTRE_PROJECT.firebaseapp.com",
+  projectId: "VOTRE_PROJECT_ID",
+  storageBucket: "VOTRE_PROJECT.appspot.com",
+  messagingSenderId: "VOTRE_SENDER_ID",
+  appId: "VOTRE_APP_ID"
 };
 // ============================================
 
@@ -248,8 +272,8 @@ function fileToDataUrl(file, callback){
 }
 
 (function(){
-var RUB=[{id:"mobilier",n:"Mobilier",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie",i:"🏢",c:"#14b8a6"},{id:"luminaires",n:"Luminaires",i:"💡",c:"#f59e0b"},{id:"deco",n:"Déco",i:"🖼️",c:"#8b5cf6"},{id:"textiles",n:"Textiles",i:"🧵",c:"#ef4444"},{id:"graphiques",n:"Graphiques",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"}];
-var STAT=[{id:"a_sourcer",l:"À sourcer",c:"#64748b"},{id:"en_recherche",l:"En recherche",c:"#f59e0b"},{id:"valide",l:"Validé",c:"#3b82f6"},{id:"reserve",l:"Réservé",c:"#6366f1"},{id:"loue",l:"Loué",c:"#ec4899"},{id:"livre",l:"Livré",c:"#14b8a6"},{id:"installe",l:"Installé",c:"#10b981"},{id:"restitue",l:"Restitué",c:"#22c55e"}];
+var RUB=[{id:"mobilier",n:"Ensembliage",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires de Jeu",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie D'ex",i:"🏢",c:"#14b8a6"},{id:"graphiques",n:"Graphiques",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"}];
+var STAT=[{id:"a_sourcer",l:"À sourcer",c:"#64748b"},{id:"a_valider",l:"À valider",c:"#f59e0b"},{id:"valide",l:"Validé",c:"#3b82f6"},{id:"loue",l:"Loué",c:"#ec4899"},{id:"installe",l:"Installé",c:"#10b981"},{id:"restitue",l:"Restitué",c:"#22c55e"}];
 var STATD=[{id:"a_preparer",l:"À préparer",c:"#64748b"},{id:"en_cours",l:"En cours",c:"#f59e0b"},{id:"pret",l:"Prêt",c:"#10b981"},{id:"en_tournage",l:"En tournage",c:"#6366f1"},{id:"termine",l:"Terminé",c:"#22c55e"}];
 var TPROJ=[{id:"film",l:"Film",i:"🎬"},{id:"serie",l:"Série",i:"📺"},{id:"pub",l:"Pub",i:"📢"},{id:"clip",l:"Clip",i:"🎵"},{id:"autre",l:"Autre",i:"📁"}];
 var TDEP=[{id:"location",l:"Location"},{id:"achat",l:"Achat"},{id:"transport",l:"Transport"},{id:"fabrication",l:"Fabrication"},{id:"autre",l:"Autre"}];
@@ -258,6 +282,8 @@ var TDEP=[{id:"location",l:"Location"},{id:"achat",l:"Achat"},{id:"transport",l:
 var CODE = localStorage.getItem("dp_code") || null;
 var D = {projets:[],loueurs:[],depenses:[]};
 var V="home",P=null,DC=null,EL=null,LO=null,RB=null,M=null,MN=false,TB="rub",VW=null,VWC=null,VWI=0,SQ="",GSQ="",PHS=[],EDIT=null,MORE=false,RTL="all";
+var CALSEL=null;
+var CALOFF=0;
 var ONLINE = navigator.onLine;
 var SYNCING = false;
 var UNSUB = null;
@@ -418,6 +444,7 @@ window.go=function(v,id){
   else if(v==="rent"){V="rent";RTL="all"}
   else if(v==="dep"){V="dep"}
   else if(v==="acc"){V="acc";SQ=""}
+  else if(v==="print"){V="print"}
   else if(v==="search"){V="search"}
   R();
 };
@@ -500,6 +527,7 @@ function R(){
   else if(V==="rent")h+=rRent();
   else if(V==="dep")h+=rDep();
   else if(V==="acc")h+=rAcc();
+  else if(V==="print")h+=rPrint();
   else if(V==="search")h+=rSearch();
   h+='</main>';
   h+=rNavbar();
@@ -566,11 +594,161 @@ function rNavbar(){
   var h='<nav class="navbar">';
   h+='<div class="nav-item'+(V==="home"?" active":"")+'" onclick="go(\'home\')"><span class="icon">🏠</span><span class="label">Accueil</span></div>';
   h+='<div class="nav-item'+(V==="acc"?" active":"")+'" onclick="go(\'acc\')"><span class="icon">🎭</span><span class="label">Accessoires</span></div>';
-  h+='<div class="nav-item'+(V==="rent"?" active":"")+'" onclick="go(\'rent\')"><span class="icon">📦</span><span class="label">Louer</span></div>';
   h+='<div class="nav-item'+(V==="lou"||V==="loud"?" active":"")+'" onclick="go(\'lou\')"><span class="icon">🏪</span><span class="label">Loueurs</span></div>';
+  h+='<div class="nav-item'+(V==="print"?" active":"")+'" onclick="go(\'print\')"><span class="icon">🖨️</span><span class="label">Impression</span></div>';
   h+='</nav>';
   return h;
 }
+
+window.calSel=function(ds){CALSEL=ds;R();};
+window.calNav=function(d){CALOFF+=d;R();};
+
+function getAlertsForDate(date){
+  var d0=new Date(date);d0.setHours(0,0,0,0);
+  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[]};
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];if(!dc.elements)continue;
+      for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];
+        if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(0,0,0,0);
+          if(dj.getTime()===d0.getTime()){
+            items.tournage.push({e:e,d:dc,p:p});
+            if(e.statut!=="installe"&&e.statut!=="livre")items.nonPrets.push({e:e,d:dc,p:p});
+          }
+        }
+        if(e.dateDepart){var dd=new Date(e.dateDepart);dd.setHours(0,0,0,0);
+          if(dd.getTime()===d0.getTime())items.departs.push({e:e,d:dc,p:p});
+        }
+        if(e.dateRetour){var dr=new Date(e.dateRetour);dr.setHours(0,0,0,0);
+          if(dr.getTime()===d0.getTime())items.retours.push({e:e,d:dc,p:p});
+          if(dr.getTime()===d0.getTime()&&e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});
+        }
+        if(e.urgent){
+          if(e.dateJeu){var dj2=new Date(e.dateJeu);dj2.setHours(0,0,0,0);if(dj2.getTime()===d0.getTime())items.urgents.push({e:e,d:dc,p:p});}
+        }
+      }}}
+  return items;
+}
+
+function rCalendar(){
+  var today=new Date();today.setHours(0,0,0,0);
+  var monday=new Date(today);
+  monday.setDate(monday.getDate()-((monday.getDay()+6)%7)+(CALOFF*7));
+  var JOURS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  
+  var h='<div class="cal-strip">';
+  h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
+  h+='<span>📅 Semaine du '+monday.getDate()+' '+MOIS[monday.getMonth()]+'</span>';
+  h+='<button onclick="calNav(1)">▶</button></div>';
+  h+='<div class="cal-days">';
+  
+  for(var i=0;i<7;i++){
+    var d=new Date(monday);d.setDate(monday.getDate()+i);
+    var ds=d.toISOString().split("T")[0];
+    var isToday=d.getTime()===today.getTime();
+    var isSel=CALSEL===ds;
+    var alerts=getAlertsForDate(d);
+    var hasAlerts=alerts.urgents.length||alerts.retards.length||alerts.tournage.length||alerts.nonPrets.length||alerts.departs.length||alerts.retours.length;
+    
+    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+'" onclick="calSel(\''+ds+'\')">';
+    h+='<div class="day-name">'+JOURS[i]+'</div>';
+    h+='<div class="day-num">'+d.getDate()+'</div>';
+    h+='<div class="cal-badges">';
+    if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
+    if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
+    if(alerts.tournage.length)h+='<div class="cal-badge pink"></div>';
+    if(alerts.departs.length)h+='<div class="cal-badge" style="background:#6366f1"></div>';
+    if(alerts.retours.length)h+='<div class="cal-badge" style="background:#14b8a6"></div>';
+    if(alerts.nonPrets.length)h+='<div class="cal-badge blue"></div>';
+    h+='</div></div>';
+  }
+  h+='</div>';
+  
+  // Detail du jour sélectionné
+  if(CALSEL){
+    var selDate=new Date(CALSEL);
+    var selAlerts=getAlertsForDate(selDate);
+    var total=selAlerts.urgents.length+selAlerts.retards.length+selAlerts.tournage.length+selAlerts.nonPrets.length+selAlerts.departs.length+selAlerts.retours.length;
+    if(total>0){
+      h+='<div class="cal-detail">';
+      for(var i=0;i<selAlerts.urgents.length;i++){var x=selAlerts.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🚨 <strong>'+x.e.nom+'</strong> <span style="color:#ef4444">urgent</span></div>';}
+      for(var i=0;i<selAlerts.tournage.length;i++){var x=selAlerts.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🎬 <strong>'+x.e.nom+'</strong> <span style="color:#ec4899">tournage</span></div>';}
+      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong> <span style="color:#6366f1">départ location</span></div>';}
+      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong> <span style="color:#14b8a6">retour location</span></div>';}
+      for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong> <span style="color:#3b82f6">non prêt</span></div>';}
+      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong> <span style="color:#f59e0b">retard retour</span></div>';}
+      h+='</div>';
+    } else {
+      h+='<div style="text-align:center;padding:8px;font-size:12px;color:#64748b">Rien de prévu ce jour</div>';
+    }
+  }
+  h+='</div>';
+  return h;
+}
+
+function rPrint(){
+  var h='<div class="page-title">🖨️ Impression</div>';
+  h+='<div class="page-sub">Générer des fiches imprimables</div>';
+  
+  if(!D.projets.length){
+    h+='<div class="empty"><div class="icon">🖨️</div><p>Aucun projet</p></div>';
+    return h;
+  }
+  
+  h+='<div class="stit">Choisir un projet</div>';
+  for(var i=0;i<D.projets.length;i++){
+    var p=D.projets[i],t=gt(p.type),ndc=p.decors?p.decors.length:0;
+    h+='<div class="card" onclick="printProjet(\''+p.id+'\')">';
+    h+='<div class="card-icon">'+t.i+'</div>';
+    h+='<div class="card-info"><h3>'+p.nom+'</h3><p>'+ndc+' décors</p></div>';
+    h+='<div class="card-actions"><div class="card-act view">🖨️</div></div>';
+    h+='</div>';
+  }
+  
+  h+='<div class="stit">Actions rapides</div>';
+  h+='<div class="acts">';
+  h+='<div class="abtn p" onclick="printAll()">🖨️ Tout imprimer</div>';
+  h+='<div class="abtn" onclick="printBudget()">💰 Budget</div>';
+  h+='<div class="abtn" onclick="printLoueurs()">🏪 Loueurs</div>';
+  h+='</div>';
+  return h;
+}
+
+window.printProjet=function(pId){
+  var proj=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pId){proj=D.projets[i];break}
+  if(!proj)return;
+  var w=window.open("","_blank");
+  var html="<html><head><title>"+proj.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:4px}h2{margin-top:20px;color:#6366f1;border-bottom:2px solid #6366f1;padding-bottom:4px}h3{margin-top:12px;color:#555}.el{padding:8px 0;border-bottom:1px solid #eee}.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;background:#f1f5f9;margin-left:6px}table{width:100%;border-collapse:collapse;margin-top:8px}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid #eee;font-size:13px}th{font-weight:600;color:#64748b}</style></head><body>";
+  html+="<h1>"+proj.nom+"</h1><p>"+(proj.production||"")+" • "+(proj.realisateur||"")+"</p>";
+  if(proj.decors)for(var j=0;j<proj.decors.length;j++){
+    var dc=proj.decors[j];html+="<h2>"+dc.nom+"</h2><p>"+(dc.adresse||"")+"</p>";
+    if(dc.elements&&dc.elements.length){html+="<table><tr><th>Élément</th><th>Rubrique</th><th>Statut</th><th>Scène</th></tr>";
+      for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];var st=gs(e.statut);var rb=gr(e.rubrique);html+="<tr><td><strong>"+e.nom+"</strong></td><td>"+(rb?rb.n:"")+"</td><td>"+st.l+"</td><td>"+(e.scene||"")+"</td></tr>";}
+      html+="</table>";}
+  }
+  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+};
+
+window.printAll=function(){if(D.projets.length)printProjet(D.projets[0].id);};
+
+window.printBudget=function(){
+  var w=window.open("","_blank");
+  var deps=D.depenses.slice();deps.sort(function(a,b){return new Date(b.date||0)-new Date(a.date||0)});
+  var total=0;for(var i=0;i<deps.length;i++)total+=parseFloat(deps[i].montant)||0;
+  var html="<html><head><title>Budget</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:12px}table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #eee;font-size:13px}th{font-weight:600;color:#64748b}.total{font-size:18px;font-weight:700;margin-top:16px}</style></head><body>";
+  html+="<h1>💰 Budget</h1><table><tr><th>Description</th><th>Type</th><th>Montant</th><th>Date</th></tr>";
+  for(var i=0;i<deps.length;i++){var d=deps[i];html+="<tr><td>"+(d.description||"")+"</td><td>"+(d.type||"")+"</td><td>"+fm(d.montant)+"</td><td>"+(d.date||"")+"</td></tr>";}
+  html+="</table><p class=\"total\">Total: "+fm(total)+"</p></body></html>";
+  w.document.write(html);w.document.close();w.print();
+};
+
+window.printLoueurs=function(){
+  var w=window.open("","_blank");
+  var html="<html><head><title>Loueurs</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:12px}.card{border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:8px}h3{margin-bottom:4px}.info{font-size:13px;color:#555}</style></head><body>";
+  html+="<h1>🏪 Loueurs</h1>";
+  for(var i=0;i<D.loueurs.length;i++){var l=D.loueurs[i];html+="<div class=\"card\"><h3>"+l.nom+"</h3><p class=\"info\">"+(l.specialite||"")+"</p>"+(l.telephone?"<p class=\"info\">📞 "+l.telephone+"</p>":"")+(l.email?"<p class=\"info\">✉️ "+l.email+"</p>":"")+(l.adresse?"<p class=\"info\">📍 "+l.adresse+"</p>":"")+"</div>";}
+  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+};
 
 function rHome(){
   var np=D.projets.length,nd=0,ne=0,td=0;
@@ -593,15 +771,8 @@ function rHome(){
   h2+='</div>';
   h+=h2;
   
-  if(al.urgents.length||al.retards.length||al.nonPrets.length||al.aujourdhui.length||al.demain.length){
-    h+='<div class="alerts">';
-    if(al.urgents.length)h+='<div class="alert-chip red" onclick="go(\'acc\')">🚨 '+al.urgents.length+' urgent</div>';
-    if(al.retards.length)h+='<div class="alert-chip red" onclick="go(\'acc\')">⚠️ '+al.retards.length+' retard</div>';
-    if(al.nonPrets.length)h+='<div class="alert-chip orange" onclick="go(\'acc\')">📦 '+al.nonPrets.length+' non prêts</div>';
-    if(al.aujourdhui.length)h+='<div class="alert-chip pink" onclick="go(\'acc\')">🎬 '+al.aujourdhui.length+' aujourd\'hui</div>';
-    if(al.demain.length)h+='<div class="alert-chip blue" onclick="go(\'acc\')">📅 '+al.demain.length+' demain</div>';
-    h+='</div>';
-  }
+  // Calendar strip
+  h+=rCalendar();
   
   h+='<div class="stit">Mes projets <button onclick="modal(\'np\')">+ Nouveau</button></div>';
   
@@ -668,6 +839,7 @@ function rDec(){
   h+='<div class="page-sub"><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>'+(DC.adresse?' • 📍'+DC.adresse:'')+'</div>';
   h+='<div class="tabs">';
   h+='<div class="tab'+(TB==="rub"?" on":"")+'" onclick="setTab(\'rub\')">Rubriques</div>';
+  h+='<div class="tab'+(TB==="avalider"?" on":"")+'" onclick="setTab(\'avalider\')">À valider</div>';
   h+='<div class="tab'+(TB==="portfolio"?" on":"")+'" onclick="setTab(\'portfolio\')">Portfolio</div>';
   h+='<div class="tab'+(TB==="info"?" on":"")+'" onclick="setTab(\'info\')">Infos</div>';
   h+='</div>';
@@ -684,6 +856,23 @@ function rDec(){
       h+='</div>';
     }
     h+='</div>';
+  }else if(TB==="avalider"){
+    var avItems=[];
+    if(DC.elements)for(var j=0;j<DC.elements.length;j++){if(DC.elements[j].statut==="a_valider")avItems.push(DC.elements[j]);}
+    if(!avItems.length){
+      h+='<div class="empty"><div class="icon">✅</div><p>Aucun élément à valider</p><p style="font-size:12px">Tous les éléments sont validés</p></div>';
+    }else{
+      h+='<div class="stit"><span>'+avItems.length+' élément(s) à valider</span></div>';
+      for(var j=0;j<avItems.length;j++){
+        var e=avItems[j],st=gs(e.statut);
+        h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')">';
+        if(e.photos&&e.photos.length)h+='<img src="'+e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">';
+        else h+='<div class="card-icon">📦</div>';
+        h+='<div class="card-info"><h3>'+e.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>'+(e.scene?' • Sq.'+e.scene:'')+'</p></div>';
+        h+='<div class="card-actions"><div class="card-act view" onclick="event.stopPropagation();quickValidate(\''+e.id+'\')">✅</div></div>';
+        h+='</div>';
+      }
+    }
   }else if(TB==="portfolio"){
     var groups=getDecorPortfolioGroups();
     if(!groups.length){
@@ -954,34 +1143,38 @@ function rModal(){
   }
   else if(M==="ne"){
     var rb=RB?gr(RB):null;
-    c='<div class="mbar"></div><div class="mtit">📦 Nouvel élément</div>';
+    c='<div class="mbar"></div><div class="mtit">🎭 Accessoire de jeu</div>';
     c+='<div class="drop" onclick="document.getElementById(\'phi\').click()"><div id="phpr"></div><div id="phpl"><span class="icon">📸</span><p>Ajouter photos</p></div><input type="file" accept="image/*" multiple id="phi" style="display:none" onchange="prvPh(event)"></div>';
     c+='<div id="upload-status"></div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Vase bleu"></div>';
-    c+='<div class="fld-row"><div class="fld"><label>Rubrique</label><select id="f2">';for(var i=0;i<RUB.length;i++)c+='<option value="'+RUB[i].id+'"'+(rb&&rb.id===RUB[i].id?' selected':'')+'>'+RUB[i].i+' '+RUB[i].n+'</option>';c+='</select></div><div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div></div>';
+    c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div>';
+    c+='<input type="hidden" id="f2" value="'+(rb?rb.id:'accessoires')+'">';
     c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲ Moins':'▼ Plus d\'options')+'</div>';
     c+='<div class="form-section'+(MORE?'':' hidden')+'">';
     c+='<div class="fld"><label>Description</label><textarea id="f4"></textarea></div>';
     c+='<div class="fld-row"><div class="fld"><label>Dimensions</label><input id="f5"></div><div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div></div>';
     c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7"></div><div class="fld"><label>Matière</label><input id="f8"></div></div>';
     c+='<div class="fld"><label>Tags</label><input id="f9" placeholder="vintage, bois..."></div>';
-    c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Scène</label><input id="f10"></div><div class="fld"><label>Personnage</label><input id="f11"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12"></div><div class="fld"><label>Continuité</label><input id="f13"></div></div>';
+    c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10"></div><div class="fld"><label>Personnage</label><input id="f11"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12"></div><div class="fld"><label>Continuité</label><input id="f13"></div></div>';
     if(D.loueurs.length){c+='<div class="fld"><label>Loueur</label><select id="f14"><option value="">Aucun</option>';for(var i=0;i<D.loueurs.length;i++)c+='<option value="'+D.loueurs[i].id+'">'+D.loueurs[i].nom+'</option>';c+='</select></div>';}
-    c+='<div class="fld-row"><div class="fld"><label>Estimé €</label><input type="number" id="f15"></div><div class="fld"><label>Réel €</label><input type="number" id="f16"></div></div>';
+    c+='<div class="fld"><label>Coût €</label><input type="number" id="f16"></div>';
+    c+='<input type="hidden" id="f15" value="">';
     c+='<div class="fld-row"><div class="fld"><label>Départ</label><input type="date" id="f17"></div><div class="fld"><label>Retour</label><input type="date" id="f18"></div></div></div>';
     c+='<button class="btn p" id="save-el-btn" onclick="saveEl()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
   else if(M==="edit_element"&&EDIT){
-    c='<div class="mbar"></div><div class="mtit">✏️ Modifier élément</div>';
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier accessoire</div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
-    c+='<div class="fld-row"><div class="fld"><label>Rubrique</label><select id="f2">';for(var i=0;i<RUB.length;i++)c+='<option value="'+RUB[i].id+'"'+(RUB[i].id===EDIT.rubrique?' selected':'')+'>'+RUB[i].i+' '+RUB[i].n+'</option>';c+='</select></div><div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'"'+(STAT[i].id===EDIT.statut?' selected':'')+'>'+STAT[i].l+'</option>';c+='</select></div></div>';
+    c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'"'+(STAT[i].id===EDIT.statut?' selected':'')+'>'+STAT[i].l+'</option>';c+='</select></div>';
+    c+='<input type="hidden" id="f2" value="'+(EDIT.rubrique||'accessoires')+'">';
     c+='<div class="fld"><label>Description</label><textarea id="f4">'+(EDIT.description||"")+'</textarea></div>';
     c+='<div class="fld-row"><div class="fld"><label>Dimensions</label><input id="f5" value="'+(EDIT.dimensions||"")+'"></div><div class="fld"><label>Quantité</label><input type="number" id="f6" value="'+(EDIT.quantite||1)+'"></div></div>';
     c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7" value="'+(EDIT.couleur||"")+'"></div><div class="fld"><label>Matière</label><input id="f8" value="'+(EDIT.matiere||"")+'"></div></div>';
     c+='<div class="fld"><label>Tags</label><input id="f9" value="'+(EDIT.tags||"")+'"></div>';
-    c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Scène</label><input id="f10" value="'+(EDIT.scene||"")+'"></div><div class="fld"><label>Personnage</label><input id="f11" value="'+(EDIT.role||"")+'"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12" value="'+(EDIT.dateJeu||"")+'"></div><div class="fld"><label>Continuité</label><input id="f13" value="'+(EDIT.continuity||"")+'"></div></div>';
+    c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10" value="'+(EDIT.scene||"")+'"></div><div class="fld"><label>Personnage</label><input id="f11" value="'+(EDIT.role||"")+'"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12" value="'+(EDIT.dateJeu||"")+'"></div><div class="fld"><label>Continuité</label><input id="f13" value="'+(EDIT.continuity||"")+'"></div></div>';
     if(D.loueurs.length){c+='<div class="fld"><label>Loueur</label><select id="f14"><option value="">Aucun</option>';for(var i=0;i<D.loueurs.length;i++)c+='<option value="'+D.loueurs[i].id+'"'+(D.loueurs[i].id===EDIT.loueurId?' selected':'')+'>'+D.loueurs[i].nom+'</option>';c+='</select></div>';}
-    c+='<div class="fld-row"><div class="fld"><label>Estimé €</label><input type="number" id="f15" value="'+(EDIT.coutLocation||"")+'"></div><div class="fld"><label>Réel €</label><input type="number" id="f16" value="'+(EDIT.coutReel||"")+'"></div></div>';
+    c+='<div class="fld"><label>Coût €</label><input type="number" id="f16" value="'+(EDIT.coutReel||"")+'"></div>';
+    c+='<input type="hidden" id="f15" value="'+(EDIT.coutLocation||"")+'">';
     c+='<div class="fld-row"><div class="fld"><label>Départ</label><input type="date" id="f17" value="'+(EDIT.dateDepart||"")+'"></div><div class="fld"><label>Retour</label><input type="date" id="f18" value="'+(EDIT.dateRetour||"")+'"></div></div>';
     c+='<button class="btn p" onclick="updateEl()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
@@ -1035,6 +1228,7 @@ function rModal(){
 }
 
 window.goToRubEl=function(eId){for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eId){EL=DC.elements[i];break}M=null;V="el";R();};
+window.quickValidate=function(eId){if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eId){DC.elements[i].statut="valide";sv();R();break;}};
 window.openRubPh=function(rubId,idx){var phs=[];if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++){var e=DC.elements[i];if(e.rubrique===rubId&&e.photos)for(var j=0;j<e.photos.length;j++)phs.push({data:e.photos[j],nom:e.nom});}if(phs.length)openPh(phs,idx);};
 
 var PENDING_FILES=[];
