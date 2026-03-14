@@ -299,6 +299,9 @@ var SYNCING = false;
 var UNSUB = null;
 var LTAB = "join";
 
+// Expose state to window for onclick handlers in innerHTML
+window.D=D;window.P=P;window.DC=DC;window.EL=EL;window.LO=LO;
+
 window.addEventListener("online", function(){ONLINE=true;R();});
 window.addEventListener("offline", function(){ONLINE=false;R();});
 
@@ -560,6 +563,9 @@ window.leaveProject=function(){
 
 // Render
 function R(){
+  // Sync window refs for onclick handlers
+  window.D=D;window.P=P;window.DC=DC;window.EL=EL;window.LO=LO;
+  
   if(!CODE){
     document.getElementById("app").innerHTML = rLogin();
     return;
@@ -894,9 +900,6 @@ function rHome(){
   h2+='<div class="stat"><strong>'+fm(td).replace("€","")+'</strong><small>Budget</small></div>';
   h2+='</div>';
   h+=h2;
-  
-  // Calendar strip
-  h+=rCalendar();
   
   h+='<div class="stit">Mes projets <button onclick="modal(\'np\')">+ Nouveau</button></div>';
   
