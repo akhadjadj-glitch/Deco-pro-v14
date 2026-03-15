@@ -192,40 +192,36 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 
 @media print{.hdr,.navbar,.fab,.modal,.viewer,.menu{display:none!important}body{background:#fff!important;color:#000!important;padding:10px}}
 
-/* Calendar strip */
+/* Calendar strip - Google Calendar style */
 .cal-strip{margin-bottom:16px}
-.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-strip.compact{margin-bottom:0}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
 .cal-header span{font-size:13px;font-weight:600;color:#a5b4fc}
 .cal-header button{background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px 8px}
-.cal-days{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-.cal-day{flex-shrink:0;width:46px;padding:6px 3px;border-radius:10px;background:rgba(255,255,255,0.04);text-align:center;cursor:pointer;position:relative;transition:all 0.2s;scroll-snap-align:start}
-.cal-day:active{transform:scale(0.96)}
-.cal-day.today{background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4)}
-.cal-day.selected{background:rgba(99,102,241,0.35);border:1px solid #6366f1}
-.cal-day.sunday{opacity:0.5}
-.cal-day .day-month{font-size:8px;color:#a5b4fc;text-transform:uppercase;font-weight:700;margin-bottom:1px}
-.cal-day .day-name{font-size:9px;color:#64748b;text-transform:uppercase;margin-bottom:1px}
-.cal-day.today .day-name{color:#a5b4fc}
-.cal-day .day-num{font-size:15px;font-weight:700}
-.cal-day.today .day-num{color:#a5b4fc}
-.cal-bar{height:14px;border-radius:3px;margin:1px 1px 0;font-size:7px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:14px;padding:0 2px}
-.cal-bar.prepa{background:#f59e0b}
-.cal-bar.shoot{background:#ec4899}
-.cal-bar.demo{background:#8b5cf6}
-.cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
-.cal-badge{width:6px;height:6px;border-radius:50%}
-.cal-badge.red{background:#ef4444}
-.cal-badge.orange{background:#f59e0b}
-.cal-badge.pink{background:#ec4899}
-.cal-badge.blue{background:#3b82f6}
-.cal-detail{margin-top:8px}
-.cal-detail-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer}
-.cal-detail-item:active{background:rgba(255,255,255,0.08)}
-.cal-strip.compact{margin-bottom:0}
-.cal-strip.compact .cal-header{margin-bottom:4px}
-.cal-strip.compact .cal-header span{font-size:11px}
-.cal-strip.compact .cal-day{width:42px;padding:4px 2px}
-.cal-strip.compact .day-num{font-size:14px}
+.cal-scroll{display:flex;gap:2px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.cal-col{flex-shrink:0;width:48px;text-align:center}
+.cal-col .col-head{font-size:9px;color:#64748b;text-transform:uppercase;margin-bottom:1px}
+.cal-col.today .col-head{color:#a5b4fc}
+.cal-col .col-num{font-size:15px;font-weight:700;width:32px;height:32px;line-height:32px;margin:0 auto 3px;border-radius:50%;cursor:pointer}
+.cal-col.today .col-num{background:#6366f1;color:#fff}
+.cal-col.selected .col-num{background:rgba(99,102,241,0.3);outline:2px solid #6366f1}
+.cal-col.sunday{opacity:0.45}
+.cal-col .col-month{font-size:7px;color:#a5b4fc;font-weight:700;text-transform:uppercase;margin-bottom:1px}
+.cal-col .col-events{display:flex;flex-direction:column;gap:1px;min-height:12px}
+.cal-event{height:4px;border-radius:2px;width:100%}
+.cal-event.prepa{background:#f59e0b}
+.cal-event.shoot{background:#ec4899}
+.cal-event.demo{background:#8b5cf6}
+.cal-event.depart{background:#6366f1}
+.cal-event.retour{background:#14b8a6}
+.cal-event.urgent{background:#ef4444}
+.cal-detail{margin-top:6px;padding:8px;background:rgba(255,255,255,0.03);border-radius:10px}
+.cal-detail-head{font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:6px}
+.cal-detail-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:3px;font-size:12px;cursor:pointer}
+.cal-detail-item:active{background:rgba(255,255,255,0.1)}
+.cal-detail-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+.cal-detail-name{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal-detail-type{font-size:11px;flex-shrink:0}
 
 /* Toast notification */
 .toast{position:fixed;top:max(20px,env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-100px);background:#10b981;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transition:transform 0.3s;pointer-events:none}
@@ -527,8 +523,7 @@ function getDecorBudget(dc){
   return {loc:loc,achat:achat,total:total};
 }
 
-// (rTimeline supprimee - planning visible directement sur le calendrier)
-
+// Timeline planning
 // Navigation
 window.go=function(v,id){
   VW=null;VWC=null;GSQ="";
@@ -750,20 +745,18 @@ function rCalendarStrip(){
   var now=new Date();
   var todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
   var todayDS=todayY+'-'+(todayM+1<10?'0':'')+(todayM+1)+'-'+(todayD<10?'0':'')+todayD;
-  
-  // Start 7 jours avant aujourd'hui + offset
   var startDate=new Date(todayY,todayM,todayD-7+(CALOFF*7),12,0,0,0);
   var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
   var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
-  var NB_DAYS=28;
-  
+  var NB=28;
+
   var h='<div class="cal-strip compact">';
   h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
   h+='<span>📅 '+MOIS[now.getMonth()]+' '+now.getFullYear()+'</span>';
   h+='<button onclick="calNav(1)">▶</button></div>';
-  h+='<div class="cal-days" id="cal-scroll">';
-  
-  for(var i=0;i<NB_DAYS;i++){
+  h+='<div class="cal-scroll">';
+
+  for(var i=0;i<NB;i++){
     var d=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()+i,12,0,0,0);
     var dy=d.getFullYear(),dm=d.getMonth()+1,dd=d.getDate();
     var ds=dy+'-'+(dm<10?'0':'')+dm+'-'+(dd<10?'0':'')+dd;
@@ -771,43 +764,43 @@ function rCalendarStrip(){
     var isSel=(CALSEL===ds);
     var isSun=(d.getDay()===0);
     var isNewMonth=(i===0||dd===1);
-    var alerts=getAlertsForDate(d);
-    
-    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')"'+(isToday?' id="cal-today"':'')+'>';
-    if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
-    h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
-    h+='<div class="day-num">'+dd+'</div>';
-    if(alerts.prepa.length)h+='<div class="cal-bar prepa" title="Prépa: '+alerts.prepa.map(function(x){return x.d.nom}).join(", ")+'">'+alerts.prepa[0].d.nom.substring(0,5)+'</div>';
-    if(alerts.shoot.length)h+='<div class="cal-bar shoot" title="Tournage: '+alerts.shoot.map(function(x){return x.d.nom}).join(", ")+'">'+alerts.shoot[0].d.nom.substring(0,5)+'</div>';
-    if(alerts.demontage.length)h+='<div class="cal-bar demo" title="Démont: '+alerts.demontage.map(function(x){return x.d.nom}).join(", ")+'">'+alerts.demontage[0].d.nom.substring(0,5)+'</div>';
-    h+='<div class="cal-badges">';
-    if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
-    if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
-    if(alerts.tournage.length)h+='<div class="cal-badge pink"></div>';
-    if(alerts.departs.length)h+='<div class="cal-badge" style="background:#6366f1"></div>';
-    if(alerts.retours.length)h+='<div class="cal-badge" style="background:#14b8a6"></div>';
+    var al=getAlertsForDate(d);
+
+    h+='<div class="cal-col'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')">';
+    if(isNewMonth)h+='<div class="col-month">'+MOIS[d.getMonth()]+'</div>';
+    h+='<div class="col-head">'+JOURS[d.getDay()]+'</div>';
+    h+='<div class="col-num">'+dd+'</div>';
+    h+='<div class="col-events">';
+    if(al.prepa.length)h+='<div class="cal-event prepa"></div>';
+    if(al.shoot.length)h+='<div class="cal-event shoot"></div>';
+    if(al.demontage.length)h+='<div class="cal-event demo"></div>';
+    if(al.urgents.length)h+='<div class="cal-event urgent"></div>';
+    if(al.departs.length)h+='<div class="cal-event depart"></div>';
+    if(al.retours.length)h+='<div class="cal-event retour"></div>';
     h+='</div></div>';
   }
   h+='</div>';
-  
-  // Detail du jour selectionne
+
+  // Detail jour selectionne
   if(CALSEL){
-    var sp=CALSEL.split("-");var selDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2]),12,0,0,0);
+    var sp=CALSEL.split("-");
+    var selDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2]),12,0,0,0);
     var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
-    var selAlerts=getAlertsForDate(selDate);
-    var total=selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
+    var sa=getAlertsForDate(selDate);
+    var total=sa.prepa.length+sa.shoot.length+sa.demontage.length+sa.urgents.length+sa.tournage.length+sa.departs.length+sa.retours.length+sa.nonPrets.length+sa.retards.length;
+
     h+='<div class="cal-detail">';
-    h+='<div style="font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:6px">'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' — '+total+' evnt</div>';
+    h+='<div class="cal-detail-head">'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' '+MOIS[selDate.getMonth()]+' — '+total+' evt</div>';
+
     if(total>0){
-      for(var i=0;i<selAlerts.prepa.length;i++){var x=selAlerts.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#f59e0b;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Prépa</span></div>';}
-      for(var i=0;i<selAlerts.shoot.length;i++){var x=selAlerts.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#ec4899;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#ec4899;margin-left:auto;font-size:11px">Tournage</span></div>';}
-      for(var i=0;i<selAlerts.demontage.length;i++){var x=selAlerts.demontage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#8b5cf6;margin-left:auto;font-size:11px">Démontage</span></div>';}
-      for(var i=0;i<selAlerts.urgents.length;i++){var x=selAlerts.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🚨 <strong>'+x.e.nom+'</strong><span style="color:#ef4444;margin-left:auto;font-size:11px">Urgent</span></div>';}
-      for(var i=0;i<selAlerts.tournage.length;i++){var x=selAlerts.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🎬 <strong>'+x.e.nom+'</strong><span style="color:#ec4899;margin-left:auto;font-size:11px">Jeu</span></div>';}
-      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong><span style="color:#6366f1;margin-left:auto;font-size:11px">Départ</span></div>';}
-      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong><span style="color:#14b8a6;margin-left:auto;font-size:11px">Retour</span></div>';}
-      for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong><span style="color:#3b82f6;margin-left:auto;font-size:11px">Non prêt</span></div>';}
-      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Retard</span></div>';}
+      for(var i=0;i<sa.prepa.length;i++){var x=sa.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div class="cal-detail-dot" style="background:#f59e0b"></div><div class="cal-detail-name">'+x.d.nom+'</div><div class="cal-detail-type" style="color:#f59e0b">Prépa</div></div>';}
+      for(var i=0;i<sa.shoot.length;i++){var x=sa.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div class="cal-detail-dot" style="background:#ec4899"></div><div class="cal-detail-name">'+x.d.nom+'</div><div class="cal-detail-type" style="color:#ec4899">Tournage</div></div>';}
+      for(var i=0;i<sa.demontage.length;i++){var x=sa.demontage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div class="cal-detail-dot" style="background:#8b5cf6"></div><div class="cal-detail-name">'+x.d.nom+'</div><div class="cal-detail-type" style="color:#8b5cf6">Démontage</div></div>';}
+      for(var i=0;i<sa.urgents.length;i++){var x=sa.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div class="cal-detail-dot" style="background:#ef4444"></div><div class="cal-detail-name">'+x.e.nom+'</div><div class="cal-detail-type" style="color:#ef4444">Urgent</div></div>';}
+      for(var i=0;i<sa.tournage.length;i++){var x=sa.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div class="cal-detail-dot" style="background:#ec4899"></div><div class="cal-detail-name">'+x.e.nom+'</div><div class="cal-detail-type" style="color:#ec4899">Jeu</div></div>';}
+      for(var i=0;i<sa.departs.length;i++){var x=sa.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div class="cal-detail-dot" style="background:#6366f1"></div><div class="cal-detail-name">'+x.e.nom+'</div><div class="cal-detail-type" style="color:#6366f1">Départ</div></div>';}
+      for(var i=0;i<sa.retours.length;i++){var x=sa.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div class="cal-detail-dot" style="background:#14b8a6"></div><div class="cal-detail-name">'+x.e.nom+'</div><div class="cal-detail-type" style="color:#14b8a6">Retour</div></div>';}
+      for(var i=0;i<sa.retards.length;i++){var x=sa.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div class="cal-detail-dot" style="background:#f59e0b"></div><div class="cal-detail-name">'+x.e.nom+'</div><div class="cal-detail-type" style="color:#f59e0b">Retard</div></div>';}
     } else {
       h+='<div style="font-size:12px;color:#64748b;padding:4px 0">Rien de prévu</div>';
     }
@@ -896,7 +889,7 @@ window.printProjet=function(pId){
   html+="<h1>"+proj.nom+"</h1><p>"+(proj.production||"")+" • "+(proj.realisateur||"")+"</p>";
   if(proj.decors)for(var j=0;j<proj.decors.length;j++){
     var dc=proj.decors[j];html+="<h2>"+dc.nom+"</h2><p>"+(dc.adresse||"")+"</p>";
-    if(dc.elements&&dc.elements.length){html+="<table><tr><th>Élément</th><th>Rubrique</th><th>Statut</th><th>Séquence</th></tr>";
+    if(dc.elements&&dc.elements.length){html+="<table><tr><th>Élément</th><th>Rubrique</th><th>Statut</th><th>Scène</th></tr>";
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];var st=gs(e.statut);var rb=gr(e.rubrique);html+="<tr><td><strong>"+e.nom+"</strong></td><td>"+(rb?rb.n:"")+"</td><td>"+st.l+"</td><td>"+(e.scene||"")+"</td></tr>";}
       html+="</table>";}
   }
@@ -1042,8 +1035,6 @@ function rProj(){
   h+='<div class="abtn" onclick="edit(\'projet\',P)">✏️ Modifier</div>';
   h+='<div class="abtn d" onclick="delP()">🗑️</div>';
   h+='</div>';
-  
-  // (Timeline supprimee - planning visible sur le calendrier)
   
   // Compteurs par statut
   if(P.decors&&P.decors.length){
@@ -1206,7 +1197,7 @@ function rEl(){
   
   h+='<div class="chips">';
   if(rb)h+='<div class="chip purple">'+rb.i+' '+rb.n+'</div>';
-  if(EL.scene)h+='<div class="chip">🎬 Sq.'+EL.scene+'</div>';
+  if(EL.scene)h+='<div class="chip">🎬 Sc.'+EL.scene+'</div>';
   if(EL.role)h+='<div class="chip pink">👤 '+EL.role+'</div>';
   if(EL.dateJeu)h+='<div class="chip">📅 '+fd(EL.dateJeu)+'</div>';
   h+='</div>';
@@ -1348,7 +1339,6 @@ function rAcc(){
 
 function rSearch(){
   var results=search(GSQ);var h='<div class="page-title">🔍 Recherche</div>';
-  h+='<div class="hdr-search" style="margin-bottom:12px"><input placeholder="Rechercher un élément, décor, loueur..." value="'+GSQ+'" oninput="setGSQ(this.value)" autofocus></div>';
   if(!GSQ||GSQ.length<2){h+='<div class="empty"><div class="icon">🔍</div><p>Tapez au moins 2 caractères</p></div>';}else if(!results.length){h+='<div class="empty"><div class="icon">😕</div><p>Aucun résultat pour "'+GSQ+'"</p></div>';}else{h+='<div class="page-sub">'+results.length+' résultat(s)</div>';for(var i=0;i<results.length;i++){var r=results[i];if(r.t==="projet")h+='<div class="card" onclick="go(\'proj\',\''+r.item.id+'\')"><div class="card-icon">📁</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Projet</p></div></div>';else if(r.t==="decor")h+='<div class="card" onclick="goTo(\''+r.p.id+'\',\''+r.item.id+'\')"><div class="card-icon">🎭</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Décor • '+r.p.nom+'</p></div></div>';else if(r.t==="element"){h+='<div class="card" onclick="goTo(\''+r.p.id+'\',\''+r.d.id+'\',\''+r.item.id+'\')">';if(r.item.photos&&r.item.photos.length)h+='<img src="'+r.item.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else h+='<div class="card-icon">📦</div>';h+='<div class="card-info"><h3>'+r.item.nom+'</h3><p>'+r.d.nom+' • '+r.p.nom+'</p></div></div>';}else if(r.t==="loueur")h+='<div class="card" onclick="go(\'loud\',\''+r.item.id+'\')"><div class="card-icon">🏪</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Loueur</p></div></div>';}}
   return h;
 }
