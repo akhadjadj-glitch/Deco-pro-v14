@@ -5,348 +5,277 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#09090b">
+<meta name="theme-color" content="#6366f1">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Décor Pro</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#09090b;--bg2:#111113;--bg3:#18181b;--bg4:#27272a;
-  --tx:#fafafa;--tx2:#a1a1aa;--tx3:#71717a;
-  --acc:#6366f1;--acc2:#818cf8;--accbg:rgba(99,102,241,0.12);
-  --ok:#22c55e;--okbg:rgba(34,197,94,0.12);
-  --warn:#f59e0b;--warnbg:rgba(245,158,11,0.12);
-  --err:#ef4444;--errbg:rgba(239,68,68,0.12);
-  --brd:rgba(255,255,255,0.08);
-  --r:12px;--r2:16px;
-}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Inter',-apple-system,system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;min-height:100dvh;padding-bottom:calc(70px + env(safe-area-inset-bottom));-webkit-font-smoothing:antialiased}
-button,input,select,textarea{font:inherit;font-size:16px;border:none;background:none;color:inherit;outline:none}
-button{cursor:pointer}
+body{font-family:-apple-system,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;min-height:100vh;padding-bottom:90px}
+button,input,select,textarea{font:inherit;font-size:16px;border:none;background:none;color:inherit}
 
-/* Header */
-.hdr{position:sticky;top:0;z-index:100;background:rgba(9,9,11,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--brd);padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
-.hdr-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
-.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--acc),#8b5cf6);border-radius:10px;display:flex;align-items:center;justify-content:center}
-.logo-icon svg{width:20px;height:20px;color:#fff}
-.hdr-actions{display:flex;align-items:center;gap:8px}
-.sync{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tx3);padding:6px 10px;background:var(--bg3);border-radius:20px}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--ok)}
-.sync.off .sync-dot{background:var(--warn)}
-.sync.syncing .sync-dot{background:var(--acc);animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.3}}
-.icon-btn{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:all .2s}
-.icon-btn:active{background:var(--bg4);transform:scale(.95)}
-.icon-btn svg{width:22px;height:22px}
-.search{position:relative}
-.search input{width:100%;padding:12px 16px 12px 44px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--r);font-size:15px;color:var(--tx);transition:all .2s}
-.search input:focus{border-color:var(--acc);background:var(--bg2)}
-.search input::placeholder{color:var(--tx3)}
-.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--tx3)}
+.hdr{position:sticky;top:0;z-index:100;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));background:rgba(15,23,42,0.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,0.1)}
+.hdr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:17px}
+.logo em{font-style:normal;width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:11px;padding:4px 10px;border-radius:12px;background:rgba(255,255,255,0.05)}
+.sync-status.online{color:#10b981}
+.sync-status.offline{color:#f59e0b}
+.sync-status.syncing{color:#6366f1}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+.sync-status.syncing .sync-dot{animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hdr-search{position:relative}
+.hdr-search input{width:100%;padding:10px 12px 10px 36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);font-size:14px}
+.hdr-search:before{content:"🔍";position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px}
 
-/* Breadcrumb */
-.bread{display:flex;align-items:center;gap:6px;padding:10px 16px;font-size:13px;color:var(--tx3);overflow-x:auto}
-.bread-item{padding:6px 12px;background:var(--bg3);border-radius:8px;white-space:nowrap;cursor:pointer;transition:all .2s}
-.bread-item:active{background:var(--bg4)}
-.bread-item.active{color:var(--acc2);background:var(--accbg)}
-.bread-sep{color:var(--tx3)}
+.bread{display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:12px;color:#64748b;overflow-x:auto;white-space:nowrap}
+.bread span{cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.05)}
+.bread span:hover{background:rgba(255,255,255,0.1)}
+.bread span.current{color:#a5b4fc;background:rgba(99,102,241,0.2)}
+.bread i{font-style:normal;color:#475569}
 
-/* Navigation */
-.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-content:space-around;background:rgba(9,9,11,0.95);backdrop-filter:blur(20px);border-top:1px solid var(--brd);padding:8px 0;padding-bottom:max(8px,env(safe-area-inset-bottom))}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 16px;border-radius:12px;color:var(--tx3);transition:all .2s}
-.nav-item:active{transform:scale(.95)}
-.nav-item.active{color:var(--acc2)}
-.nav-item.active .nav-bg{background:var(--accbg)}
-.nav-item svg{width:24px;height:24px}
-.nav-item span{font-size:11px;font-weight:500}
+.navbar{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;justify-content:space-around;align-items:center;padding:8px 0;padding-bottom:max(8px,env(safe-area-inset-bottom));background:rgba(15,23,42,0.98);backdrop-filter:blur(10px);border-top:1px solid rgba(255,255,255,0.1)}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 12px;border-radius:10px;cursor:pointer;transition:all 0.2s;min-width:60px}
+.nav-item:active{transform:scale(0.95)}
+.nav-item.active{background:rgba(99,102,241,0.2)}
+.nav-item .icon{font-size:22px}
+.nav-item .label{font-size:10px;color:#64748b}
+.nav-item.active .label{color:#a5b4fc}
 
-/* Content */
-.cnt{padding:16px}
-.page-hdr{margin-bottom:20px}
-.page-title{font-size:24px;font-weight:700;margin-bottom:4px}
-.page-sub{font-size:14px;color:var(--tx2)}
+.cnt{padding:16px;padding-bottom:20px}
+.stats{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.stat{flex-shrink:0;background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 14px;text-align:center;min-width:70px}
+.stat strong{display:block;font-size:18px;color:#a5b4fc}
+.stat small{font-size:9px;color:#64748b;text-transform:uppercase}
 
-/* Stats */
-.stats{display:flex;gap:10px;margin-bottom:20px;overflow-x:auto;padding-bottom:4px}
-.stat{flex-shrink:0;background:var(--bg3);border-radius:var(--r);padding:14px 18px;min-width:90px}
-.stat-val{font-size:22px;font-weight:700;color:var(--acc2)}
-.stat-lbl{font-size:11px;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.alerts{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.alert-chip{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer}
+.alert-chip.red{background:rgba(239,68,68,0.2);color:#fca5a5}
+.alert-chip.orange{background:rgba(245,158,11,0.2);color:#fcd34d}
+.alert-chip.pink{background:rgba(236,72,153,0.2);color:#f9a8d4}
+.alert-chip.blue{background:rgba(59,130,246,0.2);color:#93c5fd}
 
-/* Cards */
-.card{background:var(--bg3);border-radius:var(--r);padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .2s;border:1px solid transparent}
-.card:active{background:var(--bg4);transform:scale(.99)}
-.card.urgent{border-left:3px solid var(--err)}
-.card-icon{width:44px;height:44px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.card-icon.img{background-size:cover;background-position:center}
-.card-icon svg{width:22px;height:22px;color:var(--tx2)}
-.card-body{flex:1;min-width:0}
-.card-title{font-size:15px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card-meta{font-size:13px;color:var(--tx3)}
-.card-end{display:flex;align-items:center;gap:8px}
+.stit{font-size:12px;font-weight:600;color:#64748b;text-transform:uppercase;margin:16px 0 10px;letter-spacing:0.5px;display:flex;justify-content:space-between;align-items:center}
+.stit button{font-size:11px;color:#6366f1;background:none;cursor:pointer}
 
-/* Badge */
-.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.badge-default{background:var(--bg4);color:var(--tx2)}
-.badge-accent{background:var(--accbg);color:var(--acc2)}
-.badge-success{background:var(--okbg);color:var(--ok)}
-.badge-warning{background:var(--warnbg);color:var(--warn)}
-.badge-danger{background:var(--errbg);color:var(--err)}
+.card{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;align-items:center;gap:10px;position:relative;overflow:hidden}
+.card.urgent{border-left:3px solid #ef4444}
+.card-icon{font-size:24px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);border-radius:10px;flex-shrink:0}
+.card-info{flex:1;min-width:0}
+.card-info h3{font-size:14px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-info p{font-size:11px;color:#64748b}
+.card-actions{display:flex;gap:4px}
+.card-act{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;background:rgba(255,255,255,0.05)}
+.card-act:active{background:rgba(255,255,255,0.1)}
+.card-act.edit{color:#6366f1}
+.card-act.del{color:#ef4444}
+.card-act.view{color:#10b981}
 
-/* Actions */
-.actions{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:var(--r);font-size:14px;font-weight:500;white-space:nowrap;transition:all .2s}
-.btn:active{transform:scale(.97)}
-.btn svg{width:18px;height:18px}
-.btn-primary{background:linear-gradient(135deg,var(--acc),#8b5cf6);color:#fff}
-.btn-secondary{background:var(--bg3);color:var(--tx2)}
-.btn-danger{background:var(--errbg);color:var(--err)}
-.btn-ghost{color:var(--tx2)}
+.badge{display:inline-block;padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600}
+.fab{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom)+72px));right:16px;width:52px;height:52px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;border-radius:14px;font-size:28px;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,0.4);z-index:90;display:flex;align-items:center;justify-content:center}
+.fab:active{transform:scale(0.95)}
 
-/* Tabs */
-.tabs{display:flex;gap:4px;background:var(--bg3);padding:4px;border-radius:var(--r);margin-bottom:16px}
-.tab{flex:1;padding:10px;border-radius:8px;text-align:center;font-size:13px;font-weight:500;color:var(--tx3);transition:all .2s}
-.tab.active{background:var(--bg);color:var(--tx)}
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.page-sub{font-size:12px;color:#64748b;margin-bottom:16px}
+.box{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:13px}
+.row:last-child{border:none}
+.row span:first-child{color:#64748b}
 
-/* Rubrique Grid */
-.rub-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.rub-card{background:var(--bg3);border-radius:var(--r);padding:16px;cursor:pointer;position:relative;border-left:3px solid var(--acc);transition:all .2s}
-.rub-card:active{background:var(--bg4)}
-.rub-icon{font-size:28px;margin-bottom:8px}
-.rub-name{font-size:14px;font-weight:600;margin-bottom:2px}
-.rub-count{font-size:12px;color:var(--tx3)}
-.rub-badge{position:absolute;top:10px;right:10px;background:var(--accbg);color:var(--acc2);padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.acts{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.abtn{flex-shrink:0;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.05);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.abtn:active{background:rgba(255,255,255,0.1)}
+.abtn.p{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.abtn.d{background:rgba(239,68,68,0.15);color:#ef4444}
 
-/* Gallery Grid */
-.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
-.gallery-item{aspect-ratio:1;border-radius:var(--r);overflow:hidden;background:var(--bg4);cursor:pointer;position:relative}
-.gallery-item img{width:100%;height:100%;object-fit:cover}
-.gallery-item.add{display:flex;align-items:center;justify-content:center;border:2px dashed var(--brd)}
-.gallery-item.add svg{width:28px;height:28px;color:var(--tx3)}
-.gallery-item .overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:flex-end;padding:8px}
-.gallery-item .overlay span{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,0.03);padding:4px;border-radius:10px}
+.tab{flex:1;padding:8px;border-radius:8px;text-align:center;font-size:12px;color:#94a3b8;cursor:pointer}
+.tab.on{background:rgba(99,102,241,0.3);color:#fff}
 
-/* Photo Main */
-.photo-main{width:100%;aspect-ratio:4/3;border-radius:var(--r2);overflow:hidden;background:var(--bg3);margin-bottom:12px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.rub-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.rub-card{background:rgba(255,255,255,0.05);border-radius:12px;padding:12px;cursor:pointer;position:relative}
+.rub-card:active{background:rgba(255,255,255,0.08)}
+.rub-card .icon{font-size:28px;margin-bottom:6px}
+.rub-card h4{font-size:13px;font-weight:600;margin-bottom:2px}
+.rub-card p{font-size:11px;color:#64748b}
+.rub-card .count{position:absolute;top:8px;right:8px;background:rgba(255,255,255,0.1);padding:2px 8px;border-radius:10px;font-size:11px}
+.rub-card.urgent{border:1px solid rgba(239,68,68,0.3)}
+
+.photo-main{width:100%;aspect-ratio:4/3;border-radius:12px;overflow:hidden;margin-bottom:10px;background:#1e293b;cursor:pointer}
 .photo-main img{width:100%;height:100%;object-fit:cover}
-.photo-main.empty{flex-direction:column;gap:8px;color:var(--tx3)}
-.photo-main.empty svg{width:40px;height:40px}
-.photo-thumbs{display:flex;gap:8px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px}
-.photo-thumb{width:60px;height:60px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;border:2px solid transparent}
-.photo-thumb.active{border-color:var(--acc)}
+.photo-row{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px}
+.photo-thumb{width:56px;height:56px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:pointer;border:2px solid transparent}
+.photo-thumb.active{border-color:#6366f1}
 .photo-thumb img{width:100%;height:100%;object-fit:cover}
-.photo-thumb.add{background:var(--bg4);display:flex;align-items:center;justify-content:center}
-.photo-thumb.add svg{width:20px;height:20px;color:var(--tx3)}
+.photo-add{background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:#64748b}
 
-/* Form */
-.field{margin-bottom:14px}
-.field-label{display:block;font-size:12px;font-weight:500;color:var(--tx3);margin-bottom:6px}
-.field-input{width:100%;padding:12px 14px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);font-size:15px;transition:all .2s}
-.field-input:focus{border-color:var(--acc);background:var(--bg)}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.field-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-
-/* Modal */
-.modal{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-end;justify-content:center}
-.modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px)}
-.modal-panel{position:relative;background:var(--bg2);border-radius:var(--r2) var(--r2) 0 0;padding:20px;padding-bottom:max(20px,calc(env(safe-area-inset-bottom)+12px));width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
-.modal-bar{width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 16px}
-.modal-title{font-size:18px;font-weight:700;text-align:center;margin-bottom:20px}
-.modal-btn{width:100%;padding:14px;border-radius:var(--r);font-weight:600;margin-bottom:8px;text-align:center}
-
-/* Code Input */
-.code-box{background:var(--bg3);border-radius:var(--r2);padding:24px;margin-bottom:20px}
-.code-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--bg);padding:4px;border-radius:var(--r)}
-.code-tab{flex:1;padding:12px;border-radius:8px;text-align:center;font-size:14px;font-weight:500;color:var(--tx3)}
-.code-tab.active{background:var(--acc);color:#fff}
-.code-input{font-size:28px;letter-spacing:8px;text-align:center;font-weight:700;text-transform:uppercase}
-.code-display{font-family:'JetBrains Mono',monospace;font-size:28px;letter-spacing:6px;text-align:center;font-weight:700;color:var(--acc2);padding:16px;background:var(--bg);border-radius:var(--r)}
-
-/* Empty */
-.empty{text-align:center;padding:40px 20px;color:var(--tx3)}
-.empty svg{width:48px;height:48px;margin-bottom:12px;opacity:.5}
-.empty p{font-size:14px}
-
-/* Box Info */
-.box{background:var(--bg3);border-radius:var(--r);padding:14px;margin-bottom:12px}
-.box-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--brd);font-size:14px}
-.box-row:last-child{border:none}
-.box-row .label{color:var(--tx3)}
-.box-row .value{font-weight:500}
-.box-row .link{color:var(--acc2)}
-
-/* Total Box */
-.total-box{background:linear-gradient(135deg,var(--accbg),rgba(139,92,246,0.12));border-radius:var(--r);padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
-.total-box .label{color:var(--acc2);font-size:13px}
-.total-box .value{font-size:24px;font-weight:700}
-
-/* Viewer */
-.viewer{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.95);display:flex;flex-direction:column}
-.viewer-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
-.viewer-body{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
-.viewer-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:var(--r)}
-.viewer-nav{position:absolute;top:50%;transform:translateY(-50%);width:50px;height:80px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;border:none;color:#fff}
-.viewer-nav.prev{left:0;border-radius:0 8px 8px 0}
-.viewer-nav.next{right:0;border-radius:8px 0 0 8px}
-
-/* Menu */
-.menu{position:fixed;inset:0;z-index:250}
-.menu-bg{position:absolute;inset:0;background:rgba(0,0,0,.5)}
-.menu-panel{position:absolute;top:0;right:0;bottom:0;width:300px;background:var(--bg2);padding:20px;padding-top:max(20px,env(safe-area-inset-top));overflow-y:auto}
-.menu-hdr{font-size:18px;font-weight:700;margin-bottom:20px}
-.menu-item{display:flex;align-items:center;gap:12px;padding:14px;border-radius:var(--r);margin-bottom:4px;font-size:14px;color:var(--tx2);transition:all .2s}
-.menu-item:active{background:var(--bg4)}
-.menu-item svg{width:20px;height:20px}
-.menu-item.danger{color:var(--err)}
-.menu-divider{height:1px;background:var(--brd);margin:16px 0}
-
-/* Chips */
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
-.chip{padding:6px 12px;border-radius:20px;font-size:12px;font-weight:500;background:var(--bg4)}
-.chip.accent{background:var(--accbg);color:var(--acc2)}
-.chip.pink{background:rgba(236,72,153,0.12);color:#f472b6}
+.chip{padding:4px 10px;border-radius:12px;font-size:11px;background:rgba(255,255,255,0.1)}
+.chip.purple{background:rgba(99,102,241,0.2);color:#a5b4fc}
+.chip.pink{background:rgba(236,72,153,0.2);color:#f9a8d4}
 
-/* Upload Progress */
-.upload-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:8px}
-.upload-fill{height:100%;background:var(--acc);border-radius:2px;transition:width .3s}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:flex-end;justify-content:center;z-index:200}
+.mpan{background:#1e293b;border-radius:20px 20px 0 0;padding:20px;padding-bottom:max(20px,calc(env(safe-area-inset-bottom)+12px));width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.mbar{width:36px;height:4px;background:rgba(255,255,255,0.2);border-radius:2px;margin:0 auto 16px}
+.mtit{font-size:17px;font-weight:700;text-align:center;margin-bottom:16px}
 
-/* FAB */
-.fab{position:fixed;bottom:max(85px,calc(env(safe-area-inset-bottom)+80px));right:16px;width:56px;height:56px;background:linear-gradient(135deg,var(--acc),#8b5cf6);color:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(99,102,241,0.4);z-index:90;transition:all .2s}
-.fab:active{transform:scale(.95)}
-.fab svg{width:26px;height:26px}
+.form-section{margin-bottom:16px}
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:11px;color:#94a3b8;margin-bottom:4px}
+.fld input,.fld select,.fld textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);font-size:14px}
+.fld textarea{min-height:60px;resize:none}
+.fld-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{width:100%;padding:12px;border-radius:10px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:center;font-size:14px}
+.btn.p{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn.s{background:rgba(255,255,255,0.05);color:#94a3b8}
+.btn.d{background:rgba(239,68,68,0.15);color:#ef4444}
+.btn:disabled{opacity:0.5;cursor:not-allowed}
 
-/* Login */
-.login{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
-.login-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--acc),#8b5cf6);border-radius:24px;display:flex;align-items:center;justify-content:center;margin-bottom:20px}
-.login-icon svg{width:44px;height:44px;color:#fff}
-.login-title{font-size:32px;font-weight:700;margin-bottom:8px}
-.login-sub{font-size:15px;color:var(--tx2);margin-bottom:32px}
+.toggle-more{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;color:#6366f1;font-size:12px;cursor:pointer;margin-bottom:12px}
+.hidden{display:none}
 
-/* Section Title */
-.section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.section-title h3{font-size:13px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px}
-.section-title button{font-size:13px;color:var(--acc2);font-weight:500}
+.drop{border:2px dashed rgba(99,102,241,0.3);border-radius:12px;padding:20px;text-align:center;cursor:pointer;margin-bottom:12px;background:rgba(99,102,241,0.05)}
+.drop .icon{font-size:24px;margin-bottom:4px}
+.drop p{font-size:12px;color:#64748b}
 
-/* Loueur Elements Grid */
-.loueur-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-.loueur-el{background:var(--bg3);border-radius:var(--r);overflow:hidden;cursor:pointer}
-.loueur-el-img{aspect-ratio:1;background:var(--bg4);display:flex;align-items:center;justify-content:center}
-.loueur-el-img img{width:100%;height:100%;object-fit:cover}
-.loueur-el-img svg{width:32px;height:32px;color:var(--tx3)}
-.loueur-el-info{padding:10px}
-.loueur-el-name{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.loueur-el-meta{font-size:11px;color:var(--tx3)}
+.viewer{position:fixed;inset:0;background:rgba(0,0,0,0.98);z-index:250;display:flex;flex-direction:column}
+.viewer-hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top))}
+.viewer-hdr button{background:rgba(255,255,255,0.1);border:none;color:#fff;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px}
+.viewer-body{flex:1;display:flex;align-items:center;justify-content:center;padding:16px}
+.viewer-body img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+.viewer-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:80px;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);color:#fff;font-size:20px;cursor:pointer;border:none}
+.viewer-nav.l{left:0;border-radius:0 8px 8px 0}
+.viewer-nav.r{right:0;border-radius:8px 0 0 8px}
+.viewer-ftr{padding:12px;text-align:center;color:#94a3b8;font-size:13px}
 
-/* Print Styles */
-@media print{
-  body{background:#fff;color:#000}
-  .nav,.hdr,.fab,.modal,.menu{display:none!important}
-  .cnt{padding:0}
-}
+.menu{position:fixed;inset:0;z-index:150}
+.menu-bg{position:absolute;inset:0;background:rgba(0,0,0,0.6)}
+.menu-panel{position:absolute;top:0;right:0;bottom:0;width:280px;background:#1e293b;padding:20px;padding-top:max(20px,env(safe-area-inset-top));overflow-y:auto}
+.menu-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:10px;margin-bottom:4px;cursor:pointer;font-size:14px}
+.menu-item:active{background:rgba(255,255,255,0.05)}
+
+.empty{text-align:center;padding:40px 20px;color:#64748b}
+.empty .icon{font-size:40px;margin-bottom:8px;opacity:0.5}
+
+.dep-item{background:rgba(255,255,255,0.05);border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.dep-item h4{font-size:13px;font-weight:600}
+.dep-item p{font-size:11px;color:#64748b}
+.dep-item strong{font-size:16px;color:#10b981}
+
+.total-box{background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(139,92,246,0.15));border-radius:12px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.total-box span{color:#a5b4fc;font-size:12px}
+.total-box strong{font-size:20px}
+
+/* Login Screen */
+.login-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center}
+.login-logo{font-size:64px;margin-bottom:16px}
+.login-title{font-size:28px;font-weight:700;margin-bottom:8px}
+.login-sub{font-size:14px;color:#64748b;margin-bottom:32px}
+.login-box{background:rgba(255,255,255,0.05);border-radius:16px;padding:24px;width:100%;max-width:340px}
+.login-tabs{display:flex;margin-bottom:20px;background:rgba(0,0,0,0.2);border-radius:10px;padding:4px}
+.login-tab{flex:1;padding:10px;border-radius:8px;font-size:13px;cursor:pointer;color:#94a3b8}
+.login-tab.on{background:#6366f1;color:#fff}
+.code-input{font-size:24px;letter-spacing:8px;text-align:center;text-transform:uppercase;font-weight:700}
+.code-display{background:rgba(99,102,241,0.2);border:2px solid #6366f1;border-radius:12px;padding:16px;margin:16px 0;font-size:28px;letter-spacing:6px;font-weight:700;color:#a5b4fc}
+.team-info{background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;margin-top:16px;font-size:12px;color:#64748b}
+
+/* Loader */
+.loader{display:flex;align-items:center;justify-content:center;padding:40px}
+.loader-spin{width:32px;height:32px;border:3px solid rgba(99,102,241,0.2);border-top-color:#6366f1;border-radius:50%;animation:spin 0.8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Upload progress */
+.upload-progress{background:rgba(99,102,241,0.2);border-radius:8px;padding:12px;margin:12px 0}
+.upload-bar{height:4px;background:rgba(255,255,255,0.1);border-radius:2px;overflow:hidden;margin-top:8px}
+.upload-fill{height:100%;background:#6366f1;border-radius:2px;transition:width 0.3s}
+
+@media print{.hdr,.navbar,.fab,.modal,.viewer,.menu{display:none!important}body{background:#fff!important;color:#000!important;padding:10px}}
+
+/* Calendar strip */
+.cal-strip{margin-bottom:16px}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.cal-header span{font-size:13px;font-weight:600;color:#a5b4fc}
+.cal-header button{background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:4px 8px}
+.cal-days{display:flex;gap:4px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.cal-day{flex-shrink:0;width:46px;padding:6px 3px;border-radius:10px;background:rgba(255,255,255,0.04);text-align:center;cursor:pointer;position:relative;transition:all 0.2s;scroll-snap-align:start}
+.cal-day:active{transform:scale(0.96)}
+.cal-day.today{background:rgba(99,102,241,0.25);border:1px solid rgba(99,102,241,0.4)}
+.cal-day.selected{background:rgba(99,102,241,0.35);border:1px solid #6366f1}
+.cal-day.sunday{opacity:0.5}
+.cal-day .day-month{font-size:8px;color:#a5b4fc;text-transform:uppercase;font-weight:700;margin-bottom:1px}
+.cal-day .day-name{font-size:9px;color:#64748b;text-transform:uppercase;margin-bottom:1px}
+.cal-day.today .day-name{color:#a5b4fc}
+.cal-day .day-num{font-size:15px;font-weight:700}
+.cal-day.today .day-num{color:#a5b4fc}
+.cal-bar{height:3px;border-radius:2px;margin:2px 2px 0}
+.cal-bar.prepa{background:#f59e0b}
+.cal-bar.shoot{background:#ec4899}
+.cal-bar.demo{background:#8b5cf6}
+.cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
+.cal-badge{width:6px;height:6px;border-radius:50%}
+.cal-badge.red{background:#ef4444}
+.cal-badge.orange{background:#f59e0b}
+.cal-badge.pink{background:#ec4899}
+.cal-badge.blue{background:#3b82f6}
+.cal-detail{margin-top:8px}
+.cal-detail-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer}
+.cal-detail-item:active{background:rgba(255,255,255,0.08)}
+.cal-strip.compact{margin-bottom:0}
+.cal-strip.compact .cal-header{margin-bottom:4px}
+.cal-strip.compact .cal-header span{font-size:11px}
+.cal-strip.compact .cal-day{width:42px;padding:4px 2px}
+.cal-strip.compact .day-num{font-size:14px}
+
+/* Toast notification */
+.toast{position:fixed;top:max(20px,env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-100px);background:#10b981;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transition:transform 0.3s;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.error{background:#ef4444}
+
+/* Filter chips */
+.filter-row{display:flex;gap:4px;overflow-x:auto;margin-bottom:10px;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.filter-chip{flex-shrink:0;padding:6px 12px;border-radius:16px;font-size:11px;font-weight:500;cursor:pointer;background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid transparent;transition:all 0.2s}
+.filter-chip.on{background:rgba(99,102,241,0.2);color:#a5b4fc;border-color:rgba(99,102,241,0.3)}
+.filter-chip:active{transform:scale(0.96)}
+
+/* Back button */
+.back-btn{display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:8px;font-size:12px;color:#64748b;cursor:pointer;background:rgba(255,255,255,0.05);margin-bottom:10px}
+.back-btn:active{background:rgba(255,255,255,0.1)}
+
+/* Search floating button */
+.search-fab{position:fixed;bottom:max(80px,calc(env(safe-area-inset-bottom)+72px));left:16px;width:44px;height:44px;background:rgba(255,255,255,0.1);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;z-index:90;backdrop-filter:blur(10px)}
+.search-fab:active{background:rgba(255,255,255,0.2)}
+
+/* Timeline gantt */
+.timeline{margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.timeline-row{display:flex;align-items:center;margin-bottom:6px;min-height:28px}
+.timeline-label{width:100px;flex-shrink:0;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:6px}
+.timeline-track{flex:1;height:20px;position:relative;background:rgba(255,255,255,0.03);border-radius:4px}
+.timeline-bar{position:absolute;height:100%;border-radius:4px;min-width:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:600;overflow:hidden;cursor:pointer}
+.timeline-bar:active{opacity:0.8}
+.timeline-header{display:flex;margin-bottom:4px}
+.timeline-header span{flex-shrink:0;text-align:center;font-size:9px;color:#64748b}
+
+/* Budget decor */
+.budget-row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
+.budget-row span:first-child{color:#64748b}
+.budget-total{font-weight:700;color:#10b981;font-size:15px}
 </style>
 </head>
 <body>
-<div id="app"><div class="loader"><div class="loader-ring"></div></div></div>
+<div id="app"><div class="loader"><div class="loader-spin"></div></div></div>
+<div id="toast" class="toast"></div>
 
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
 <script>
 // ============================================
-// ICONS (Lucide-style SVG)
+// 🔥 FIREBASE CONFIG - REMPLACEZ PAR VOS VALEURS
 // ============================================
-var Icons = {
-  clapperboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>',
-  home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  palette: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.555C21.965 6.012 17.461 2 12 2z"/></svg>',
-  wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>',
-  store: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>',
-  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>',
-  menu: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>',
-  plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>',
-  x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
-  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>',
-  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>',
-  printer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>',
-  copy: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>',
-  camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
-  phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
-  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
-  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>',
-  upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>',
-  logOut: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>',
-  chevronLeft: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>',
-  chevronRight: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>',
-  alertTriangle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
-  package: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>',
-  image: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>',
-  grid: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>',
-  zap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
-  building: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
-  trees: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10v.2A3 3 0 0 1 8.9 16v0H5v0h0a3 3 0 0 1-1-5.8V10a3 3 0 0 1 6 0Z"/><path d="M7 16v6"/><path d="M13 19v3"/><path d="M12 19h8.3a1 1 0 0 0 .7-1.7L18 14h.3a1 1 0 0 0 .7-1.7L16 9h.2a1 1 0 0 0 .8-1.7L13 3l-1.4 1.5"/></svg>'
-};
-
-// ============================================
-// DATA CONSTANTS
-// ============================================
-var RUB = [
-  {id:'mobilier',n:'Mobilier',i:'🪑',c:'#6366f1'},
-  {id:'accessoires',n:'Accessoires',i:'🎭',c:'#ec4899'},
-  {id:'regie',n:'Régie',i:'🏢',c:'#14b8a6'},
-  {id:'luminaires',n:'Luminaires',i:'💡',c:'#f59e0b'},
-  {id:'deco',n:'Déco',i:'🖼️',c:'#8b5cf6'},
-  {id:'textiles',n:'Textiles',i:'🧵',c:'#ef4444'},
-  {id:'graphiques',n:'Graphiques',i:'📋',c:'#06b6d4'},
-  {id:'consommables',n:'Consommables',i:'📦',c:'#64748b'}
-];
-var STAT = [
-  {id:'a_sourcer',l:'À sourcer',c:'#64748b'},
-  {id:'en_recherche',l:'En recherche',c:'#f59e0b'},
-  {id:'valide',l:'Validé',c:'#3b82f6'},
-  {id:'reserve',l:'Réservé',c:'#6366f1'},
-  {id:'loue',l:'Loué',c:'#ec4899'},
-  {id:'livre',l:'Livré',c:'#14b8a6'},
-  {id:'installe',l:'Installé',c:'#10b981'},
-  {id:'restitue',l:'Restitué',c:'#22c55e'}
-];
-var STATD = [
-  {id:'a_preparer',l:'À préparer',c:'#64748b'},
-  {id:'en_cours',l:'En cours',c:'#f59e0b'},
-  {id:'pret',l:'Prêt',c:'#10b981'},
-  {id:'en_tournage',l:'En tournage',c:'#6366f1'},
-  {id:'termine',l:'Terminé',c:'#22c55e'}
-];
-var TPROJ = [
-  {id:'film',l:'Film',i:'🎬'},
-  {id:'serie',l:'Série',i:'📺'},
-  {id:'pub',l:'Pub',i:'📢'},
-  {id:'clip',l:'Clip',i:'🎵'},
-  {id:'autre',l:'Autre',i:'📁'}
-];
-
-// ============================================
-// STATE
-// ============================================
-var CODE = localStorage.getItem('dp_code') || null;
-var D = {projets:[], loueurs:[], depenses:[]};
-var V = 'home';
-var P = null, DC = null, EL = null, LO = null, RB = null;
-var M = null, MN = false, TB = 'rub', VW = null, VWC = null, VWI = 0;
-var GSQ = '', LTAB = 'join', ONLINE = navigator.onLine, SYNCING = false, UNSUB = null;
-var PENDING_FILES = [], MORE = false, EDIT = null;
-
-window.addEventListener('online', function(){ ONLINE = true; R(); });
-window.addEventListener('offline', function(){ ONLINE = false; R(); });
-
-// ============================================
-// FIREBASE
-// ============================================
-var firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyC8ODVc9s7ItdYpETiKfegRSFsPyFC7mpY",
   authDomain: "decor-pro-7a94a.firebaseapp.com",
   projectId: "decor-pro-7a94a",
@@ -354,744 +283,1386 @@ var firebaseConfig = {
   messagingSenderId: "243517980120",
   appId: "1:243517980120:web:2ef30c160b56b91b8786ad"
 };
-firebase.initializeApp(firebaseConfig);
-var db = firebase.firestore();
-var storage = firebase.storage();
-db.enablePersistence().catch(function(e){ console.log('Persistence:', e); });
+// ============================================
 
-function subscribeToProject(code) {
-  if (UNSUB) UNSUB();
-  SYNCING = true; R();
-  UNSUB = db.collection('projects').doc(code).onSnapshot(function(doc) {
-    SYNCING = false;
-    if (doc.exists) {
+var HAS_FIREBASE = false;
+var db = null;
+var storage = null;
+function hasRealFirebaseConfig(){
+  return firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("VOTRE_")!==0 && firebaseConfig.projectId && firebaseConfig.projectId.indexOf("VOTRE_")!==0;
+}
+try{
+  if(window.firebase && hasRealFirebaseConfig()){
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    storage = firebase.storage();
+    HAS_FIREBASE = true;
+    db.enablePersistence().catch(function(err){ console.log("Persistence error:", err); });
+  }
+}catch(err){
+  console.log("Firebase indisponible, bascule en mode local", err);
+  HAS_FIREBASE = false;
+}
+function loadLocalData(){
+  try{return JSON.parse(localStorage.getItem("decorpro_local_data")||'{"projets":[],"loueurs":[],"depenses":[]}');}
+  catch(e){return {projets:[],loueurs:[],depenses:[]};}
+}
+function saveLocalData(data){
+  localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[]}));
+}
+function fileToDataUrl(file, callback){
+  var reader = new FileReader();
+  reader.onload = function(e){ callback(e.target.result); };
+  reader.onerror = function(){ callback(null); };
+  reader.readAsDataURL(file);
+}
+
+(function(){
+var RUB=[{id:"mobilier",n:"Ensembliage",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires de Jeu",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie D'ex",i:"🏢",c:"#14b8a6"},{id:"graphiques",n:"Graphismes",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"}];
+var STAT=[{id:"a_sourcer",l:"À sourcer",c:"#64748b"},{id:"a_valider",l:"À valider",c:"#f59e0b"},{id:"valide",l:"Validé",c:"#3b82f6"},{id:"loue",l:"Loué",c:"#ec4899"},{id:"installe",l:"Installé",c:"#10b981"},{id:"restitue",l:"Restitué",c:"#22c55e"}];
+var STATD=[{id:"a_preparer",l:"À préparer",c:"#64748b"},{id:"en_cours",l:"En cours",c:"#f59e0b"},{id:"pret",l:"Prêt",c:"#10b981"},{id:"en_tournage",l:"En tournage",c:"#6366f1"},{id:"termine",l:"Terminé",c:"#22c55e"}];
+var TPROJ=[{id:"film",l:"Film",i:"🎬"},{id:"serie",l:"Série",i:"📺"},{id:"pub",l:"Pub",i:"📢"},{id:"clip",l:"Clip",i:"🎵"},{id:"autre",l:"Autre",i:"📁"}];
+var TDEP=[{id:"location",l:"Location"},{id:"achat",l:"Achat"},{id:"transport",l:"Transport"},{id:"fabrication",l:"Fabrication"},{id:"autre",l:"Autre"}];
+
+// State
+var CODE = localStorage.getItem("dp_code") || null;
+var D = {projets:[],loueurs:[],depenses:[]};
+var V="home",P=null,DC=null,EL=null,LO=null,RB=null,M=null,MN=false,TB="rub",VW=null,VWC=null,VWI=0,SQ="",GSQ="",PHS=[],EDIT=null,MORE=false,RTL="all";
+var CALSEL=null;
+var CALOFF=0;
+var DFILT="all";
+var DSORT="name";
+var SEARCHOPEN=false;
+var ONLINE = navigator.onLine;
+var SYNCING = false;
+var UNSUB = null;
+var LTAB = "join";
+
+// Expose state to window for onclick handlers in innerHTML
+window.D=D;window.P=P;window.DC=DC;window.EL=EL;window.LO=LO;
+
+window.addEventListener("online", function(){ONLINE=true;R();});
+window.addEventListener("offline", function(){ONLINE=false;R();});
+
+function gs(id){for(var i=0;i<STAT.length;i++)if(STAT[i].id===id)return STAT[i];return STAT[0]}
+function gsd(id){for(var i=0;i<STATD.length;i++)if(STATD[i].id===id)return STATD[i];return STATD[0]}
+function gr(id){for(var i=0;i<RUB.length;i++)if(RUB[i].id===id)return RUB[i];return null}
+function gt(id){for(var i=0;i<TPROJ.length;i++)if(TPROJ[i].id===id)return TPROJ[i];return TPROJ[0]}
+function gl(id){for(var i=0;i<D.loueurs.length;i++)if(D.loueurs[i].id===id)return D.loueurs[i];return null}
+function fd(d){return d?new Date(d).toLocaleDateString("fr-FR",{day:"numeric",month:"short"}):"-"}
+function fm(n){return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(n||0)}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5)}
+function genCode(){var c="";var chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";for(var i=0;i<6;i++)c+=chars[Math.floor(Math.random()*chars.length)];return c}
+function money(v){var n=parseFloat(v);return isNaN(n)?0:n}
+function isRentedElement(e){
+  if(!e)return false;
+  return !!(e.loueurId || e.coutLocation || e.coutReel || e.dateDepart || e.dateRetour || e.statut==="loue" || e.statut==="reserve" || e.statut==="livre" || e.statut==="restitue");
+}
+function getRentItems(){
+  var items=[];
+  for(var i=0;i<D.projets.length;i++){
+    var p=D.projets[i]; if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){
+      var d=p.decors[j]; if(!d.elements)continue;
+      for(var k=0;k<d.elements.length;k++){
+        var e=d.elements[k];
+        if(isRentedElement(e)) items.push({e:e,d:d,p:p,l: e.loueurId?gl(e.loueurId):null});
+      }
+    }
+  }
+  return items;
+}
+function setRentTab(v){RTL=v;R();}
+function getDecorPortfolioGroups(){
+  var groups=[];
+  for(var i=0;i<RUB.length;i++){
+    var r=RUB[i], arr=[];
+    if(DC&&DC.elements) for(var j=0;j<DC.elements.length;j++){
+      var e=DC.elements[j];
+      if(e.rubrique===r.id && e.photos && e.photos.length){
+        for(var k=0;k<e.photos.length;k++) arr.push({data:e.photos[k],nom:e.nom,rubrique:r.n});
+      }
+    }
+    if(arr.length) groups.push({rubrique:r, photos:arr});
+  }
+  return groups;
+}
+window.setTB=function(v){TB=v;R();}
+
+
+// Firebase sync
+function subscribeToProject(code){
+  if(!HAS_FIREBASE){
+    SYNCING=false;
+    D = loadLocalData();
+    CODE = code || "LOCAL";
+    R();
+    return;
+  }
+  if(UNSUB)UNSUB();
+  SYNCING=true;R();
+  
+  UNSUB = db.collection("projects").doc(code).onSnapshot(function(doc){
+    SYNCING=false;
+    if(doc.exists){
       var data = doc.data();
       D.projets = data.projets || [];
       D.loueurs = data.loueurs || [];
       D.depenses = data.depenses || [];
-      // Restore references
-      if (P) { var pid = P.id; P = null; for (var i = 0; i < D.projets.length; i++) if (D.projets[i].id === pid) { P = D.projets[i]; break; } }
-      if (DC && P && P.decors) { var did = DC.id; DC = null; for (var i = 0; i < P.decors.length; i++) if (P.decors[i].id === did) { DC = P.decors[i]; break; } }
-      if (EL && DC && DC.elements) { var eid = EL.id; EL = null; for (var i = 0; i < DC.elements.length; i++) if (DC.elements[i].id === eid) { EL = DC.elements[i]; break; } }
-      if (LO) { var lid = LO.id; LO = null; for (var i = 0; i < D.loueurs.length; i++) if (D.loueurs[i].id === lid) { LO = D.loueurs[i]; break; } }
+      if(P){var pid=P.id;P=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pid){P=D.projets[i];break}}
+      if(DC&&P&&P.decors){var did=DC.id;DC=null;for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===did){DC=P.decors[i];break}}
+      if(EL&&DC&&DC.elements){var eid=EL.id;EL=null;for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eid){EL=DC.elements[i];break}}
+      R();
     }
-    R();
-  }, function(err) { console.error('Firestore:', err); SYNCING = false; R(); });
+  }, function(err){
+    console.error("Firestore error:", err);
+    SYNCING=false;R();
+  });
 }
 
-function sv() {
-  if (!CODE) return;
-  SYNCING = true; R();
-  db.collection('projects').doc(CODE).set({
+function saveToFirebase(){
+  if(!HAS_FIREBASE){ saveLocalData(D); SYNCING=false; return; }
+  if(!CODE)return;
+  SYNCING=true;R();
+  db.collection("projects").doc(CODE).set({
     projets: D.projets,
     loueurs: D.loueurs,
     depenses: D.depenses,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(function() { SYNCING = false; R(); }).catch(function(err) { console.error('Save:', err); SYNCING = false; R(); });
+  }).then(function(){
+    SYNCING=false;R();
+  }).catch(function(err){
+    console.error("Save error:", err);
+    SYNCING=false;R();
+  });
 }
 
-function uploadPhoto(file, cb) {
-  var path = 'projects/' + CODE + '/photos/' + uid() + '_' + file.name;
+function sv(){saveToFirebase();toast("Sauvegardé");}
+
+// Photo upload to Firebase Storage
+function uploadPhoto(file, callback){
+  if(!HAS_FIREBASE || !CODE){ fileToDataUrl(file, callback); return; }
+  var path = "projects/"+CODE+"/photos/"+uid()+"_"+file.name;
   var ref = storage.ref(path);
-  ref.put(file).then(function(snap) {
-    snap.ref.getDownloadURL().then(function(url) { cb(url); });
-  }).catch(function(err) { console.error('Upload:', err); cb(null); });
+  var task = ref.put(file);
+  task.on("state_changed", 
+    function(snapshot){
+      var pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      if(window.updateUploadProgress)window.updateUploadProgress(pct);
+    },
+    function(err){console.error("Upload error:",err);callback(null);},
+    function(){ task.snapshot.ref.getDownloadURL().then(function(url){ callback(url); }); }
+  );
 }
 
-// ============================================
-// UTILS
-// ============================================
-function uid() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
-function genCode() { var c = '', chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; for (var i = 0; i < 6; i++) c += chars[Math.floor(Math.random() * chars.length)]; return c; }
-function fd(d) { return d ? new Date(d).toLocaleDateString('fr-FR', {day:'numeric',month:'short'}) : '-'; }
-function fm(n) { return new Intl.NumberFormat('fr-FR', {style:'currency',currency:'EUR'}).format(n || 0); }
-function gs(id) { for (var i = 0; i < STAT.length; i++) if (STAT[i].id === id) return STAT[i]; return STAT[0]; }
-function gsd(id) { for (var i = 0; i < STATD.length; i++) if (STATD[i].id === id) return STATD[i]; return STATD[0]; }
-function gr(id) { for (var i = 0; i < RUB.length; i++) if (RUB[i].id === id) return RUB[i]; return null; }
-function gt(id) { for (var i = 0; i < TPROJ.length; i++) if (TPROJ[i].id === id) return TPROJ[i]; return TPROJ[0]; }
-function gl(id) { for (var i = 0; i < D.loueurs.length; i++) if (D.loueurs[i].id === id) return D.loueurs[i]; return null; }
-function gv(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
-function icon(name) { return Icons[name] || ''; }
+function getAlerts(){
+  var today=new Date();today.setHours(12,0,0,0);
+  var tomorrow=new Date(today);tomorrow.setDate(tomorrow.getDate()+1);
+  var a={urgents:[],retards:[],nonPrets:[],aujourdhui:[],demain:[]};
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;
+      for(var k=0;k<d.elements.length;k++){var e=d.elements[k];
+        if(e.urgent)a.urgents.push({e:e,d:d,p:p});
+        if(e.dateJeu){var dj=new Date(e.dateJeu);dj.setHours(12,0,0,0);
+          if(dj.getTime()===today.getTime())a.aujourdhui.push({e:e,d:d,p:p});
+          else if(dj.getTime()===tomorrow.getTime())a.demain.push({e:e,d:d,p:p});
+          if(dj<=tomorrow&&e.statut!=="installe"&&e.statut!=="livre")a.nonPrets.push({e:e,d:d,p:p});}
+        if(e.dateRetour){var dr=new Date(e.dateRetour);dr.setHours(12,0,0,0);
+          if(dr<today&&e.statut!=="restitue")a.retards.push({e:e,d:d,p:p});}}}}
+  return a;
+}
 
-// ============================================
-// NAVIGATION
-// ============================================
-window.go = function(v, id) {
-  VW = null; VWC = null; GSQ = '';
-  if (v === 'home') { V = 'home'; P = null; DC = null; EL = null; }
-  else if (v === 'proj') { for (var i = 0; i < D.projets.length; i++) if (D.projets[i].id === id) { P = D.projets[i]; break; } V = 'proj'; DC = null; EL = null; }
-  else if (v === 'dec') { if (P && P.decors) for (var i = 0; i < P.decors.length; i++) if (P.decors[i].id === id) { DC = P.decors[i]; break; } V = 'dec'; EL = null; TB = 'rub'; }
-  else if (v === 'el') { if (DC && DC.elements) for (var i = 0; i < DC.elements.length; i++) if (DC.elements[i].id === id) { EL = DC.elements[i]; break; } V = 'el'; }
-  else if (v === 'lou') { V = 'lou'; LO = null; }
-  else if (v === 'loud') { for (var i = 0; i < D.loueurs.length; i++) if (D.loueurs[i].id === id) { LO = D.loueurs[i]; break; } V = 'loud'; }
-  else if (v === 'dep') { V = 'dep'; }
-  else if (v === 'acc') { V = 'acc'; }
-  else if (v === 'gal') { RB = id; V = 'gal'; }
+function search(q){
+  if(!q||q.length<2)return[];q=q.toLowerCase();var r=[];
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];
+    if(p.nom.toLowerCase().indexOf(q)>=0)r.push({t:"projet",item:p});
+    if(p.decors)for(var j=0;j<p.decors.length;j++){var d=p.decors[j];
+      if(d.nom.toLowerCase().indexOf(q)>=0)r.push({t:"decor",item:d,p:p});
+      if(d.elements)for(var k=0;k<d.elements.length;k++){var e=d.elements[k];
+        if(e.nom.toLowerCase().indexOf(q)>=0||(e.tags&&e.tags.toLowerCase().indexOf(q)>=0)||(e.scene&&e.scene.toLowerCase().indexOf(q)>=0)||(e.role&&e.role.toLowerCase().indexOf(q)>=0))r.push({t:"element",item:e,d:d,p:p});}}}
+  for(var i=0;i<D.loueurs.length;i++)if(D.loueurs[i].nom.toLowerCase().indexOf(q)>=0)r.push({t:"loueur",item:D.loueurs[i]});
+  return r.slice(0,20);
+}
+
+// Toast notification
+function toast(msg,err){
+  var t=document.getElementById("toast");if(!t)return;
+  t.textContent=msg;t.className="toast"+(err?" error":"");
+  setTimeout(function(){t.classList.add("show");},10);
+  setTimeout(function(){t.classList.remove("show");},2500);
+}
+
+// Filtres decors
+window.setDFilt=function(f){DFILT=f;R();};
+window.setDSort=function(s){DSORT=s;R();};
+window.toggleSearch=function(){SEARCHOPEN=!SEARCHOPEN;if(SEARCHOPEN){V="search";GSQ="";}R();};
+
+// Compression photo
+function compressPhoto(file,maxW,quality,cb){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.width,h=img.height;
+      if(w>maxW){h=h*(maxW/w);w=maxW;}
+      var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+      var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
+      canvas.toBlob(function(blob){cb(new File([blob],file.name,{type:"image/jpeg"}));},
+        "image/jpeg",quality||0.7);
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Budget par decor
+function getDecorBudget(dc){
+  var loc=0,achat=0,total=0;
+  if(dc.elements)for(var i=0;i<dc.elements.length;i++){
+    var e=dc.elements[i];
+    var c=parseFloat(e.coutReel)||parseFloat(e.coutLocation)||0;
+    if(e.loueurId||e.statut==="loue")loc+=c;else achat+=c;
+    total+=c;
+  }
+  return {loc:loc,achat:achat,total:total};
+}
+
+// Timeline planning
+function rTimeline(){
+  if(!P||!P.decors||!P.decors.length)return "";
+  var decors=P.decors.filter(function(d){return d.dateInstallation||d.dateTournage||d.dateDemontage;});
+  if(!decors.length)return "";
+  
+  function pDate(s){if(!s)return null;var p=s.split("-");return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]),12,0,0,0);}
+  function diffD(a,b){return Math.round((b-a)/(1000*60*60*24));}
+  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  function fmtD(d){return d.getDate()+' '+MOIS[d.getMonth()];}
+  
+  // Trier par date de prepa/tournage
+  decors.sort(function(a,b){
+    var da=pDate(a.dateInstallation||a.dateTournage)||new Date(9999,0);
+    var db=pDate(b.dateInstallation||b.dateTournage)||new Date(9999,0);
+    return da-db;
+  });
+  
+  var h='<div class="box" style="padding:12px">';
+  h+='<div style="font-weight:600;font-size:14px;margin-bottom:10px">📅 Planning décors</div>';
+  
+  // Legende
+  h+='<div style="display:flex;gap:12px;margin-bottom:10px;font-size:11px">';
+  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block"></span>Prépa</span>';
+  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ec4899;display:inline-block"></span>Tournage</span>';
+  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;display:inline-block"></span>Démontage</span>';
+  h+='</div>';
+  
+  for(var i=0;i<decors.length;i++){
+    var d=decors[i];
+    h+='<div style="margin-bottom:10px;cursor:pointer" onclick="go(\'dec\',\''+d.id+'\')">';
+    h+='<div style="font-size:13px;font-weight:600;margin-bottom:4px">'+d.nom+(d.sequences?' <span style="color:#64748b;font-weight:400">Sq.'+d.sequences+'</span>':'')+'</div>';
+    h+='<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,0.03)">';
+    
+    var segments=[];
+    var pi=pDate(d.dateInstallation),pt=pDate(d.dateTournage),ptf=pDate(d.dateTournageFin),pdm=pDate(d.dateDemontage);
+    
+    if(pi&&pt){
+      var days=diffD(pi,pt);if(days<1)days=1;
+      segments.push({color:'#f59e0b',label:'Prépa '+fmtD(pi),days:days});
+    } else if(pi){
+      segments.push({color:'#f59e0b',label:'Prépa '+fmtD(pi),days:1});
+    }
+    
+    if(pt){
+      var end=ptf||pt;
+      var days=diffD(pt,end)+1;if(days<1)days=1;
+      segments.push({color:'#ec4899',label:'Tournage '+fmtD(pt)+(ptf?' → '+fmtD(ptf):''),days:days});
+    }
+    
+    if(pdm){
+      // Espace entre tournage fin et demontage
+      if(ptf||pt){
+        var last=ptf||pt;
+        var gap=diffD(last,pdm)-1;
+        if(gap>0)segments.push({color:'transparent',label:'',days:gap});
+      }
+      segments.push({color:'#8b5cf6',label:'Démont. '+fmtD(pdm),days:1});
+    }
+    
+    var totalSeg=0;for(var j=0;j<segments.length;j++)totalSeg+=segments[j].days;
+    if(totalSeg<1)totalSeg=1;
+    
+    for(var j=0;j<segments.length;j++){
+      var seg=segments[j];
+      var pct=Math.max(seg.days/totalSeg*100,2);
+      if(seg.color!=='transparent'){
+        h+='<div style="width:'+pct+'%;background:'+seg.color+';display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:600;padding:0 4px;white-space:nowrap;overflow:hidden">'+(pct>15?seg.label:'')+'</div>';
+      } else {
+        h+='<div style="width:'+pct+'%"></div>';
+      }
+    }
+    h+='</div></div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+// Navigation
+window.go=function(v,id){
+  VW=null;VWC=null;GSQ="";
+  if(v==="home"){V="home";P=null;DC=null;EL=null}
+  else if(v==="proj"){for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===id){P=D.projets[i];break}V="proj";DC=null;EL=null}
+  else if(v==="dec"){if(P&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===id){DC=P.decors[i];break}V="dec";EL=null;TB="rub"}
+  else if(v==="el"){if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===id){EL=DC.elements[i];break}V="el"}
+  else if(v==="lou"){V="lou";LO=null}
+  else if(v==="loud"){for(var i=0;i<D.loueurs.length;i++)if(D.loueurs[i].id===id){LO=D.loueurs[i];break}V="loud"}
+  else if(v==="rent"){V="rent";RTL="all"}
+  else if(v==="dep"){V="dep"}
+  else if(v==="acc"){V="acc";SQ=""}
+  else if(v==="print"){V="print"}
+  else if(v==="search"){V="search"}
   R();
 };
-window.goTo = function(pId, dId, eId) {
-  for (var i = 0; i < D.projets.length; i++) if (D.projets[i].id === pId) { P = D.projets[i]; break; }
-  if (dId && P.decors) for (var i = 0; i < P.decors.length; i++) if (P.decors[i].id === dId) { DC = P.decors[i]; break; }
-  if (eId && DC && DC.elements) for (var i = 0; i < DC.elements.length; i++) if (DC.elements[i].id === eId) { EL = DC.elements[i]; break; }
-  V = eId ? 'el' : (dId ? 'dec' : 'proj'); R();
+window.goTo=function(pId,dId,eId){
+  for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pId){P=D.projets[i];break}
+  if(dId&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===dId){DC=P.decors[i];break}
+  if(eId&&DC&&DC.elements)for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eId){EL=DC.elements[i];break}
+  V=eId?"el":(dId?"dec":"proj");R();
 };
-window.modal = function(m, id) { M = m; RB = id || null; PHS = []; EDIT = null; MORE = false; PENDING_FILES = []; R(); };
-window.edit = function(t, o) { M = 'edit_' + t; EDIT = o; MORE = true; R(); };
-window.menu = function(v) { MN = v; R(); };
-window.setTab = function(t) { TB = t; R(); };
-window.setLTab = function(t) { LTAB = t; R(); };
-window.toggleMore = function() { MORE = !MORE; R(); };
-window.openPh = function(c, i) { VWC = c; VWI = i; VW = true; R(); };
-window.closePh = function() { VW = null; VWC = null; R(); };
-window.navPh = function(d) { if (VWC) { VWI += d; if (VWI < 0) VWI = VWC.length - 1; if (VWI >= VWC.length) VWI = 0; R(); } };
-window.setStat = function(s) { if (EL) { EL.statut = s; sv(); R(); } };
-window.toggleUrg = function() { if (EL) { EL.urgent = !EL.urgent; sv(); R(); } };
-window.copyCode = function() { navigator.clipboard.writeText(CODE).then(function() { alert('Code copié: ' + CODE); }); };
+window.modal=function(m,id){M=m;RB=id||null;PHS=[];EDIT=null;MORE=false;R()};
+window.edit=function(t,o){M="edit_"+t;EDIT=o;MORE=true;R()};
+window.menu=function(v){MN=v;R()};
+window.setTab=function(t){TB=t;R()};
+window.setGSQ=function(q){GSQ=q;R()};
+window.setSQ=function(q){SQ=q;R()};
+window.toggleMore=function(){MORE=!MORE;R()};
+window.openPh=function(c,i){VWC=c;VWI=i;VW=true;R()};
+window.closePh=function(){VW=null;VWC=null;R()};
+window.navPh=function(d){if(VWC){VWI+=d;if(VWI<0)VWI=VWC.length-1;if(VWI>=VWC.length)VWI=0;R();}};
+window.setStat=function(s){if(EL){EL.statut=s;sv();R();}};
+window.toggleUrg=function(){if(EL){EL.urgent=!EL.urgent;sv();R();}};
+window.setLTab=function(t){LTAB=t;R()};
 
-// ============================================
-// AUTH
-// ============================================
-window.joinProject = function() {
-  var inp = document.getElementById('join-code');
-  var code = inp ? inp.value.toUpperCase().trim() : '';
-  if (code.length !== 6) { alert('Le code doit contenir 6 caractères'); return; }
-  db.collection('projects').doc(code).get().then(function(doc) {
-    if (doc.exists) { CODE = code; localStorage.setItem('dp_code', CODE); subscribeToProject(CODE); }
-    else { alert('Projet introuvable'); }
+// Login/Join
+window.joinProject=function(){
+  if(!HAS_FIREBASE){ alert("Le mode rejoindre n'est disponible qu'avec Firebase configuré. Utilisez le mode local."); return; }
+  var code = document.getElementById("join-code").value.toUpperCase().trim();
+  if(code.length!==6)return alert("Le code doit contenir 6 caractères");
+  db.collection("projects").doc(code).get().then(function(doc){
+    if(doc.exists){ CODE=code; localStorage.setItem("dp_code",CODE); subscribeToProject(CODE); }
+    else{ alert("Projet introuvable. Vérifiez le code."); }
   });
 };
-window.createProject = function() {
+
+window.createProject=function(){
+  if(!HAS_FIREBASE){
+    CODE="LOCAL";
+    localStorage.setItem("dp_code",CODE);
+    D=loadLocalData();
+    if(!D.projets)D={projets:[],loueurs:[],depenses:[]};
+    V="home"; R();
+    return;
+  }
   var code = genCode();
-  CODE = code;
-  localStorage.setItem('dp_code', CODE);
-  D = {projets: [], loueurs: [], depenses: []};
-  db.collection('projects').doc(CODE).set({projets: [], loueurs: [], depenses: [], createdAt: firebase.firestore.FieldValue.serverTimestamp()}).then(function() { subscribeToProject(CODE); });
-};
-window.leaveProject = function() {
-  if (!confirm('Quitter ce projet ?')) return;
-  if (UNSUB) UNSUB();
-  CODE = null; localStorage.removeItem('dp_code');
-  D = {projets: [], loueurs: [], depenses: []};
-  MN = false; R();
+  CODE=code;
+  localStorage.setItem("dp_code",CODE);
+  D={projets:[],loueurs:[],depenses:[]};
+  db.collection("projects").doc(CODE).set({
+    projets:[],loueurs:[],depenses:[],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){ subscribeToProject(CODE); });
 };
 
-// ============================================
-// RENDER
-// ============================================
-function R() {
-  var h = '';
-  if (!CODE) { h = rLogin(); }
-  else {
-    h = rHeader();
-    h += '<main class="cnt">';
-    if (V === 'home') h += rHome();
-    else if (V === 'proj') h += rProj();
-    else if (V === 'dec') h += rDec();
-    else if (V === 'el') h += rEl();
-    else if (V === 'gal') h += rGallery();
-    else if (V === 'lou') h += rLou();
-    else if (V === 'loud') h += rLouD();
-    else if (V === 'dep') h += rDep();
-    else if (V === 'acc') h += rAcc();
-    h += '</main>';
-    h += rNav();
-    if (M) h += rModal();
-    if (MN) h += rMenu();
-    if (VW && VWC) h += rViewer();
-  }
-  document.getElementById('app').innerHTML = h;
-}
-
-function rLogin() {
-  var h = '<div class="login">';
-  h += '<div class="login-icon">' + icon('clapperboard') + '</div>';
-  h += '<div class="login-title">Décor Pro</div>';
-  h += '<div class="login-sub">Gestion de décors collaborative</div>';
-  h += '<div class="code-box">';
-  h += '<div class="code-tabs"><div class="code-tab' + (LTAB === 'join' ? ' active' : '') + '" onclick="setLTab(\'join\')">Rejoindre</div><div class="code-tab' + (LTAB === 'create' ? ' active' : '') + '" onclick="setLTab(\'create\')">Créer</div></div>';
-  if (LTAB === 'join') {
-    h += '<p style="font-size:14px;color:var(--tx2);margin-bottom:16px;text-align:center">Entrez le code partagé par votre équipe</p>';
-    h += '<div class="field"><input id="join-code" class="field-input code-input" placeholder="ABC123" maxlength="6" autocapitalize="characters"></div>';
-    h += '<button class="btn btn-primary" style="width:100%" onclick="joinProject()">Rejoindre</button>';
-  } else {
-    h += '<p style="font-size:14px;color:var(--tx2);margin-bottom:16px;text-align:center">Créez un nouveau projet et invitez votre équipe</p>';
-    h += '<button class="btn btn-primary" style="width:100%" onclick="createProject()">' + icon('plus') + ' Créer un projet</button>';
-  }
-  h += '</div></div>';
-  return h;
-}
-
-function rHeader() {
-  var sc = SYNCING ? 'syncing' : (ONLINE ? '' : 'off');
-  var st = SYNCING ? 'Sync...' : (ONLINE ? 'Connecté' : 'Hors-ligne');
-  var h = '<header class="hdr">';
-  h += '<div class="hdr-row">';
-  h += '<div class="logo"><div class="logo-icon">' + icon('clapperboard') + '</div>Décor Pro</div>';
-  h += '<div class="hdr-actions"><div class="sync ' + sc + '"><div class="sync-dot"></div>' + st + '</div>';
-  h += '<button class="icon-btn" onclick="menu(true)">' + icon('menu') + '</button></div>';
-  h += '</div>';
-  h += '<div class="search">' + icon('search') + '<input placeholder="Rechercher..." value="' + GSQ + '" oninput="GSQ=this.value"></div>';
-  h += '</header>';
-  if (V !== 'home') h += rBread();
-  return h;
-}
-
-function rBread() {
-  var h = '<div class="bread">';
-  h += '<div class="bread-item" onclick="go(\'home\')">' + icon('home') + '</div>';
-  if (P) { h += '<span class="bread-sep">›</span><div class="bread-item' + (V === 'proj' ? ' active' : '') + '" onclick="go(\'proj\',\'' + P.id + '\')">' + P.nom + '</div>'; }
-  if (DC) { h += '<span class="bread-sep">›</span><div class="bread-item' + (V === 'dec' ? ' active' : '') + '" onclick="go(\'dec\',\'' + DC.id + '\')">' + DC.nom + '</div>'; }
-  if (EL) { h += '<span class="bread-sep">›</span><div class="bread-item active">' + EL.nom + '</div>'; }
-  if (V === 'gal' && RB) { var rb = gr(RB); h += '<span class="bread-sep">›</span><div class="bread-item active">' + (rb ? rb.n : 'Galerie') + '</div>'; }
-  if (V === 'lou' || V === 'loud') { h += '<span class="bread-sep">›</span><div class="bread-item' + (V === 'lou' ? ' active' : '') + '" onclick="go(\'lou\')">Loueurs</div>'; }
-  if (LO) { h += '<span class="bread-sep">›</span><div class="bread-item active">' + LO.nom + '</div>'; }
-  h += '</div>';
-  return h;
-}
-
-function rNav() {
-  var h = '<nav class="nav">';
-  h += '<div class="nav-item' + (V === 'home' ? ' active' : '') + '" onclick="go(\'home\')">' + icon('home') + '<span>Accueil</span></div>';
-  h += '<div class="nav-item' + (V === 'acc' ? ' active' : '') + '" onclick="go(\'acc\')">' + icon('palette') + '<span>Accessoires</span></div>';
-  h += '<div class="nav-item' + (V === 'dep' ? ' active' : '') + '" onclick="go(\'dep\')">' + icon('wallet') + '<span>Budget</span></div>';
-  h += '<div class="nav-item' + (V === 'lou' || V === 'loud' ? ' active' : '') + '" onclick="go(\'lou\')">' + icon('store') + '<span>Loueurs</span></div>';
-  h += '</nav>';
-  return h;
-}
-
-function rHome() {
-  var np = D.projets.length, nd = 0, ne = 0, td = 0;
-  for (var i = 0; i < D.projets.length; i++) { var p = D.projets[i]; nd += p.decors ? p.decors.length : 0; if (p.decors) for (var j = 0; j < p.decors.length; j++) ne += p.decors[j].elements ? p.decors[j].elements.length : 0; }
-  for (var i = 0; i < D.depenses.length; i++) td += parseFloat(D.depenses[i].montant) || 0;
-  
-  var h = '<div class="box" style="background:linear-gradient(135deg,var(--accbg),rgba(139,92,246,0.1))">';
-  h += '<div style="display:flex;justify-content:space-between;align-items:center">';
-  h += '<div><div style="font-size:11px;color:var(--acc2);margin-bottom:4px">CODE PROJET</div><div class="code-display">' + CODE + '</div></div>';
-  h += '<button class="btn btn-secondary" onclick="copyCode()">' + icon('copy') + '</button></div></div>';
-  
-  h += '<div class="stats">';
-  h += '<div class="stat"><div class="stat-val">' + np + '</div><div class="stat-lbl">Projets</div></div>';
-  h += '<div class="stat"><div class="stat-val">' + nd + '</div><div class="stat-lbl">Décors</div></div>';
-  h += '<div class="stat"><div class="stat-val">' + ne + '</div><div class="stat-lbl">Éléments</div></div>';
-  h += '<div class="stat"><div class="stat-val">' + Math.round(td) + '€</div><div class="stat-lbl">Budget</div></div>';
-  h += '</div>';
-  
-  h += '<div class="section-title"><h3>Mes projets</h3><button onclick="modal(\'np\')">+ Nouveau</button></div>';
-  
-  if (!D.projets.length) {
-    h += '<div class="empty">' + icon('clapperboard') + '<p>Aucun projet</p></div>';
-  } else {
-    for (var i = 0; i < D.projets.length; i++) {
-      var p = D.projets[i], t = gt(p.type), ndc = p.decors ? p.decors.length : 0;
-      h += '<div class="card" onclick="go(\'proj\',\'' + p.id + '\')">';
-      h += '<div class="card-icon">' + t.i + '</div>';
-      h += '<div class="card-body"><div class="card-title">' + p.nom + '</div><div class="card-meta">' + ndc + ' décors' + (p.production ? ' • ' + p.production : '') + '</div></div>';
-      h += '<div class="card-end">' + icon('chevronRight') + '</div></div>';
-    }
-  }
-  h += '<button class="fab" onclick="modal(\'np\')">' + icon('plus') + '</button>';
-  return h;
-}
-
-function rProj() {
-  if (!P) return '';
-  var t = gt(P.type), nd = P.decors ? P.decors.length : 0;
-  var h = '<div class="page-hdr"><div class="page-title">' + t.i + ' ' + P.nom + '</div><div class="page-sub">' + (P.production || t.l) + ' • ' + nd + ' décors</div></div>';
-  h += '<div class="actions"><button class="btn btn-primary" onclick="modal(\'nd\')">' + icon('plus') + ' Décor</button><button class="btn btn-secondary" onclick="edit(\'projet\',P)">' + icon('edit') + '</button><button class="btn btn-danger" onclick="delP()">' + icon('trash') + '</button></div>';
-  h += '<div class="section-title"><h3>Décors</h3></div>';
-  if (!P.decors || !P.decors.length) {
-    h += '<div class="empty">' + icon('building') + '<p>Aucun décor</p></div>';
-  } else {
-    for (var i = 0; i < P.decors.length; i++) {
-      var d = P.decors[i], st = gsd(d.statut), nel = d.elements ? d.elements.length : 0;
-      h += '<div class="card" onclick="go(\'dec\',\'' + d.id + '\')">';
-      h += '<div class="card-icon">' + (d.interieur ? icon('building') : icon('trees')) + '</div>';
-      h += '<div class="card-body"><div class="card-title">' + d.nom + '</div><div class="card-meta"><span class="badge" style="background:' + st.c + '20;color:' + st.c + '">' + st.l + '</span> ' + nel + ' él.</div></div>';
-      h += '<div class="card-end">' + icon('chevronRight') + '</div></div>';
-    }
-  }
-  h += '<button class="fab" onclick="modal(\'nd\')">' + icon('plus') + '</button>';
-  return h;
-}
-
-function rDec() {
-  if (!DC) return '';
-  var st = gsd(DC.statut);
-  var h = '<div class="page-hdr"><div class="page-title">' + DC.nom + '</div><div class="page-sub"><span class="badge" style="background:' + st.c + '20;color:' + st.c + '">' + st.l + '</span></div></div>';
-  h += '<div class="tabs"><div class="tab' + (TB === 'rub' ? ' active' : '') + '" onclick="setTab(\'rub\')">Rubriques</div><div class="tab' + (TB === 'info' ? ' active' : '') + '" onclick="setTab(\'info\')">Infos</div></div>';
-  
-  if (TB === 'rub') {
-    h += '<div class="rub-grid">';
-    for (var i = 0; i < RUB.length; i++) {
-      var r = RUB[i], cnt = 0;
-      if (DC.elements) for (var j = 0; j < DC.elements.length; j++) if (DC.elements[j].rubrique === r.id) cnt++;
-      h += '<div class="rub-card" onclick="go(\'gal\',\'' + r.id + '\')" style="border-left-color:' + r.c + '">';
-      h += '<div class="rub-icon">' + r.i + '</div><div class="rub-name">' + r.n + '</div><div class="rub-count">' + cnt + ' éléments</div>';
-      if (cnt) h += '<div class="rub-badge">' + cnt + '</div>';
-      h += '</div>';
-    }
-    h += '</div>';
-  } else {
-    h += '<div class="box"><div class="box-row"><span class="label">Type</span><span class="value">' + (DC.interieur ? 'Intérieur' : 'Extérieur') + '</span></div></div>';
-    h += '<div class="actions"><button class="btn btn-primary" onclick="edit(\'decor\',DC)">' + icon('edit') + ' Modifier</button><button class="btn btn-danger" onclick="delD()">' + icon('trash') + '</button></div>';
-  }
-  h += '<button class="fab" onclick="modal(\'ne\')">' + icon('plus') + '</button>';
-  return h;
-}
-
-function rGallery() {
-  var rb = gr(RB);
-  if (!rb || !DC) return '';
-  var els = [];
-  if (DC.elements) for (var i = 0; i < DC.elements.length; i++) if (DC.elements[i].rubrique === rb.id) els.push(DC.elements[i]);
-  
-  var h = '<div class="page-hdr"><div class="page-title">' + rb.i + ' ' + rb.n + '</div><div class="page-sub">' + els.length + ' éléments • ' + DC.nom + '</div></div>';
-  h += '<div class="actions"><button class="btn btn-primary" onclick="modal(\'ne\')">' + icon('plus') + ' Ajouter</button><button class="btn btn-secondary" onclick="printGallery()">' + icon('printer') + '</button></div>';
-  
-  if (!els.length) {
-    h += '<div class="empty">' + icon('image') + '<p>Aucun élément</p></div>';
-  } else {
-    h += '<div class="gallery">';
-    for (var i = 0; i < els.length; i++) {
-      var e = els[i];
-      h += '<div class="gallery-item" onclick="go(\'el\',\'' + e.id + '\')">';
-      if (e.photos && e.photos.length) {
-        h += '<img src="' + e.photos[0] + '">';
-      } else {
-        h += icon('package');
-      }
-      h += '<div class="overlay"><span>' + e.nom + '</span></div></div>';
-    }
-    h += '<div class="gallery-item add" onclick="modal(\'ne\')">' + icon('plus') + '</div>';
-    h += '</div>';
-  }
-  return h;
-}
-
-function rEl() {
-  if (!EL) return '';
-  var st = gs(EL.statut), rb = gr(EL.rubrique), lou = EL.loueurId ? gl(EL.loueurId) : null;
-  var h = '';
-  
-  if (EL.photos && EL.photos.length) {
-    h += '<div class="photo-main" onclick="openPh(EL.photos,0)"><img src="' + EL.photos[0] + '"></div>';
-    h += '<div class="photo-thumbs">';
-    for (var i = 0; i < EL.photos.length; i++) h += '<div class="photo-thumb' + (i === 0 ? ' active' : '') + '" onclick="openPh(EL.photos,' + i + ')"><img src="' + EL.photos[i] + '"></div>';
-    h += '<div class="photo-thumb add" onclick="addPh()">' + icon('plus') + '</div></div>';
-  } else {
-    h += '<div class="photo-main empty" onclick="addPh()">' + icon('camera') + '<span>Ajouter des photos</span></div>';
-  }
-  
-  h += '<div class="page-hdr"><div class="page-title">' + EL.nom + (EL.urgent ? ' 🚨' : '') + '</div></div>';
-  h += '<div class="chips">';
-  if (rb) h += '<div class="chip accent">' + rb.i + ' ' + rb.n + '</div>';
-  if (EL.scene) h += '<div class="chip">Sc.' + EL.scene + '</div>';
-  if (EL.role) h += '<div class="chip pink">👤 ' + EL.role + '</div>';
-  h += '</div>';
-  
-  h += '<div class="actions"><button class="btn btn-primary" onclick="edit(\'element\',EL)">' + icon('edit') + '</button><button class="btn btn-secondary" onclick="printEl()">' + icon('printer') + '</button><button class="btn btn-secondary" onclick="toggleUrg()">' + icon('zap') + '</button><button class="btn btn-secondary" onclick="dupEl()">' + icon('copy') + '</button><button class="btn btn-danger" onclick="delE()">' + icon('trash') + '</button></div>';
-  
-  h += '<div class="field"><label class="field-label">Statut</label><select class="field-input field-select" onchange="setStat(this.value)" style="background-color:' + st.c + '15;border-color:' + st.c + '">';
-  for (var i = 0; i < STAT.length; i++) h += '<option value="' + STAT[i].id + '"' + (STAT[i].id === EL.statut ? ' selected' : '') + '>' + STAT[i].l + '</option>';
-  h += '</select></div>';
-  
-  if (lou) h += '<div class="box" onclick="go(\'loud\',\'' + lou.id + '\')"><div class="box-row"><span class="label">Loueur</span><span class="value link">' + icon('store') + ' ' + lou.nom + '</span></div></div>';
-  if (EL.description) h += '<div class="box"><p style="font-size:14px">' + EL.description + '</p></div>';
-  
-  return h;
-}
-
-function rLou() {
-  var h = '<div class="page-hdr"><div class="page-title">Loueurs</div><div class="page-sub">' + D.loueurs.length + ' contacts</div></div>';
-  h += '<div class="actions"><button class="btn btn-primary" onclick="modal(\'nl\')">' + icon('plus') + ' Ajouter</button></div>';
-  
-  if (!D.loueurs.length) {
-    h += '<div class="empty">' + icon('store') + '<p>Aucun loueur</p></div>';
-  } else {
-    for (var i = 0; i < D.loueurs.length; i++) {
-      var l = D.loueurs[i];
-      // Count elements
-      var cnt = 0;
-      for (var pi = 0; pi < D.projets.length; pi++) {
-        var p = D.projets[pi]; if (!p.decors) continue;
-        for (var di = 0; di < p.decors.length; di++) {
-          var d = p.decors[di]; if (!d.elements) continue;
-          for (var ei = 0; ei < d.elements.length; ei++) if (d.elements[ei].loueurId === l.id) cnt++;
-        }
-      }
-      h += '<div class="card" onclick="go(\'loud\',\'' + l.id + '\')">';
-      h += '<div class="card-icon">' + icon('store') + '</div>';
-      h += '<div class="card-body"><div class="card-title">' + l.nom + '</div><div class="card-meta">' + (l.specialite || 'Loueur') + ' • ' + cnt + ' élément(s)</div></div>';
-      h += '<div class="card-end">' + icon('chevronRight') + '</div></div>';
-    }
-  }
-  h += '<button class="fab" onclick="modal(\'nl\')">' + icon('plus') + '</button>';
-  return h;
-}
-
-function rLouD() {
-  if (!LO) return '';
-  // Get all elements for this loueur
-  var items = [];
-  for (var i = 0; i < D.projets.length; i++) {
-    var p = D.projets[i]; if (!p.decors) continue;
-    for (var j = 0; j < p.decors.length; j++) {
-      var d = p.decors[j]; if (!d.elements) continue;
-      for (var k = 0; k < d.elements.length; k++) {
-        var e = d.elements[k];
-        if (e.loueurId === LO.id) items.push({e: e, d: d, p: p});
-      }
-    }
-  }
-  
-  var h = '<div class="page-hdr"><div class="page-title">' + LO.nom + '</div><div class="page-sub">' + (LO.specialite || 'Loueur') + '</div></div>';
-  h += '<div class="actions">';
-  if (LO.telephone) h += '<a href="tel:' + LO.telephone + '" class="btn btn-primary" style="text-decoration:none">' + icon('phone') + ' Appeler</a>';
-  if (LO.email) h += '<a href="mailto:' + LO.email + '" class="btn btn-secondary" style="text-decoration:none">' + icon('mail') + '</a>';
-  h += '<button class="btn btn-secondary" onclick="printLoueur()">' + icon('printer') + '</button>';
-  h += '<button class="btn btn-secondary" onclick="edit(\'loueur\',LO)">' + icon('edit') + '</button>';
-  h += '<button class="btn btn-danger" onclick="delL()">' + icon('trash') + '</button></div>';
-  
-  h += '<div class="box">';
-  if (LO.telephone) h += '<div class="box-row"><span class="label">Téléphone</span><span class="value">' + LO.telephone + '</span></div>';
-  if (LO.email) h += '<div class="box-row"><span class="label">Email</span><span class="value">' + LO.email + '</span></div>';
-  if (LO.adresse) h += '<div class="box-row"><span class="label">Adresse</span><span class="value">' + LO.adresse + '</span></div>';
-  h += '</div>';
-  
-  h += '<div class="section-title"><h3>Éléments loués (' + items.length + ')</h3></div>';
-  
-  if (!items.length) {
-    h += '<div class="empty" style="padding:20px">' + icon('package') + '<p>Aucun élément</p></div>';
-  } else {
-    h += '<div class="loueur-grid">';
-    for (var i = 0; i < items.length; i++) {
-      var x = items[i], e = x.e, st = gs(e.statut);
-      h += '<div class="loueur-el" onclick="goTo(\'' + x.p.id + '\',\'' + x.d.id + '\',\'' + e.id + '\')">';
-      h += '<div class="loueur-el-img">';
-      if (e.photos && e.photos.length) h += '<img src="' + e.photos[0] + '">';
-      else h += icon('package');
-      h += '</div>';
-      h += '<div class="loueur-el-info"><div class="loueur-el-name">' + e.nom + '</div><div class="loueur-el-meta">' + x.d.nom + '</div></div>';
-      h += '</div>';
-    }
-    h += '</div>';
-  }
-  return h;
-}
-
-function rDep() {
-  var total = 0;
-  for (var i = 0; i < D.depenses.length; i++) total += parseFloat(D.depenses[i].montant) || 0;
-  
-  var h = '<div class="page-hdr"><div class="page-title">Budget</div><div class="page-sub">' + D.depenses.length + ' dépenses</div></div>';
-  h += '<div class="total-box"><span class="label">Total dépenses</span><span class="value">' + fm(total) + '</span></div>';
-  h += '<div class="actions"><button class="btn btn-primary" onclick="modal(\'ndep\')">' + icon('plus') + ' Dépense</button></div>';
-  
-  if (!D.depenses.length) {
-    h += '<div class="empty">' + icon('wallet') + '<p>Aucune dépense</p></div>';
-  } else {
-    for (var i = 0; i < D.depenses.length; i++) {
-      var d = D.depenses[i];
-      h += '<div class="card" onclick="editDep(\'' + d.id + '\')">';
-      h += '<div class="card-body"><div class="card-title">' + (d.description || 'Dépense') + '</div><div class="card-meta">' + fd(d.date) + '</div></div>';
-      h += '<div class="card-end" style="font-weight:600;color:var(--ok)">' + fm(d.montant) + '</div></div>';
-    }
-  }
-  h += '<button class="fab" onclick="modal(\'ndep\')">' + icon('plus') + '</button>';
-  return h;
-}
-
-function rAcc() {
-  var items = [];
-  for (var i = 0; i < D.projets.length; i++) {
-    var p = D.projets[i]; if (!p.decors) continue;
-    for (var j = 0; j < p.decors.length; j++) {
-      var d = p.decors[j]; if (!d.elements) continue;
-      for (var k = 0; k < d.elements.length; k++) {
-        var e = d.elements[k];
-        if (e.rubrique === 'accessoires') items.push({e: e, d: d, p: p});
-      }
-    }
-  }
-  
-  var h = '<div class="page-hdr"><div class="page-title">Accessoires</div><div class="page-sub">' + items.length + ' éléments</div></div>';
-  
-  if (!items.length) {
-    h += '<div class="empty">' + icon('palette') + '<p>Aucun accessoire</p></div>';
-  } else {
-    h += '<div class="loueur-grid">';
-    for (var i = 0; i < items.length; i++) {
-      var x = items[i], e = x.e, st = gs(e.statut);
-      h += '<div class="loueur-el' + (e.urgent ? ' urgent' : '') + '" onclick="goTo(\'' + x.p.id + '\',\'' + x.d.id + '\',\'' + e.id + '\')">';
-      h += '<div class="loueur-el-img">';
-      if (e.photos && e.photos.length) h += '<img src="' + e.photos[0] + '">';
-      else h += icon('palette');
-      h += '</div>';
-      h += '<div class="loueur-el-info"><div class="loueur-el-name">' + e.nom + '</div><div class="loueur-el-meta"><span class="badge" style="background:' + st.c + '20;color:' + st.c + ';font-size:10px">' + st.l + '</span></div></div>';
-      h += '</div>';
-    }
-    h += '</div>';
-  }
-  return h;
-}
-
-function rViewer() {
-  if (!VWC || !VWC.length) return '';
-  var ph = VWC[VWI];
-  var h = '<div class="viewer">';
-  h += '<div class="viewer-hdr"><button class="btn btn-secondary" onclick="closePh()">' + icon('x') + ' Fermer</button><span style="color:var(--tx2)">' + (VWI + 1) + '/' + VWC.length + '</span></div>';
-  if (VWC.length > 1) {
-    h += '<button class="viewer-nav prev" onclick="navPh(-1)">' + icon('chevronLeft') + '</button>';
-    h += '<button class="viewer-nav next" onclick="navPh(1)">' + icon('chevronRight') + '</button>';
-  }
-  h += '<div class="viewer-body"><img src="' + ph + '"></div></div>';
-  return h;
-}
-
-function rMenu() {
-  var h = '<div class="menu"><div class="menu-bg" onclick="menu(false)"></div><div class="menu-panel">';
-  h += '<div class="menu-hdr">Menu</div>';
-  h += '<div class="box" style="margin-bottom:20px"><div style="font-size:11px;color:var(--tx3)">Code projet</div><div style="font-size:18px;font-weight:700;letter-spacing:2px;color:var(--acc2)">' + CODE + '</div></div>';
-  h += '<div class="menu-item" onclick="go(\'home\');menu(false)">' + icon('home') + ' Accueil</div>';
-  h += '<div class="menu-item" onclick="go(\'acc\');menu(false)">' + icon('palette') + ' Accessoires</div>';
-  h += '<div class="menu-item" onclick="go(\'dep\');menu(false)">' + icon('wallet') + ' Budget</div>';
-  h += '<div class="menu-item" onclick="go(\'lou\');menu(false)">' + icon('store') + ' Loueurs</div>';
-  h += '<div class="menu-divider"></div>';
-  h += '<div class="menu-item" onclick="exportData()">' + icon('download') + ' Exporter (JSON)</div>';
-  h += '<div class="menu-item" onclick="importData()">' + icon('upload') + ' Importer (JSON)</div>';
-  h += '<div class="menu-divider"></div>';
-  h += '<div class="menu-item danger" onclick="leaveProject()">' + icon('logOut') + ' Quitter le projet</div>';
-  h += '<p style="margin-top:24px;font-size:11px;color:var(--tx3)">Décor Pro v9.0</p>';
-  h += '</div></div>';
-  return h;
-}
-
-function rModal() {
-  var c = '';
-  
-  if (M === 'np') {
-    c = '<div class="modal-bar"></div><div class="modal-title">Nouveau projet</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" placeholder="Mon Film"></div>';
-    c += '<div class="field"><label class="field-label">Type</label><select id="f2" class="field-input field-select">'; for (var i = 0; i < TPROJ.length; i++) c += '<option value="' + TPROJ[i].id + '">' + TPROJ[i].i + ' ' + TPROJ[i].l + '</option>'; c += '</select></div>';
-    c += '<div class="field"><label class="field-label">Production</label><input id="f3" class="field-input" placeholder="Nom de la production"></div>';
-    c += '<button class="modal-btn btn-primary" onclick="saveP()">Créer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'edit_projet' && EDIT) {
-    c = '<div class="modal-bar"></div><div class="modal-title">Modifier projet</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" value="' + EDIT.nom + '"></div>';
-    c += '<div class="field"><label class="field-label">Type</label><select id="f2" class="field-input field-select">'; for (var i = 0; i < TPROJ.length; i++) c += '<option value="' + TPROJ[i].id + '"' + (TPROJ[i].id === EDIT.type ? ' selected' : '') + '>' + TPROJ[i].i + ' ' + TPROJ[i].l + '</option>'; c += '</select></div>';
-    c += '<div class="field"><label class="field-label">Production</label><input id="f3" class="field-input" value="' + (EDIT.production || '') + '"></div>';
-    c += '<button class="modal-btn btn-primary" onclick="updateP()">Enregistrer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'nd') {
-    c = '<div class="modal-bar"></div><div class="modal-title">Nouveau décor</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" placeholder="Appartement Marie"></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Type</label><select id="f2" class="field-input field-select"><option value="1">Intérieur</option><option value="0">Extérieur</option></select></div>';
-    c += '<div class="field"><label class="field-label">Statut</label><select id="f3" class="field-input field-select">'; for (var i = 0; i < STATD.length; i++) c += '<option value="' + STATD[i].id + '">' + STATD[i].l + '</option>'; c += '</select></div></div>';
-    c += '<button class="modal-btn btn-primary" onclick="saveDC()">Créer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'edit_decor' && EDIT) {
-    c = '<div class="modal-bar"></div><div class="modal-title">Modifier décor</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" value="' + EDIT.nom + '"></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Type</label><select id="f2" class="field-input field-select"><option value="1"' + (EDIT.interieur ? ' selected' : '') + '>Intérieur</option><option value="0"' + (!EDIT.interieur ? ' selected' : '') + '>Extérieur</option></select></div>';
-    c += '<div class="field"><label class="field-label">Statut</label><select id="f3" class="field-input field-select">'; for (var i = 0; i < STATD.length; i++) c += '<option value="' + STATD[i].id + '"' + (STATD[i].id === EDIT.statut ? ' selected' : '') + '>' + STATD[i].l + '</option>'; c += '</select></div></div>';
-    c += '<button class="modal-btn btn-primary" onclick="updateDC()">Enregistrer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'ne') {
-    c = '<div class="modal-bar"></div><div class="modal-title">Nouvel élément</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" placeholder="Vase bleu"></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Rubrique</label><select id="f2" class="field-input field-select">'; for (var i = 0; i < RUB.length; i++) c += '<option value="' + RUB[i].id + '"' + (RB === RUB[i].id ? ' selected' : '') + '>' + RUB[i].i + ' ' + RUB[i].n + '</option>'; c += '</select></div>';
-    c += '<div class="field"><label class="field-label">Statut</label><select id="f3" class="field-input field-select">'; for (var i = 0; i < STAT.length; i++) c += '<option value="' + STAT[i].id + '">' + STAT[i].l + '</option>'; c += '</select></div></div>';
-    c += '<div class="field"><label class="field-label">Loueur</label><select id="f8" class="field-input field-select"><option value="">-- Aucun --</option>'; for (var i = 0; i < D.loueurs.length; i++) c += '<option value="' + D.loueurs[i].id + '">' + D.loueurs[i].nom + '</option>'; c += '</select></div>';
-    c += '<div class="field"><label class="field-label">Description</label><textarea id="f4" class="field-input" rows="2"></textarea></div>';
-    c += '<button class="modal-btn btn-primary" onclick="saveEl()">Ajouter</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'edit_element' && EDIT) {
-    c = '<div class="modal-bar"></div><div class="modal-title">Modifier élément</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" value="' + EDIT.nom + '"></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Rubrique</label><select id="f2" class="field-input field-select">'; for (var i = 0; i < RUB.length; i++) c += '<option value="' + RUB[i].id + '"' + (RUB[i].id === EDIT.rubrique ? ' selected' : '') + '>' + RUB[i].i + ' ' + RUB[i].n + '</option>'; c += '</select></div>';
-    c += '<div class="field"><label class="field-label">Statut</label><select id="f3" class="field-input field-select">'; for (var i = 0; i < STAT.length; i++) c += '<option value="' + STAT[i].id + '"' + (STAT[i].id === EDIT.statut ? ' selected' : '') + '>' + STAT[i].l + '</option>'; c += '</select></div></div>';
-    c += '<div class="field"><label class="field-label">Loueur</label><select id="f8" class="field-input field-select"><option value="">-- Aucun --</option>'; for (var i = 0; i < D.loueurs.length; i++) c += '<option value="' + D.loueurs[i].id + '"' + (D.loueurs[i].id === EDIT.loueurId ? ' selected' : '') + '>' + D.loueurs[i].nom + '</option>'; c += '</select></div>';
-    c += '<div class="field"><label class="field-label">Description</label><textarea id="f4" class="field-input" rows="2">' + (EDIT.description || '') + '</textarea></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Scène</label><input id="f5" class="field-input" value="' + (EDIT.scene || '') + '"></div><div class="field"><label class="field-label">Personnage</label><input id="f6" class="field-input" value="' + (EDIT.role || '') + '"></div></div>';
-    c += '<button class="modal-btn btn-primary" onclick="updateEl()">Enregistrer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'nl') {
-    c = '<div class="modal-bar"></div><div class="modal-title">Nouveau loueur</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input"></div>';
-    c += '<div class="field"><label class="field-label">Spécialité</label><input id="f2" class="field-input" placeholder="Mobilier, Accessoires..."></div>';
-    c += '<div class="field"><label class="field-label">Téléphone</label><input type="tel" id="f3" class="field-input"></div>';
-    c += '<div class="field"><label class="field-label">Email</label><input type="email" id="f4" class="field-input"></div>';
-    c += '<div class="field"><label class="field-label">Adresse</label><input id="f5" class="field-input"></div>';
-    c += '<button class="modal-btn btn-primary" onclick="saveLo()">Ajouter</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'edit_loueur' && EDIT) {
-    c = '<div class="modal-bar"></div><div class="modal-title">Modifier loueur</div>';
-    c += '<div class="field"><label class="field-label">Nom *</label><input id="f1" class="field-input" value="' + EDIT.nom + '"></div>';
-    c += '<div class="field"><label class="field-label">Spécialité</label><input id="f2" class="field-input" value="' + (EDIT.specialite || '') + '"></div>';
-    c += '<div class="field"><label class="field-label">Téléphone</label><input type="tel" id="f3" class="field-input" value="' + (EDIT.telephone || '') + '"></div>';
-    c += '<div class="field"><label class="field-label">Email</label><input type="email" id="f4" class="field-input" value="' + (EDIT.email || '') + '"></div>';
-    c += '<div class="field"><label class="field-label">Adresse</label><input id="f5" class="field-input" value="' + (EDIT.adresse || '') + '"></div>';
-    c += '<button class="modal-btn btn-primary" onclick="updateLo()">Enregistrer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'ndep') {
-    c = '<div class="modal-bar"></div><div class="modal-title">Nouvelle dépense</div>';
-    c += '<div class="field"><label class="field-label">Description</label><input id="f1" class="field-input"></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Montant € *</label><input type="number" step="0.01" id="f2" class="field-input"></div>';
-    c += '<div class="field"><label class="field-label">Date</label><input type="date" id="f3" class="field-input" value="' + new Date().toISOString().split('T')[0] + '"></div></div>';
-    c += '<button class="modal-btn btn-primary" onclick="saveDep()">Ajouter</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  else if (M === 'edit_depense' && EDIT) {
-    c = '<div class="modal-bar"></div><div class="modal-title">Modifier dépense</div>';
-    c += '<div class="field"><label class="field-label">Description</label><input id="f1" class="field-input" value="' + (EDIT.description || '') + '"></div>';
-    c += '<div class="field-row"><div class="field"><label class="field-label">Montant €</label><input type="number" step="0.01" id="f2" class="field-input" value="' + (EDIT.montant || '') + '"></div>';
-    c += '<div class="field"><label class="field-label">Date</label><input type="date" id="f3" class="field-input" value="' + (EDIT.date || '') + '"></div></div>';
-    c += '<button class="modal-btn btn-primary" onclick="updateDep()">Enregistrer</button><button class="modal-btn btn-danger" onclick="delDep()">Supprimer</button><button class="modal-btn btn-secondary" onclick="modal(null)">Annuler</button>';
-  }
-  
-  return '<div class="modal" onclick="modal(null)"><div class="modal-bg"></div><div class="modal-panel" onclick="event.stopPropagation()">' + c + '</div></div>';
-}
-
-// ============================================
-// CRUD
-// ============================================
-window.saveP = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); D.projets.push({id: uid(), nom: n, type: gv('f2') || 'film', production: gv('f3'), decors: []}); sv(); M = null; R(); };
-window.updateP = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); EDIT.nom = n; EDIT.type = gv('f2'); EDIT.production = gv('f3'); sv(); M = null; R(); };
-window.saveDC = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); if (!P.decors) P.decors = []; P.decors.push({id: uid(), nom: n, interieur: gv('f2') === '1', statut: gv('f3') || 'a_preparer', elements: []}); sv(); M = null; R(); };
-window.updateDC = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); EDIT.nom = n; EDIT.interieur = gv('f2') === '1'; EDIT.statut = gv('f3'); sv(); M = null; R(); };
-window.saveEl = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); if (!DC.elements) DC.elements = []; DC.elements.push({id: uid(), nom: n, rubrique: gv('f2') || 'mobilier', statut: gv('f3') || 'a_sourcer', loueurId: gv('f8') || null, description: gv('f4'), photos: []}); sv(); M = null; R(); };
-window.updateEl = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); EDIT.nom = n; EDIT.rubrique = gv('f2'); EDIT.statut = gv('f3'); EDIT.loueurId = gv('f8') || null; EDIT.description = gv('f4'); EDIT.scene = gv('f5'); EDIT.role = gv('f6'); sv(); M = null; R(); };
-window.saveLo = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); D.loueurs.push({id: uid(), nom: n, specialite: gv('f2'), telephone: gv('f3'), email: gv('f4'), adresse: gv('f5')}); sv(); M = null; R(); };
-window.updateLo = function() { var n = gv('f1'); if (!n) return alert('Nom requis'); EDIT.nom = n; EDIT.specialite = gv('f2'); EDIT.telephone = gv('f3'); EDIT.email = gv('f4'); EDIT.adresse = gv('f5'); sv(); M = null; R(); };
-window.saveDep = function() { var m = gv('f2'); if (!m) return alert('Montant requis'); D.depenses.push({id: uid(), projetId: P ? P.id : null, description: gv('f1'), montant: parseFloat(m), date: gv('f3')}); sv(); M = null; R(); };
-window.updateDep = function() { EDIT.description = gv('f1'); EDIT.montant = parseFloat(gv('f2')); EDIT.date = gv('f3'); sv(); M = null; R(); };
-window.editDep = function(id) { for (var i = 0; i < D.depenses.length; i++) if (D.depenses[i].id === id) { EDIT = D.depenses[i]; M = 'edit_depense'; R(); break; } };
-window.delDep = function() { if (!confirm('Supprimer ?')) return; D.depenses = D.depenses.filter(function(d) { return d.id !== EDIT.id; }); sv(); M = null; R(); };
-window.delP = function() { if (!confirm('Supprimer ?')) return; D.projets = D.projets.filter(function(p) { return p.id !== P.id; }); sv(); P = null; V = 'home'; R(); };
-window.delD = function() { if (!confirm('Supprimer ?')) return; P.decors = P.decors.filter(function(d) { return d.id !== DC.id; }); sv(); DC = null; V = 'proj'; R(); };
-window.delE = function() { if (!confirm('Supprimer ?')) return; DC.elements = DC.elements.filter(function(e) { return e.id !== EL.id; }); sv(); EL = null; V = 'dec'; R(); };
-window.delL = function() { if (!confirm('Supprimer ?')) return; D.loueurs = D.loueurs.filter(function(l) { return l.id !== LO.id; }); sv(); LO = null; V = 'lou'; R(); };
-window.dupEl = function() { if (!confirm('Dupliquer ?')) return; var c = JSON.parse(JSON.stringify(EL)); c.id = uid(); c.nom += ' (copie)'; c.photos = []; DC.elements.push(c); sv(); alert('Dupliqué !'); R(); };
-
-// ============================================
-// PHOTOS
-// ============================================
-window.addPh = function() {
-  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = 'image/*'; inp.multiple = true; inp.capture = 'environment';
-  inp.onchange = function(e) {
-    var files = e.target.files;
-    if (!files.length) return;
-    var uploaded = 0, total = files.length, success = 0;
-    alert('⏳ Upload de ' + total + ' photo(s)...');
-    for (var i = 0; i < files.length; i++) {
-      uploadPhoto(files[i], function(url) {
-        uploaded++;
-        if (url) { if (!EL.photos) EL.photos = []; EL.photos.push(url); success++; }
-        if (uploaded === total) { sv(); R(); alert('✅ ' + success + ' photo(s) ajoutée(s)'); }
-      });
-    }
-  };
-  inp.click();
-};
-
-// ============================================
-// EXPORT / IMPORT
-// ============================================
-window.exportData = function() {
-  MN = false;
-  var data = {version: '9.0', code: CODE, exportDate: new Date().toISOString(), projets: D.projets, loueurs: D.loueurs, depenses: D.depenses};
-  var blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'decor-pro-' + CODE + '-' + new Date().toISOString().split('T')[0] + '.json';
+window.exportData=function(){
+  var data=JSON.stringify(D,null,2);
+  var blob=new Blob([data],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;
+  a.download="decor-pro-"+CODE+"-"+(new Date().toISOString().split("T")[0])+".json";
   a.click();
-  alert('✅ Export terminé');
-  R();
+  URL.revokeObjectURL(url);
+  MN=false;R();
 };
 
-window.importData = function() {
-  MN = false; R();
-  var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json';
-  inp.onchange = function(e) {
-    var file = e.target.files[0]; if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      try {
-        var data = JSON.parse(ev.target.result);
-        if (!data.projets) { alert('❌ Fichier invalide'); return; }
-        if (!confirm('Importer ' + data.projets.length + ' projet(s) ?\nCela remplacera les données actuelles.')) return;
-        D.projets = data.projets || [];
-        D.loueurs = data.loueurs || [];
-        D.depenses = data.depenses || [];
+window.importData=function(){
+  var input=document.createElement("input");
+  input.type="file";
+  input.accept=".json";
+  input.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var imported=JSON.parse(ev.target.result);
+        if(!imported.projets&&!imported.loueurs&&!imported.depenses){alert("Fichier invalide");return;}
+        if(!confirm("Importer ces données ? Cela remplacera les données actuelles."))return;
+        if(imported.projets)D.projets=imported.projets;
+        if(imported.loueurs)D.loueurs=imported.loueurs;
+        if(imported.depenses)D.depenses=imported.depenses;
         sv();
-        alert('✅ Import réussi');
-        V = 'home'; P = null; DC = null; EL = null; R();
-      } catch (err) { alert('❌ Erreur: ' + err.message); }
+        MN=false;
+        R();
+        alert("Données importées !");
+      }catch(err){alert("Erreur: fichier JSON invalide");}
     };
     reader.readAsText(file);
   };
-  inp.click();
+  input.click();
 };
 
-// ============================================
-// PRINT
-// ============================================
-window.printEl = function() {
-  if (!EL) return;
-  var st = gs(EL.statut), rb = gr(EL.rubrique), lou = EL.loueurId ? gl(EL.loueurId) : null;
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + EL.nom + '</title><style>body{font-family:system-ui,sans-serif;padding:24px;max-width:800px;margin:0 auto}h1{margin:0 0 8px;font-size:24px}.meta{color:#666;margin-bottom:20px}.photos{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}.photos img{width:180px;height:140px;object-fit:cover;border-radius:8px}.info{background:#f5f5f5;padding:16px;border-radius:8px}.row{display:flex;padding:8px 0;border-bottom:1px solid #ddd}.row:last-child{border:none}.row span:first-child{width:120px;color:#666}</style></head><body>';
-  html += '<h1>' + EL.nom + '</h1>';
-  html += '<div class="meta">' + (rb ? rb.n : '') + ' • ' + st.l + (DC ? ' • ' + DC.nom : '') + '</div>';
-  if (EL.photos && EL.photos.length) { html += '<div class="photos">'; for (var i = 0; i < EL.photos.length; i++) html += '<img src="' + EL.photos[i] + '">'; html += '</div>'; }
-  html += '<div class="info">';
-  if (EL.description) html += '<div class="row"><span>Description</span><span>' + EL.description + '</span></div>';
-  if (lou) html += '<div class="row"><span>Loueur</span><span>' + lou.nom + (lou.telephone ? ' - ' + lou.telephone : '') + '</span></div>';
-  html += '</div></body></html>';
-  var w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.print();
+window.leaveProject=function(){
+  if(!confirm("Quitter ce projet ?"))return;
+  if(UNSUB)UNSUB();
+  CODE=null;
+  localStorage.removeItem("dp_code");
+  if(!HAS_FIREBASE) saveLocalData(D);
+  D={projets:[],loueurs:[],depenses:[]};
+  MN=false;
+  R();
 };
 
-window.printLoueur = function() {
-  if (!LO) return;
-  var items = [];
-  for (var i = 0; i < D.projets.length; i++) { var p = D.projets[i]; if (!p.decors) continue; for (var j = 0; j < p.decors.length; j++) { var d = p.decors[j]; if (!d.elements) continue; for (var k = 0; k < d.elements.length; k++) { var e = d.elements[k]; if (e.loueurId === LO.id) items.push({e: e, d: d, p: p}); } } }
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + LO.nom + '</title><style>body{font-family:system-ui,sans-serif;padding:24px;max-width:900px;margin:0 auto}h1{margin:0 0 8px}.contact{color:#666;margin-bottom:24px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.item{background:#f5f5f5;border-radius:8px;overflow:hidden}.item img{width:100%;aspect-ratio:1;object-fit:cover}.item-info{padding:12px}.item-name{font-weight:600;margin-bottom:4px}.item-meta{font-size:13px;color:#666}@media print{.item{break-inside:avoid}}</style></head><body>';
-  html += '<h1>' + LO.nom + '</h1>';
-  html += '<div class="contact">' + (LO.telephone || '') + (LO.email ? ' • ' + LO.email : '') + '</div>';
-  html += '<h2>' + items.length + ' élément(s)</h2>';
-  html += '<div class="grid">';
-  for (var i = 0; i < items.length; i++) {
-    var x = items[i], e = x.e;
-    html += '<div class="item">';
-    if (e.photos && e.photos.length) html += '<img src="' + e.photos[0] + '">';
-    html += '<div class="item-info"><div class="item-name">' + e.nom + '</div><div class="item-meta">' + x.d.nom + '</div></div></div>';
+// Render
+function R(){
+  // Sync window refs for onclick handlers
+  window.D=D;window.P=P;window.DC=DC;window.EL=EL;window.LO=LO;
+  
+  if(!CODE){
+    document.getElementById("app").innerHTML = rLogin();
+    return;
   }
-  html += '</div></body></html>';
-  var w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.print();
-};
+  
+  var h=rHeader();
+  h+='<main class="cnt">';
+  if(V==="home")h+=rHome();
+  else if(V==="proj")h+=rProj();
+  else if(V==="dec")h+=rDec();
+  else if(V==="el")h+=rEl();
+  else if(V==="lou")h+=rLou();
+  else if(V==="loud")h+=rLouD();
+  else if(V==="rent")h+=rRent();
+  else if(V==="dep")h+=rDep();
+  else if(V==="acc")h+=rAcc();
+  else if(V==="print")h+=rPrint();
+  else if(V==="search")h+=rSearch();
+  h+='</main>';
+  h+=rNavbar();
+  if(M)h+=rModal();
+  if(MN)h+=rMenu();
+  if(VW&&VWC)h+=rViewer();
+  document.getElementById("app").innerHTML=h;
+}
 
-window.printGallery = function() {
-  var rb = gr(RB);
-  if (!rb || !DC) return;
-  var els = [];
-  if (DC.elements) for (var i = 0; i < DC.elements.length; i++) if (DC.elements[i].rubrique === rb.id) els.push(DC.elements[i]);
-  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + rb.n + ' - ' + DC.nom + '</title><style>body{font-family:system-ui,sans-serif;padding:24px;max-width:900px;margin:0 auto}h1{margin:0 0 8px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.item{background:#f5f5f5;border-radius:8px;overflow:hidden}.item img{width:100%;aspect-ratio:1;object-fit:cover}.item-info{padding:12px}.item-name{font-weight:600}</style></head><body>';
-  html += '<h1>' + rb.i + ' ' + rb.n + '</h1>';
-  html += '<p style="color:#666;margin-bottom:24px">' + DC.nom + ' • ' + els.length + ' éléments</p>';
-  html += '<div class="grid">';
-  for (var i = 0; i < els.length; i++) {
-    var e = els[i];
-    html += '<div class="item">';
-    if (e.photos && e.photos.length) html += '<img src="' + e.photos[0] + '">';
-    html += '<div class="item-info"><div class="item-name">' + e.nom + '</div></div></div>';
+function rLogin(){
+  var h='<div class="login-screen">';
+  h+='<div class="login-logo">🎬</div>';
+  h+='<div class="login-title">Décor Pro</div>';
+  h+='<div class="login-sub">Gestion de décors collaborative'+(HAS_FIREBASE?'':' • mode local')+'</div>';
+  h+='<div class="login-box">';
+  h+='<div class="login-tabs">';
+  h+='<div class="login-tab'+(LTAB==="join"?" on":"")+'" onclick="setLTab(\'join\')">Rejoindre</div>';
+  h+='<div class="login-tab'+(LTAB==="create"?" on":"")+'" onclick="setLTab(\'create\')">Créer</div>';
+  h+='</div>';
+  
+  if(LTAB==="join"){
+    h+='<p style="font-size:13px;color:#94a3b8;margin-bottom:16px">Entrez le code projet partagé par votre équipe</p>';
+    h+='<div class="fld"><input id="join-code" class="code-input" placeholder="ABC123" maxlength="6" autocapitalize="characters"></div>';
+    h+='<button class="btn p" onclick="joinProject()">Rejoindre le projet</button>';
+  }else{
+    h+='<p style="font-size:13px;color:#94a3b8;margin-bottom:16px">'+(HAS_FIREBASE?'Créez un nouveau projet et partagez le code avec votre équipe':'Démarrez l\'application en local sur cet appareil')+'</p>';
+    h+='<button class="btn p" onclick="createProject()">'+(HAS_FIREBASE?'🚀 Créer un projet':'💾 Ouvrir le mode local')+'</button>';
+    h+='<div class="team-info">'+(HAS_FIREBASE?'Un code unique sera généré. Partagez-le avec vos collaborateurs pour qu\'ils puissent rejoindre le projet.':'Vos données seront conservées dans le navigateur de cet appareil.')+'</div>';
   }
-  html += '</div></body></html>';
-  var w = window.open('', '_blank'); w.document.write(html); w.document.close(); w.print();
+  h+='</div></div>';
+  return h;
+}
+
+function rHeader(){
+  var syncClass = HAS_FIREBASE ? (SYNCING?"syncing":(ONLINE?"online":"offline")) : "offline";
+  var syncText = HAS_FIREBASE ? (SYNCING?"Sync...":(ONLINE?"Connecté":"Hors-ligne")) : "Mode local";
+  
+  var h='<header class="hdr"><div class="hdr-top">';
+  h+='<div class="logo"><em>🎬</em>Décor Pro</div>';
+  h+='<div style="display:flex;align-items:center;gap:8px">';
+  h+='<div class="sync-status '+syncClass+'"><div class="sync-dot"></div>'+syncText+'</div>';
+  h+='<button onclick="menu(true)" style="font-size:20px;padding:6px">☰</button>';
+  h+='</div></div>';
+  h+=rCalendarStrip();
+  h+='</header>';
+  if(V!=="home"&&V!=="search")h+=rBread();
+  return h;
+}
+
+function rBread(){
+  var h='<div class="bread">';
+  h+='<span onclick="go(\'home\')">🏠</span><i>›</i>';
+  if(P){h+='<span onclick="go(\'proj\',\''+P.id+'\')"'+(V==="proj"?' class="current"':'')+'>'+P.nom+'</span>';}
+  if(DC){h+='<i>›</i><span onclick="go(\'dec\',\''+DC.id+'\')"'+(V==="dec"?' class="current"':'')+'>'+DC.nom+'</span>';}
+  if(EL){h+='<i>›</i><span class="current">'+EL.nom+'</span>';}
+  if(V==="lou"||V==="loud"){h+='<span class="current">Loueurs</span>';}
+  if(V==="rent"){h+='<span class="current">Achat</span>';}
+  if(V==="dep"){h+='<span class="current">Dépenses</span>';}
+  if(V==="acc"){h+='<span class="current">Accessoires</span>';}
+  h+='</div>';
+  return h;
+}
+
+function rNavbar(){
+  var h='<nav class="navbar">';
+  h+='<div class="nav-item'+(V==="home"?" active":"")+'" onclick="go(\'home\')"><span class="icon">🏠</span><span class="label">Accueil</span></div>';
+  h+='<div class="nav-item'+(V==="acc"?" active":"")+'" onclick="go(\'acc\')"><span class="icon">🎭</span><span class="label">Accessoires</span></div>';
+  h+='<div class="nav-item'+(V==="lou"||V==="loud"?" active":"")+'" onclick="go(\'lou\')"><span class="icon">🏪</span><span class="label">Loueurs</span></div>';
+  h+='<div class="nav-item'+(V==="print"?" active":"")+'" onclick="go(\'print\')"><span class="icon">🖨️</span><span class="label">Impression</span></div>';
+  h+='</nav>';
+  return h;
+}
+
+window.calSel=function(ds){
+  if(CALSEL===ds){CALSEL=null;}else{CALSEL=ds;}
+  R();
+};
+window.calNav=function(d){CALOFF+=d;R();};
+
+function rCalendarStrip(){
+  var now=new Date();
+  var todayY=now.getFullYear(),todayM=now.getMonth(),todayD=now.getDate();
+  var todayDS=todayY+'-'+(todayM+1<10?'0':'')+(todayM+1)+'-'+(todayD<10?'0':'')+todayD;
+  
+  // Start 7 jours avant aujourd'hui + offset
+  var startDate=new Date(todayY,todayM,todayD-7+(CALOFF*7),12,0,0,0);
+  var JOURS=["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
+  var NB_DAYS=28;
+  
+  var h='<div class="cal-strip compact">';
+  h+='<div class="cal-header"><button onclick="calNav(-1)">◀</button>';
+  h+='<span>📅 '+MOIS[now.getMonth()]+' '+now.getFullYear()+'</span>';
+  h+='<button onclick="calNav(1)">▶</button></div>';
+  h+='<div class="cal-days" id="cal-scroll">';
+  
+  for(var i=0;i<NB_DAYS;i++){
+    var d=new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()+i,12,0,0,0);
+    var dy=d.getFullYear(),dm=d.getMonth()+1,dd=d.getDate();
+    var ds=dy+'-'+(dm<10?'0':'')+dm+'-'+(dd<10?'0':'')+dd;
+    var isToday=(ds===todayDS);
+    var isSel=(CALSEL===ds);
+    var isSun=(d.getDay()===0);
+    var isNewMonth=(i===0||dd===1);
+    var alerts=getAlertsForDate(d);
+    
+    h+='<div class="cal-day'+(isToday?' today':'')+(isSel?' selected':'')+(isSun?' sunday':'')+'" onclick="calSel(\''+ds+'\')"'+(isToday?' id="cal-today"':'')+'>';
+    if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
+    h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
+    h+='<div class="day-num">'+dd+'</div>';
+    if(alerts.prepa.length)h+='<div class="cal-bar prepa"></div>';
+    if(alerts.shoot.length)h+='<div class="cal-bar shoot"></div>';
+    if(alerts.demontage.length)h+='<div class="cal-bar demo"></div>';
+    h+='<div class="cal-badges">';
+    if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
+    if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
+    if(alerts.tournage.length)h+='<div class="cal-badge pink"></div>';
+    if(alerts.departs.length)h+='<div class="cal-badge" style="background:#6366f1"></div>';
+    if(alerts.retours.length)h+='<div class="cal-badge" style="background:#14b8a6"></div>';
+    h+='</div></div>';
+  }
+  h+='</div>';
+  
+  // Detail du jour selectionne
+  if(CALSEL){
+    var sp=CALSEL.split("-");var selDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2]),12,0,0,0);
+    var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+    var selAlerts=getAlertsForDate(selDate);
+    var total=selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
+    h+='<div class="cal-detail">';
+    h+='<div style="font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:6px">'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' — '+total+' evnt</div>';
+    if(total>0){
+      for(var i=0;i<selAlerts.prepa.length;i++){var x=selAlerts.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#f59e0b;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Prépa</span></div>';}
+      for(var i=0;i<selAlerts.shoot.length;i++){var x=selAlerts.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#ec4899;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#ec4899;margin-left:auto;font-size:11px">Tournage</span></div>';}
+      for(var i=0;i<selAlerts.demontage.length;i++){var x=selAlerts.demontage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#8b5cf6;margin-left:auto;font-size:11px">Démontage</span></div>';}
+      for(var i=0;i<selAlerts.urgents.length;i++){var x=selAlerts.urgents[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🚨 <strong>'+x.e.nom+'</strong><span style="color:#ef4444;margin-left:auto;font-size:11px">Urgent</span></div>';}
+      for(var i=0;i<selAlerts.tournage.length;i++){var x=selAlerts.tournage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">🎬 <strong>'+x.e.nom+'</strong><span style="color:#ec4899;margin-left:auto;font-size:11px">Jeu</span></div>';}
+      for(var i=0;i<selAlerts.departs.length;i++){var x=selAlerts.departs[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📤 <strong>'+x.e.nom+'</strong><span style="color:#6366f1;margin-left:auto;font-size:11px">Départ</span></div>';}
+      for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong><span style="color:#14b8a6;margin-left:auto;font-size:11px">Retour</span></div>';}
+      for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong><span style="color:#3b82f6;margin-left:auto;font-size:11px">Non prêt</span></div>';}
+      for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Retard</span></div>';}
+    } else {
+      h+='<div style="font-size:12px;color:#64748b;padding:4px 0">Rien de prévu</div>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function getAlertsForDate(date){
+  var d0=new Date(date);d0.setHours(12,0,0,0);var d0t=d0.getTime();
+  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[]};
+  function normD(s){if(!s)return null;var parts=s.split("-");return new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0,0).getTime();}
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];
+      var pS=normD(dc.dateInstallation),pE=normD(dc.dateTournage);
+      if(pS!==null){if(pE===null)pE=pS+86400000;if(d0t>=pS&&d0t<pE)items.prepa.push({d:dc,p:p});}
+      var tS=normD(dc.dateTournage),tE=normD(dc.dateTournageFin);
+      if(tS!==null){if(tE===null)tE=tS;if(d0t>=tS&&d0t<=tE)items.shoot.push({d:dc,p:p});}
+      var dmD=normD(dc.dateDemontage);
+      if(dmD!==null&&d0t===dmD)items.demontage.push({d:dc,p:p});
+      if(!dc.elements)continue;
+      for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];
+        var djt=normD(e.dateJeu);
+        if(djt!==null&&d0t===djt){items.tournage.push({e:e,d:dc,p:p});if(e.statut!=="installe")items.nonPrets.push({e:e,d:dc,p:p});}
+        var ddt=normD(e.dateDepart);if(ddt!==null&&d0t===ddt)items.departs.push({e:e,d:dc,p:p});
+        var drt=normD(e.dateRetour);
+        if(drt!==null&&d0t===drt){items.retours.push({e:e,d:dc,p:p});if(e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});}
+        if(e.urgent&&djt!==null&&d0t===djt)items.urgents.push({e:e,d:dc,p:p});
+      }}}
+  var seen={};items.prepa=items.prepa.filter(function(x){var k=x.d.id;if(seen[k])return false;seen[k]=true;return true;});
+  var seen2={};items.shoot=items.shoot.filter(function(x){var k=x.d.id;if(seen2[k])return false;seen2[k]=true;return true;});
+  return items;
+}
+
+function rCalendar(){return rCalendarStrip();}
+
+function rPrint(){
+  var h='<div class="page-title">🖨️ Impression</div>';
+  h+='<div class="page-sub">Générer des fiches imprimables</div>';
+  
+  if(!D.projets.length){
+    h+='<div class="empty"><div class="icon">🖨️</div><p>Aucun projet</p></div>';
+    return h;
+  }
+  
+  h+='<div class="stit">Choisir un projet</div>';
+  for(var i=0;i<D.projets.length;i++){
+    var p=D.projets[i],t=gt(p.type),ndc=p.decors?p.decors.length:0;
+    h+='<div class="card" onclick="printProjet(\''+p.id+'\')">';
+    h+='<div class="card-icon">'+t.i+'</div>';
+    h+='<div class="card-info"><h3>'+p.nom+'</h3><p>'+ndc+' décors</p></div>';
+    h+='<div class="card-actions"><div class="card-act view">🖨️</div></div>';
+    h+='</div>';
+  }
+  
+  h+='<div class="stit">Actions rapides</div>';
+  h+='<div class="acts">';
+  h+='<div class="abtn p" onclick="printAll()">🖨️ Tout imprimer</div>';
+  h+='<div class="abtn" onclick="printBudget()">💰 Budget</div>';
+  h+='<div class="abtn" onclick="printLoueurs()">🏪 Loueurs</div>';
+  h+='</div>';
+  
+  // Fiches decor individuelles
+  if(D.projets.length&&D.projets[0].decors&&D.projets[0].decors.length){
+    h+='<div class="stit">Fiches décor</div>';
+    var proj=D.projets[0];
+    for(var j=0;j<proj.decors.length;j++){
+      var dc=proj.decors[j],st=gsd(dc.statut),nel=dc.elements?dc.elements.length:0;
+      h+='<div class="card" onclick="printDecor(\''+proj.id+'\',\''+dc.id+'\')">';
+      h+='<div class="card-icon">'+(dc.interieur?'🏠':'🌳')+'</div>';
+      h+='<div class="card-info"><h3>'+dc.nom+'</h3><p>'+nel+' éléments</p></div>';
+      h+='<div class="card-actions"><div class="card-act view">🖨️</div></div>';
+      h+='</div>';
+    }
+  }
+  
+  return h;
+}
+
+window.printProjet=function(pId){
+  var proj=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pId){proj=D.projets[i];break}
+  if(!proj)return;
+  var w=window.open("","_blank");
+  var html="<html><head><title>"+proj.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:4px}h2{margin-top:20px;color:#6366f1;border-bottom:2px solid #6366f1;padding-bottom:4px}h3{margin-top:12px;color:#555}.el{padding:8px 0;border-bottom:1px solid #eee}.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;background:#f1f5f9;margin-left:6px}table{width:100%;border-collapse:collapse;margin-top:8px}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid #eee;font-size:13px}th{font-weight:600;color:#64748b}</style></head><body>";
+  html+="<h1>"+proj.nom+"</h1><p>"+(proj.production||"")+" • "+(proj.realisateur||"")+"</p>";
+  if(proj.decors)for(var j=0;j<proj.decors.length;j++){
+    var dc=proj.decors[j];html+="<h2>"+dc.nom+"</h2><p>"+(dc.adresse||"")+"</p>";
+    if(dc.elements&&dc.elements.length){html+="<table><tr><th>Élément</th><th>Rubrique</th><th>Statut</th><th>Scène</th></tr>";
+      for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];var st=gs(e.statut);var rb=gr(e.rubrique);html+="<tr><td><strong>"+e.nom+"</strong></td><td>"+(rb?rb.n:"")+"</td><td>"+st.l+"</td><td>"+(e.scene||"")+"</td></tr>";}
+      html+="</table>";}
+  }
+  html+="</body></html>";w.document.write(html);w.document.close();w.print();
 };
 
-// ============================================
-// INIT
-// ============================================
-if (CODE) { subscribeToProject(CODE); } else { R(); }
+window.printAll=function(){if(D.projets.length)printProjet(D.projets[0].id);};
+
+window.printDecor=function(pId,dId){
+  var proj=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pId){proj=D.projets[i];break}
+  if(!proj||!proj.decors)return;
+  var dc=null;for(var i=0;i<proj.decors.length;i++)if(proj.decors[i].id===dId){dc=proj.decors[i];break}
+  if(!dc)return;
+  var bud=getDecorBudget(dc);
+  var w=window.open("","_blank");
+  var html="<html><head><title>"+dc.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333;max-width:800px;margin:0 auto}h1{margin-bottom:4px;color:#6366f1}h2{margin-top:16px;font-size:16px;border-bottom:1px solid #ddd;padding-bottom:4px}.info{display:flex;gap:20px;flex-wrap:wrap;margin:8px 0;font-size:13px;color:#555}.info span{background:#f1f5f9;padding:4px 10px;border-radius:6px}.date-bar{display:flex;gap:12px;margin:10px 0}.date-box{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#fff}.prepa{background:#f59e0b}.tournage{background:#ec4899}.demo{background:#8b5cf6}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid #eee}th{font-weight:600;color:#64748b;background:#f8fafc}.budget{background:#f0fdf4;border-radius:8px;padding:12px;margin-top:12px}.budget strong{color:#10b981;font-size:16px}img{width:60px;height:60px;object-fit:cover;border-radius:6px}</style></head><body>";
+  html+="<h1>"+dc.nom+"</h1>";
+  html+="<div class='info'><span>"+(dc.interieur?"Intérieur":"Extérieur")+" • "+(dc.studio?"Studio":"Naturel")+"</span>";
+  if(dc.adresse)html+="<span>📍 "+dc.adresse+"</span>";
+  if(dc.sequences)html+="<span>Sq. "+dc.sequences+"</span>";
+  html+="</div>";
+  html+="<div class='date-bar'>";
+  if(dc.dateInstallation)html+="<div class='date-box prepa'>Prépa: "+fd(dc.dateInstallation)+"</div>";
+  if(dc.dateTournage)html+="<div class='date-box tournage'>Tournage: "+fd(dc.dateTournage)+(dc.dateTournageFin?" → "+fd(dc.dateTournageFin):"")+"</div>";
+  if(dc.dateDemontage)html+="<div class='date-box demo'>Démontage: "+fd(dc.dateDemontage)+"</div>";
+  html+="</div>";
+  if(dc.elements&&dc.elements.length){
+    html+="<h2>Éléments ("+dc.elements.length+")</h2>";
+    html+="<table><tr><th></th><th>Nom</th><th>Rubrique</th><th>Statut</th><th>Sq.</th><th>Personnage</th><th>Coût</th></tr>";
+    for(var k=0;k<dc.elements.length;k++){
+      var e=dc.elements[k],st=gs(e.statut),rb=gr(e.rubrique);
+      html+="<tr>";
+      html+="<td>"+(e.photos&&e.photos.length?"<img src='"+e.photos[0]+"'>":"")+"</td>";
+      html+="<td><strong>"+e.nom+"</strong>"+(e.urgent?" 🚨":"")+"</td>";
+      html+="<td>"+(rb?rb.n:"")+"</td>";
+      html+="<td>"+st.l+"</td>";
+      html+="<td>"+(e.scene||"")+"</td>";
+      html+="<td>"+(e.role||"")+"</td>";
+      html+="<td>"+(parseFloat(e.coutReel||e.coutLocation||0)?fm(e.coutReel||e.coutLocation):"")+"</td>";
+      html+="</tr>";
+    }
+    html+="</table>";
+  }
+  if(bud.total>0){
+    html+="<div class='budget'><h2>Budget</h2>";
+    if(bud.loc>0)html+="<div>Location: "+fm(bud.loc)+"</div>";
+    if(bud.achat>0)html+="<div>Achat: "+fm(bud.achat)+"</div>";
+    html+="<div><strong>Total: "+fm(bud.total)+"</strong></div></div>";
+  }
+  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+};
+
+window.printBudget=function(){
+  var w=window.open("","_blank");
+  var deps=D.depenses.slice();deps.sort(function(a,b){return new Date(b.date||0)-new Date(a.date||0)});
+  var total=0;for(var i=0;i<deps.length;i++)total+=parseFloat(deps[i].montant)||0;
+  var html="<html><head><title>Budget</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:12px}table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #eee;font-size:13px}th{font-weight:600;color:#64748b}.total{font-size:18px;font-weight:700;margin-top:16px}</style></head><body>";
+  html+="<h1>💰 Budget</h1><table><tr><th>Description</th><th>Type</th><th>Montant</th><th>Date</th></tr>";
+  for(var i=0;i<deps.length;i++){var d=deps[i];html+="<tr><td>"+(d.description||"")+"</td><td>"+(d.type||"")+"</td><td>"+fm(d.montant)+"</td><td>"+(d.date||"")+"</td></tr>";}
+  html+="</table><p class=\"total\">Total: "+fm(total)+"</p></body></html>";
+  w.document.write(html);w.document.close();w.print();
+};
+
+window.printLoueurs=function(){
+  var w=window.open("","_blank");
+  var html="<html><head><title>Loueurs</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:12px}.card{border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:8px}h3{margin-bottom:4px}.info{font-size:13px;color:#555}</style></head><body>";
+  html+="<h1>🏪 Loueurs</h1>";
+  for(var i=0;i<D.loueurs.length;i++){var l=D.loueurs[i];html+="<div class=\"card\"><h3>"+l.nom+"</h3><p class=\"info\">"+(l.specialite||"")+"</p>"+(l.telephone?"<p class=\"info\">📞 "+l.telephone+"</p>":"")+(l.email?"<p class=\"info\">✉️ "+l.email+"</p>":"")+(l.adresse?"<p class=\"info\">📍 "+l.adresse+"</p>":"")+"</div>";}
+  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+};
+
+function rHome(){
+  var np=D.projets.length,nd=0,ne=0,td=0;
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];nd+=p.decors?p.decors.length:0;if(p.decors)for(var j=0;j<p.decors.length;j++)ne+=p.decors[j].elements?p.decors[j].elements.length:0;}
+  for(var i=0;i<D.depenses.length;i++)td+=parseFloat(D.depenses[i].montant)||0;
+  var al=getAlerts();
+  
+  var h='<div class="box" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.2));margin-bottom:16px">';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center">';
+  h+='<div><div style="font-size:11px;color:#a5b4fc;margin-bottom:4px">CODE PROJET</div>';
+  h+='<div style="font-size:24px;font-weight:700;letter-spacing:3px">'+CODE+'</div></div>';
+  h+='<button class="abtn" onclick="copyCode()" style="font-size:11px">📋 Copier</button>';
+  h+='</div></div>';
+  
+  var h2='<div class="stats">';
+  h2+='<div class="stat"><strong>'+np+'</strong><small>Projets</small></div>';
+  h2+='<div class="stat"><strong>'+nd+'</strong><small>Décors</small></div>';
+  h2+='<div class="stat"><strong>'+ne+'</strong><small>Éléments</small></div>';
+  h2+='<div class="stat"><strong>'+fm(td).replace("€","")+'</strong><small>Budget</small></div>';
+  h2+='</div>';
+  h+=h2;
+  
+  h+='<div class="stit">Mes projets <button onclick="modal(\'np\')">+ Nouveau</button></div>';
+  
+  if(!D.projets.length){
+    h+='<div class="empty"><div class="icon">🎬</div><p>Aucun projet</p><p style="font-size:12px">Créez votre premier projet</p></div>';
+  }else{
+    for(var i=0;i<D.projets.length;i++){
+      var p=D.projets[i],t=gt(p.type),ndc=p.decors?p.decors.length:0;
+      h+='<div class="card" onclick="go(\'proj\',\''+p.id+'\')">';
+      h+='<div class="card-icon">'+t.i+'</div>';
+      h+='<div class="card-info"><h3>'+p.nom+'</h3><p>'+ndc+' décors'+(p.production?' • '+p.production:'')+'</p></div>';
+      h+='<div class="card-actions"><div class="card-act edit" onclick="event.stopPropagation();edit(\'projet\',D.projets['+i+'])">✏️</div></div>';
+      h+='</div>';
+    }
+  }
+  h+='<button class="fab" onclick="modal(\'np\')">+</button>';
+  return h;
+}
+
+window.copyCode=function(){
+  navigator.clipboard.writeText(CODE).then(function(){
+    alert("Code copié: "+CODE);
+  });
+};
+
+// === Render functions ===
+function rProj(){
+  if(!P)return"";
+  var t=gt(P.type),nd=P.decors?P.decors.length:0;
+  var td=0;for(var i=0;i<D.depenses.length;i++)if(D.depenses[i].projetId===P.id)td+=parseFloat(D.depenses[i].montant)||0;
+  // Budget elements
+  var budgetEl=0;if(P.decors)for(var i=0;i<P.decors.length;i++){var b=getDecorBudget(P.decors[i]);budgetEl+=b.total;}
+  var totalBudget=td+budgetEl;
+  
+  var h='<div class="back-btn" onclick="go(\'home\')">← Accueil</div>';
+  h+='<div class="page-title">'+t.i+' '+P.nom+'</div>';
+  h+='<div class="page-sub">'+(P.production||t.l)+' • '+nd+' décors</div>';
+  
+  // Bloc dates projet
+  if(P.datePrepa||P.dateTournage){
+    h+='<div class="box" style="padding:10px;margin-top:8px">';
+    h+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+    if(P.datePrepa)h+='<div style="padding:5px 10px;border-radius:8px;background:rgba(245,158,11,0.15);color:#fcd34d;font-size:12px;font-weight:600">🔧 Prépa '+fd(P.datePrepa)+'</div>';
+    if(P.dateTournage)h+='<div style="padding:5px 10px;border-radius:8px;background:rgba(236,72,153,0.15);color:#f9a8d4;font-size:12px;font-weight:600">🎬 Tournage '+fd(P.dateTournage)+(P.dateTournageFin?' → '+fd(P.dateTournageFin):'')+'</div>';
+    h+='</div></div>';
+  }
+  
+  if(totalBudget>0)h+='<div class="total-box"><span>Budget total</span><strong>'+fm(totalBudget)+'</strong></div>';
+  
+  h+='<div class="acts">';
+  h+='<div class="abtn p" onclick="modal(\'nd\')">+ Décor</div>';
+  h+='<div class="abtn" onclick="edit(\'projet\',P)">✏️ Modifier</div>';
+  h+='<div class="abtn d" onclick="delP()">🗑️</div>';
+  h+='</div>';
+  
+  // Timeline planning
+  h+=rTimeline();
+  
+  // Compteurs par statut
+  if(P.decors&&P.decors.length){
+    var counts={};for(var i=0;i<STATD.length;i++)counts[STATD[i].id]=0;
+    for(var i=0;i<P.decors.length;i++){var s=P.decors[i].statut||"a_preparer";if(counts[s]!==undefined)counts[s]++;}
+    h+='<div class="filter-row">';
+    h+='<div class="filter-chip'+(DFILT==="all"?" on":"")+'" onclick="setDFilt(\'all\')">Tous ('+P.decors.length+')</div>';
+    for(var i=0;i<STATD.length;i++){var s=STATD[i];if(counts[s.id]>0)h+='<div class="filter-chip'+(DFILT===s.id?" on":"")+'" onclick="setDFilt(\''+s.id+'\')">'+s.l+' ('+counts[s.id]+')</div>';}
+    h+='</div>';
+  }
+  
+  h+='<div class="stit">Décors</div>';
+  if(!P.decors||!P.decors.length){
+    h+='<div class="empty"><div class="icon">🎭</div><p>Aucun décor</p></div>';
+  }else{
+    // Filtrer
+    var filtered=P.decors;
+    if(DFILT!=="all")filtered=P.decors.filter(function(d){return d.statut===DFILT;});
+    // Trier par date tournage
+    filtered.sort(function(a,b){
+      var da=a.dateTournage?new Date(a.dateTournage).getTime():99999999999999;
+      var db=b.dateTournage?new Date(b.dateTournage).getTime():99999999999999;
+      return da-db;
+    });
+    
+    for(var i=0;i<filtered.length;i++){
+      var d=filtered[i],st=gsd(d.statut),nel=d.elements?d.elements.length:0;
+      var bud=getDecorBudget(d);
+      h+='<div class="card" onclick="go(\'dec\',\''+d.id+'\')">';
+      h+='<div class="card-icon">'+(d.interieur?'🏠':'🌳')+'</div>';
+      h+='<div class="card-info"><h3>'+d.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span> '+nel+' él.'+(d.sequences?' • Sq.'+d.sequences:'')+(bud.total>0?' • '+fm(bud.total):'')+'</p></div>';
+      // Trouver l'index reel dans P.decors pour edit
+      var realIdx=-1;for(var j=0;j<P.decors.length;j++)if(P.decors[j].id===d.id){realIdx=j;break;}
+      h+='<div class="card-actions"><div class="card-act edit" onclick="event.stopPropagation();DC=P.decors['+realIdx+'];edit(\'decor\',DC)">✏️</div></div>';
+      h+='</div>';
+    }
+  }
+  h+='<button class="fab" onclick="modal(\'nd\')">+</button>';
+  h+='<button class="search-fab" onclick="toggleSearch()">🔍</button>';
+  return h;
+}
+
+function rDec(){
+  if(!DC)return"";
+  var st=gsd(DC.statut);
+  var bud=getDecorBudget(DC);
+  var h='<div class="back-btn" onclick="go(\'proj\',\''+P.id+'\')">← '+P.nom+'</div>';
+  h+='<div class="page-title">'+DC.nom+'</div>';
+  h+='<div class="page-sub"><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>'+(DC.adresse?' • 📍'+DC.adresse:'')+(bud.total>0?' • '+fm(bud.total):'')+'</div>';
+  h+='<div class="tabs">';
+  h+='<div class="tab'+(TB==="rub"?" on":"")+'" onclick="setTab(\'rub\')">Rubriques</div>';
+  h+='<div class="tab'+(TB==="avalider"?" on":"")+'" onclick="setTab(\'avalider\')">À valider</div>';
+  h+='<div class="tab'+(TB==="portfolio"?" on":"")+'" onclick="setTab(\'portfolio\')">Portfolio</div>';
+  h+='<div class="tab'+(TB==="info"?" on":"")+'" onclick="setTab(\'info\')">Infos</div>';
+  h+='</div>';
+  if(TB==="rub"){
+    h+='<div class="rub-grid">';
+    for(var i=0;i<RUB.length;i++){
+      var r=RUB[i],cnt=0,urg=0,phs=0;
+      if(DC.elements)for(var j=0;j<DC.elements.length;j++){
+        if(DC.elements[j].rubrique===r.id){cnt++;if(DC.elements[j].urgent)urg++;if(DC.elements[j].photos)phs+=DC.elements[j].photos.length;}
+      }
+      h+='<div class="rub-card'+(urg?' urgent':'')+'" onclick="modal(\'rub\',\''+r.id+'\')" style="border-left:3px solid '+r.c+'">';
+      h+='<div class="icon">'+r.i+'</div><h4>'+r.n+'</h4><p>'+cnt+' él.'+(phs?' • '+phs+' 📷':'')+'</p>';
+      if(cnt)h+='<div class="count">'+cnt+'</div>';
+      h+='</div>';
+    }
+    h+='</div>';
+  }else if(TB==="avalider"){
+    var avItems=[];
+    if(DC.elements)for(var j=0;j<DC.elements.length;j++){if(DC.elements[j].statut==="a_valider")avItems.push(DC.elements[j]);}
+    if(!avItems.length){
+      h+='<div class="empty"><div class="icon">✅</div><p>Aucun élément à valider</p><p style="font-size:12px">Tous les éléments sont validés</p></div>';
+    }else{
+      h+='<div class="stit"><span>'+avItems.length+' élément(s) à valider</span></div>';
+      for(var j=0;j<avItems.length;j++){
+        var e=avItems[j],st=gs(e.statut);
+        h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')">';
+        if(e.photos&&e.photos.length)h+='<img src="'+e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">';
+        else h+='<div class="card-icon">📦</div>';
+        h+='<div class="card-info"><h3>'+e.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>'+(e.scene?' • Sq.'+e.scene:'')+'</p></div>';
+        h+='<div class="card-actions"><div class="card-act view" onclick="event.stopPropagation();quickValidate(\''+e.id+'\')">✅</div></div>';
+        h+='</div>';
+      }
+    }
+  }else if(TB==="portfolio"){
+    var groups=getDecorPortfolioGroups();
+    if(!groups.length){
+      h+='<div class="empty"><div class="icon">🖼️</div><p>Aucune photo classée par rubrique</p><p style="font-size:12px">Ajoutez des photos aux éléments du décor.</p></div>';
+    }else{
+      for(var g=0;g<groups.length;g++){
+        var group=groups[g], rb=group.rubrique;
+        h+='<div class="stit"><span>'+rb.i+' '+rb.n+'</span><small style="color:#64748b">'+group.photos.length+' photo(s)</small></div>';
+        h+='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px">';
+        for(var p=0;p<group.photos.length;p++){
+          var ph=group.photos[p];
+          h+='<div onclick="openPortfolioGroup(\''+rb.id+'\','+p+')" style="position:relative;cursor:pointer">';
+          h+='<img src="'+ph.data+'" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px">';
+          h+='<div style="position:absolute;left:4px;right:4px;bottom:4px;font-size:10px;padding:4px 6px;background:rgba(15,23,42,0.78);border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ph.nom+'</div>';
+          h+='</div>';
+        }
+        h+='</div>';
+      }
+    }
+  }else if(TB==="info"){
+    h+='<div class="box">';
+    h+='<div class="row"><span>Type</span><span>'+(DC.interieur?'Intérieur':'Extérieur')+' • '+(DC.studio?'Studio':'Naturel')+'</span></div>';
+    if(DC.sequences)h+='<div class="row"><span>Séquences</span><span>'+DC.sequences+'</span></div>';
+    if(DC.elements)h+='<div class="row"><span>Éléments</span><span>'+DC.elements.length+'</span></div>';
+    h+='</div>';
+    
+    // Dates du decor avec couleurs
+    h+='<div class="box" style="padding:10px">';
+    h+='<div style="font-weight:600;font-size:13px;margin-bottom:8px">Planning décor</div>';
+    if(DC.dateInstallation)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><div style="width:12px;height:12px;border-radius:3px;background:#f59e0b;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Prépa</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateInstallation)+'</span></div>';
+    if(DC.dateTournage)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><div style="width:12px;height:12px;border-radius:3px;background:#ec4899;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Tournage début</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateTournage)+'</span></div>';
+    if(DC.dateTournageFin)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05)"><div style="width:12px;height:12px;border-radius:3px;background:#ec4899;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Tournage fin</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateTournageFin)+'</span></div>';
+    if(DC.dateDemontage)h+='<div style="display:flex;align-items:center;gap:8px;padding:6px 0"><div style="width:12px;height:12px;border-radius:3px;background:#8b5cf6;flex-shrink:0"></div><span style="color:#64748b;font-size:13px">Démontage</span><span style="font-size:13px;margin-left:auto">'+fd(DC.dateDemontage)+'</span></div>';
+    if(!DC.dateInstallation&&!DC.dateTournage&&!DC.dateDemontage)h+='<div style="font-size:12px;color:#64748b;text-align:center;padding:8px">Aucune date renseignée</div>';
+    h+='</div>';
+    
+    if(DC.notes)h+='<div class="box"><div class="row"><span>Notes</span><span>'+DC.notes+'</span></div></div>';
+    
+    // Budget decor
+    var bud=getDecorBudget(DC);
+    if(bud.total>0){
+      h+='<div class="box" style="padding:10px">';
+      h+='<div style="font-weight:600;font-size:13px;margin-bottom:8px">💰 Budget décor</div>';
+      if(bud.loc>0)h+='<div class="budget-row"><span>Location</span><span>'+fm(bud.loc)+'</span></div>';
+      if(bud.achat>0)h+='<div class="budget-row"><span>Achat</span><span>'+fm(bud.achat)+'</span></div>';
+      h+='<div class="budget-row" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;margin-top:4px"><span>Total</span><span class="budget-total">'+fm(bud.total)+'</span></div>';
+      h+='</div>';
+    }
+    
+    h+='<div class="acts"><div class="abtn p" onclick="edit(\'decor\',DC)">✏️ Modifier</div><div class="abtn d" onclick="delD()">🗑️ Supprimer</div></div>';
+  }
+  h+='<button class="fab" onclick="modal(\'ne\')">+</button>';
+  return h;
+}
+
+window.getDecPhs=function(){var phs=[];if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++){var e=DC.elements[i];if(e.photos)for(var j=0;j<e.photos.length;j++)phs.push({data:e.photos[j],nom:e.nom});}return phs;};
+window.openPortfolioGroup=function(rubId, idx){ var phs=[]; if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++){var e=DC.elements[i]; if(e.rubrique===rubId&&e.photos)for(var j=0;j<e.photos.length;j++)phs.push({data:e.photos[j],nom:e.nom}); } if(phs.length)openPh(phs, idx||0); };
+
+function rEl(){
+  if(!EL)return"";
+  var st=gs(EL.statut),rb=gr(EL.rubrique);
+  
+  var h='';
+  if(EL.photos&&EL.photos.length){
+    h+='<div class="photo-main" onclick="openPh(EL.photos.map(function(p){return{data:p}}),0)"><img src="'+EL.photos[0]+'"></div>';
+    h+='<div class="photo-row">';
+    for(var i=0;i<EL.photos.length;i++)h+='<div class="photo-thumb'+(i===0?' active':'')+'" onclick="openPh(EL.photos.map(function(p){return{data:p}}),'+i+')"><img src="'+EL.photos[i]+'"></div>';
+    h+='<div class="photo-thumb photo-add" onclick="addPh()">+</div>';
+    h+='</div>';
+  }else{
+    h+='<div class="photo-main" onclick="addPh()" style="display:flex;align-items:center;justify-content:center;flex-direction:column;color:#64748b"><span style="font-size:32px">📷</span><span style="font-size:12px;margin-top:4px">Ajouter photos</span></div>';
+  }
+  
+  h+='<div class="page-title">'+EL.nom+(EL.urgent?' 🚨':'')+'</div>';
+  
+  h+='<div class="chips">';
+  if(rb)h+='<div class="chip purple">'+rb.i+' '+rb.n+'</div>';
+  if(EL.scene)h+='<div class="chip">🎬 Sc.'+EL.scene+'</div>';
+  if(EL.role)h+='<div class="chip pink">👤 '+EL.role+'</div>';
+  if(EL.dateJeu)h+='<div class="chip">📅 '+fd(EL.dateJeu)+'</div>';
+  h+='</div>';
+  
+  h+='<div class="acts">';
+  h+='<div class="abtn p" onclick="edit(\'element\',EL)">✏️ Modifier</div>';
+  h+='<div class="abtn'+(EL.urgent?' d':'')+'" onclick="toggleUrg()">'+(EL.urgent?'🚨 Urgent':'⚡ Urgent')+'</div>';
+  h+='<div class="abtn" onclick="dupEl()">📋</div>';
+  h+='<div class="abtn d" onclick="delE()">🗑️</div>';
+  h+='</div>';
+  
+  h+='<div class="fld"><label>Statut</label><select onchange="setStat(this.value)" style="background:'+st.c+'20;color:'+st.c+';border-color:'+st.c+'">';
+  for(var i=0;i<STAT.length;i++)h+='<option value="'+STAT[i].id+'"'+(STAT[i].id===EL.statut?' selected':'')+'>'+STAT[i].l+'</option>';
+  h+='</select></div>';
+  
+  h+='<div class="box">';
+  if(EL.description)h+='<p style="margin-bottom:8px;font-size:13px">'+EL.description+'</p>';
+  if(EL.dimensions)h+='<div class="row"><span>Dimensions</span><span>'+EL.dimensions+'</span></div>';
+  if(EL.couleur)h+='<div class="row"><span>Couleur</span><span>'+EL.couleur+'</span></div>';
+  if(EL.matiere)h+='<div class="row"><span>Matière</span><span>'+EL.matiere+'</span></div>';
+  if(EL.quantite&&EL.quantite>1)h+='<div class="row"><span>Quantité</span><span>'+EL.quantite+'</span></div>';
+  h+='</div>';
+  
+  var lo=EL.loueurId?gl(EL.loueurId):null;
+  if(lo){
+    h+='<div class="box" style="background:rgba(99,102,241,0.1)">';
+    h+='<div style="display:flex;align-items:center;gap:10px">';
+    h+='<span style="font-size:20px">🏪</span>';
+    h+='<div><strong style="color:#a5b4fc">'+lo.nom+'</strong>';
+    if(lo.telephone)h+='<br><a href="tel:'+lo.telephone+'" style="color:#64748b;font-size:12px">📞 '+lo.telephone+'</a>';
+    h+='</div></div></div>';
+  }
+  
+  if(EL.coutLocation||EL.coutReel||EL.dateDepart||EL.dateRetour){
+    h+='<div class="box"><div style="font-weight:600;margin-bottom:6px;font-size:13px">📦 Location</div>';
+    if(EL.dateDepart)h+='<div class="row"><span>Départ</span><span>'+fd(EL.dateDepart)+'</span></div>';
+    if(EL.dateRetour)h+='<div class="row"><span>Retour</span><span>'+fd(EL.dateRetour)+'</span></div>';
+    if(EL.coutLocation)h+='<div class="row"><span>Estimé</span><span>'+fm(EL.coutLocation)+'</span></div>';
+    if(EL.coutReel)h+='<div class="row"><span>Réel</span><span style="color:#10b981">'+fm(EL.coutReel)+'</span></div>';
+    h+='</div>';
+  }
+  return h;
+}
+
+function rLou(){
+  var h='<div class="page-title">🏪 Loueurs</div>';
+  h+='<div class="page-sub">'+D.loueurs.length+' contacts</div>';
+  if(!D.loueurs.length){h+='<div class="empty"><div class="icon">🏪</div><p>Aucun loueur</p></div>';}
+  else{for(var i=0;i<D.loueurs.length;i++){var l=D.loueurs[i];h+='<div class="card" onclick="go(\'loud\',\''+l.id+'\')"><div class="card-icon">🏪</div><div class="card-info"><h3>'+l.nom+'</h3><p>'+(l.specialite||'Loueur')+'</p></div><div class="card-actions">';if(l.telephone)h+='<a href="tel:'+l.telephone+'" class="card-act view" onclick="event.stopPropagation()">📞</a>';h+='<div class="card-act edit" onclick="event.stopPropagation();edit(\'loueur\',D.loueurs['+i+'])">✏️</div></div></div>';}}
+  h+='<button class="fab" onclick="modal(\'nl\')">+</button>';
+  return h;
+}
+
+function rLouD(){
+  if(!LO)return"";
+  var rented=getRentItems().filter(function(x){return x.l&&x.l.id===LO.id;});
+  var h='<div class="page-title">🏪 '+LO.nom+'</div>';
+  if(LO.specialite)h+='<div class="page-sub">'+LO.specialite+'</div>';
+  h+='<div class="acts">';
+  if(LO.telephone)h+='<a href="tel:'+LO.telephone+'" class="abtn p" style="text-decoration:none">📞 Appeler</a>';
+  if(LO.email)h+='<a href="mailto:'+LO.email+'" class="abtn" style="text-decoration:none">✉️ Email</a>';
+  h+='<div class="abtn" onclick="edit(\'loueur\',LO)">✏️</div></div>';
+  h+='<div class="box">';
+  if(LO.contact)h+='<div class="row"><span>Contact</span><span>'+LO.contact+'</span></div>';
+  if(LO.telephone)h+='<div class="row"><span>Téléphone</span><span>'+LO.telephone+'</span></div>';
+  if(LO.adresse)h+='<div class="row"><span>Adresse</span><span>'+LO.adresse+'</span></div>';
+  if(LO.notes)h+='<div class="row"><span>Notes</span><span>'+LO.notes+'</span></div>';
+  h+='</div>';
+  h+='<div class="stit">Objets loués <button onclick="go(\'rent\')">Voir tout</button></div>';
+  if(!rented.length){ h+='<div class="empty" style="padding:20px"><div class="icon">📦</div><p>Aucun objet lié à ce loueur</p></div>'; }
+  else{
+    for(var i=0;i<rented.length;i++){ var x=rented[i]; h+='<div class="dep-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div><h4>'+x.e.nom+'</h4><p>'+x.p.nom+' • '+x.d.nom+'</p></div><strong>'+(money(x.e.coutReel||x.e.coutLocation)?fm(x.e.coutReel||x.e.coutLocation):'—')+'</strong></div>'; }
+  }
+  h+='<div class="abtn d" style="width:100%" onclick="delL()">🗑️ Supprimer</div>';
+  return h;
+}
+
+function rRent(){
+  var items=getRentItems();
+  var h='<div class="page-title">🛒 Achat</div><div class="page-sub">'+items.length+' objet(s) loués ou suivis en location</div>';
+  h+='<div class="tabs">';
+  h+='<div class="tab'+(RTL==="all"?" on":"")+'" onclick="setRentTab(\'all\')">Tous</div>';
+  h+='<div class="tab'+(RTL==="decor"?" on":"")+'" onclick="setRentTab(\'decor\')">Par décor</div>';
+  h+='<div class="tab'+(RTL==="loueur"?" on":"")+'" onclick="setRentTab(\'loueur\')">Par loueur</div>';
+  h+='</div>';
+  if(!items.length){
+    h+='<div class="empty"><div class="icon">📦</div><p>Aucun objet loué</p><p style="font-size:12px">Renseignez un loueur, un coût ou des dates dans les fiches éléments.</p></div>';
+    return h;
+  }
+  if(RTL==="all"){
+    items.sort(function(a,b){ return money(b.e.coutReel||b.e.coutLocation)-money(a.e.coutReel||a.e.coutLocation); });
+    for(var i=0;i<items.length;i++){
+      var x=items[i], st=gs(x.e.statut), lname=x.l?x.l.nom:'Sans loueur';
+      h+='<div class="card" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">';
+      if(x.e.photos&&x.e.photos.length)h+='<img src="'+x.e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">'; else h+='<div class="card-icon">📦</div>';
+      h+='<div class="card-info"><h3>'+x.e.nom+'</h3><p>'+x.d.nom+' • '+lname+(x.e.dateRetour?' • retour '+fd(x.e.dateRetour):'')+'</p></div>';
+      h+='<span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div>';
+    }
+  }else if(RTL==="decor"){
+    var map={};
+    for(var i=0;i<items.length;i++){ var x=items[i], key=x.p.id+'__'+x.d.id; if(!map[key])map[key]={title:x.p.nom+' • '+x.d.nom, items:[]}; map[key].items.push(x); }
+    for(var key in map){
+      h+='<div class="stit">'+map[key].title+' <small style="color:#64748b">'+map[key].items.length+' objet(s)</small></div>';
+      for(var j=0;j<map[key].items.length;j++){ var x=map[key].items[j]; h+='<div class="dep-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div><h4>'+x.e.nom+'</h4><p>'+(x.l?x.l.nom:'Sans loueur')+(x.e.dateDepart?' • départ '+fd(x.e.dateDepart):'')+'</p></div><strong>'+(money(x.e.coutReel||x.e.coutLocation)?fm(x.e.coutReel||x.e.coutLocation):'—')+'</strong></div>'; }
+    }
+  }else if(RTL==="loueur"){
+    var map2={};
+    for(var i=0;i<items.length;i++){ var x=items[i], key=x.l?x.l.id:'none'; if(!map2[key])map2[key]={title:x.l?x.l.nom:'Sans loueur', items:[], l:x.l}; map2[key].items.push(x); }
+    for(var key in map2){
+      h+='<div class="stit">'+map2[key].title+' <small style="color:#64748b">'+map2[key].items.length+' objet(s)</small></div>';
+      if(map2[key].l)h+='<div class="abtn" style="margin-bottom:8px" onclick="go(\'loud\',\''+map2[key].l.id+'\')">🏪 Ouvrir la fiche loueur</div>';
+      for(var j=0;j<map2[key].items.length;j++){ var x=map2[key].items[j]; h+='<div class="dep-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div><h4>'+x.e.nom+'</h4><p>'+x.p.nom+' • '+x.d.nom+'</p></div><strong>'+(money(x.e.coutReel||x.e.coutLocation)?fm(x.e.coutReel||x.e.coutLocation):'—')+'</strong></div>'; }
+    }
+  }
+  return h;
+}
+
+function rDep(){
+  var deps=D.depenses.slice();if(P)deps=deps.filter(function(d){return d.projetId===P.id});deps.sort(function(a,b){return new Date(b.date||0)-new Date(a.date||0)});
+  var total=0,estim=0;for(var i=0;i<deps.length;i++){total+=parseFloat(deps[i].montant)||0;estim+=parseFloat(deps[i].estime)||0;}
+  var h='<div class="page-title">💰 '+(P?'Budget '+P.nom:'Toutes les dépenses')+'</div><div class="page-sub">'+deps.length+' dépenses</div>';
+  h+='<div class="total-box"><span>Total</span><strong>'+fm(total)+'</strong></div>';
+  if(estim>0){var diff=total-estim;h+='<div class="box" style="display:flex;justify-content:space-between;font-size:13px"><span>Estimé: '+fm(estim)+'</span><span style="color:'+(diff>0?'#ef4444':'#10b981')+'">Écart: '+fm(diff)+'</span></div>';}
+  if(!deps.length){h+='<div class="empty"><div class="icon">💰</div><p>Aucune dépense</p></div>';}else{for(var i=0;i<deps.length;i++){var d=deps[i];h+='<div class="dep-item" onclick="editDep(\''+d.id+'\')"><div><h4>'+(d.description||'Dépense')+'</h4><p>'+fd(d.date)+(d.fournisseur?' • '+d.fournisseur:'')+'</p></div><strong>'+fm(d.montant)+'</strong></div>';}}
+  h+='<button class="fab" onclick="modal(\'ndep\')">+</button>';
+  return h;
+}
+
+window.editDep=function(id){for(var i=0;i<D.depenses.length;i++)if(D.depenses[i].id===id){EDIT=D.depenses[i];M="edit_depense";R();break;}};
+
+function rAcc(){
+  var items=[];for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;for(var k=0;k<d.elements.length;k++){var e=d.elements[k];if(e.rubrique==="accessoires")items.push({e:e,d:d,p:p});}}}
+  if(SQ){var q=SQ.toLowerCase();items=items.filter(function(x){return x.e.nom.toLowerCase().indexOf(q)>=0||(x.e.role&&x.e.role.toLowerCase().indexOf(q)>=0);});}
+  var h='<div class="page-title">🎭 Accessoires de jeu</div><div class="page-sub">'+items.length+' accessoires</div>';
+  h+='<div class="hdr-search" style="margin-bottom:12px"><input placeholder="Rechercher..." value="'+SQ+'" oninput="setSQ(this.value)"></div>';
+  if(!items.length){h+='<div class="empty"><div class="icon">🎭</div><p>Aucun accessoire</p></div>';}else{for(var i=0;i<items.length;i++){var x=items[i],e=x.e,st=gs(e.statut);h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')">';if(e.photos&&e.photos.length)h+='<img src="'+e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">';else h+='<div class="card-icon">🎭</div>';h+='<div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3><p>'+(e.scene?'Sq.'+e.scene+' ':'')+(e.role?'👤 '+e.role+' ':'')+(e.dateJeu?'📅 '+fd(e.dateJeu):'')+'</p></div><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div>';}}
+  return h;
+}
+
+function rSearch(){
+  var results=search(GSQ);var h='<div class="page-title">🔍 Recherche</div>';
+  if(!GSQ||GSQ.length<2){h+='<div class="empty"><div class="icon">🔍</div><p>Tapez au moins 2 caractères</p></div>';}else if(!results.length){h+='<div class="empty"><div class="icon">😕</div><p>Aucun résultat pour "'+GSQ+'"</p></div>';}else{h+='<div class="page-sub">'+results.length+' résultat(s)</div>';for(var i=0;i<results.length;i++){var r=results[i];if(r.t==="projet")h+='<div class="card" onclick="go(\'proj\',\''+r.item.id+'\')"><div class="card-icon">📁</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Projet</p></div></div>';else if(r.t==="decor")h+='<div class="card" onclick="goTo(\''+r.p.id+'\',\''+r.item.id+'\')"><div class="card-icon">🎭</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Décor • '+r.p.nom+'</p></div></div>';else if(r.t==="element"){h+='<div class="card" onclick="goTo(\''+r.p.id+'\',\''+r.d.id+'\',\''+r.item.id+'\')">';if(r.item.photos&&r.item.photos.length)h+='<img src="'+r.item.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else h+='<div class="card-icon">📦</div>';h+='<div class="card-info"><h3>'+r.item.nom+'</h3><p>'+r.d.nom+' • '+r.p.nom+'</p></div></div>';}else if(r.t==="loueur")h+='<div class="card" onclick="go(\'loud\',\''+r.item.id+'\')"><div class="card-icon">🏪</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Loueur</p></div></div>';}}
+  return h;
+}
+
+function rViewer(){
+  if(!VWC||!VWC.length)return"";var ph=VWC[VWI];
+  var h='<div class="viewer"><div class="viewer-hdr"><button onclick="closePh()">✕ Fermer</button><span style="color:#94a3b8">'+(VWI+1)+'/'+VWC.length+'</span><button onclick="delPh()" style="color:#ef4444">🗑️</button></div>';
+  if(VWC.length>1){h+='<button class="viewer-nav l" onclick="navPh(-1)">‹</button><button class="viewer-nav r" onclick="navPh(1)">›</button>';}
+  h+='<div class="viewer-body"><img src="'+(ph.data||ph)+'"></div>';if(ph.nom)h+='<div class="viewer-ftr">'+ph.nom+'</div>';h+='</div>';
+  return h;
+}
+
+window.delPh=function(){if(!confirm("Supprimer cette photo?"))return;if(EL&&EL.photos){EL.photos.splice(VWI,1);sv();if(VWI>=EL.photos.length)VWI=Math.max(0,EL.photos.length-1);if(!EL.photos.length){VW=null;VWC=null;}R();}else{VW=null;VWC=null;R();}};
+
+function rMenu(){
+  var h='<div class="menu"><div class="menu-bg" onclick="menu(false)"></div><div class="menu-panel">';
+  h+='<div style="font-size:18px;font-weight:700;margin-bottom:20px">⚙️ Menu</div>';
+  h+='<div class="box" style="margin-bottom:20px"><div style="font-size:11px;color:#64748b;margin-bottom:4px">Code projet</div><div style="font-size:20px;font-weight:700;letter-spacing:2px">'+CODE+'</div></div>';
+  h+='<div class="menu-item" onclick="go(\'home\');menu(false)">🏠 Accueil</div>';
+  h+='<div class="menu-item" onclick="go(\'acc\');menu(false)">🎭 Accessoires</div>';
+  h+='<div class="menu-item" onclick="go(\'rent\');menu(false)">🛒 Achat</div>';
+  h+='<div class="menu-item" onclick="go(\'dep\');menu(false)">💰 Dépenses</div>';
+  h+='<div class="menu-item" onclick="go(\'lou\');menu(false)">🏪 Loueurs</div>';
+  h+='<div style="border-top:1px solid rgba(255,255,255,0.1);margin:16px 0"></div>';
+  h+='<div class="menu-item" onclick="exportData()">📤 Exporter les données</div>';
+  h+='<div class="menu-item" onclick="importData()">📥 Importer des données</div>';
+  h+='<div style="border-top:1px solid rgba(255,255,255,0.1);margin:16px 0"></div>';
+  h+='<div class="menu-item" style="color:#ef4444" onclick="leaveProject()">🚪 Quitter le projet</div>';
+  h+='<div style="margin-top:20px;font-size:11px;color:#64748b"><p>Décor Pro v13</p><p>'+D.projets.length+' projets'+(HAS_FIREBASE?' • Synchronisé':' • Local')+'</p></div>';
+  h+='</div></div>';
+  return h;
+}
+
+function rModal(){
+  var c="";
+  
+  if(M==="np"){
+    c='<div class="mbar"></div><div class="mtit">🎬 Nouveau projet</div>';
+    c+='<div class="fld"><label>Nom du projet *</label><input id="f1" placeholder="Ex: Mon Film"></div>';
+    c+='<div class="fld"><label>Type</label><select id="f2">';for(var i=0;i<TPROJ.length;i++)c+='<option value="'+TPROJ[i].id+'">'+TPROJ[i].i+' '+TPROJ[i].l+'</option>';c+='</select></div>';
+    c+='<div class="fld"><label>Production</label><input id="f3"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Réalisateur</label><input id="f4"></div><div class="fld"><label>Chef déco</label><input id="f5"></div></div>';
+    c+='<div class="fld"><label>Début prépa</label><input type="date" id="f7"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Tournage début</label><input type="date" id="f8"></div><div class="fld"><label>Tournage fin</label><input type="date" id="f9"></div></div>';
+    c+='<button class="btn p" onclick="saveP()">Créer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="edit_projet"&&EDIT){
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier projet</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
+    c+='<div class="fld"><label>Type</label><select id="f2">';for(var i=0;i<TPROJ.length;i++)c+='<option value="'+TPROJ[i].id+'"'+(TPROJ[i].id===EDIT.type?' selected':'')+'>'+TPROJ[i].i+' '+TPROJ[i].l+'</option>';c+='</select></div>';
+    c+='<div class="fld"><label>Production</label><input id="f3" value="'+(EDIT.production||"")+'"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Réalisateur</label><input id="f4" value="'+(EDIT.realisateur||"")+'"></div><div class="fld"><label>Chef déco</label><input id="f5" value="'+(EDIT.chefDeco||"")+'"></div></div>';
+    c+='<div class="fld"><label>Début prépa</label><input type="date" id="f7" value="'+(EDIT.datePrepa||"")+'"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Tournage début</label><input type="date" id="f8" value="'+(EDIT.dateTournage||"")+'"></div><div class="fld"><label>Tournage fin</label><input type="date" id="f9" value="'+(EDIT.dateTournageFin||"")+'"></div></div>';
+    c+='<button class="btn p" onclick="updateP()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="nd"){
+    c='<div class="mbar"></div><div class="mtit">🎭 Nouveau décor</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Appartement Marie"></div>';
+    c+='<div class="fld"><label>Séquences</label><input id="f11" placeholder="Ex: 12, 45, 78"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Type</label><select id="f3"><option value="1">🏠 Int.</option><option value="0">🌳 Ext.</option></select></div><div class="fld"><label>Nature</label><select id="f4"><option value="0">Naturel</option><option value="1">Studio</option></select></div></div>';
+    c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲':'▼ Plus')+'</div>';
+    c+='<div class="form-section'+(MORE?'':' hidden')+'"><div class="fld"><label>Adresse</label><input id="f2"></div><div class="fld"><label>Statut</label><select id="f5">';for(var i=0;i<STATD.length;i++)c+='<option value="'+STATD[i].id+'">'+STATD[i].l+'</option>';c+='</select></div><div class="fld"><label>Prépa</label><input type="date" id="f6"></div><div class="fld-row"><div class="fld"><label>Tournage début</label><input type="date" id="f7"></div><div class="fld"><label>Tournage fin</label><input type="date" id="f10"></div></div><div class="fld"><label>Démontage</label><input type="date" id="f9"></div></div>';
+    c+='<button class="btn p" onclick="saveDC()">Créer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="edit_decor"&&EDIT){
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier décor</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
+    c+='<div class="fld"><label>Séquences</label><input id="f11" value="'+(EDIT.sequences||"")+'"></div>';
+    c+='<div class="fld"><label>Adresse</label><input id="f2" value="'+(EDIT.adresse||"")+'"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Type</label><select id="f3"><option value="1"'+(EDIT.interieur?' selected':'')+'>🏠 Int.</option><option value="0"'+(!EDIT.interieur?' selected':'')+'>🌳 Ext.</option></select></div><div class="fld"><label>Nature</label><select id="f4"><option value="0"'+(!EDIT.studio?' selected':'')+'>Naturel</option><option value="1"'+(EDIT.studio?' selected':'')+'>Studio</option></select></div></div>';
+    c+='<div class="fld"><label>Statut</label><select id="f5">';for(var i=0;i<STATD.length;i++)c+='<option value="'+STATD[i].id+'"'+(STATD[i].id===EDIT.statut?' selected':'')+'>'+STATD[i].l+'</option>';c+='</select></div>';
+    c+='<div class="fld"><label>Prépa</label><input type="date" id="f6" value="'+(EDIT.dateInstallation||"")+'"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Tournage début</label><input type="date" id="f7" value="'+(EDIT.dateTournage||"")+'"></div><div class="fld"><label>Tournage fin</label><input type="date" id="f10" value="'+(EDIT.dateTournageFin||"")+'"></div></div>';
+    c+='<div class="fld"><label>Démontage</label><input type="date" id="f9" value="'+(EDIT.dateDemontage||"")+'"></div>';
+    c+='<button class="btn p" onclick="updateDC()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="ne"){
+    var rb=RB?gr(RB):null;
+    c='<div class="mbar"></div><div class="mtit">'+(rb?rb.i+' '+rb.n:'📦 Nouvel élément')+'</div>';
+    c+='<div class="drop" onclick="document.getElementById(\'phi\').click()"><div id="phpr"></div><div id="phpl"><span class="icon">📸</span><p>Ajouter photos</p></div><input type="file" accept="image/*" multiple id="phi" style="display:none" onchange="prvPh(event)"></div>';
+    c+='<div id="upload-status"></div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Vase bleu"></div>';
+    c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div>';
+    c+='<input type="hidden" id="f2" value="'+(rb?rb.id:'accessoires')+'">';
+    c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲ Moins':'▼ Plus d\'options')+'</div>';
+    c+='<div class="form-section'+(MORE?'':' hidden')+'">';
+    c+='<div class="fld"><label>Description</label><textarea id="f4"></textarea></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Dimensions</label><input id="f5"></div><div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7"></div><div class="fld"><label>Matière</label><input id="f8"></div></div>';
+    c+='<div class="fld"><label>Tags</label><input id="f9" placeholder="vintage, bois..."></div>';
+    c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10"></div><div class="fld"><label>Personnage</label><input id="f11"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12"></div><div class="fld"><label>Continuité</label><input id="f13"></div></div>';
+    if(D.loueurs.length){c+='<div class="fld"><label>Loueur</label><select id="f14"><option value="">Aucun</option>';for(var i=0;i<D.loueurs.length;i++)c+='<option value="'+D.loueurs[i].id+'">'+D.loueurs[i].nom+'</option>';c+='</select></div>';}
+    c+='<div class="fld"><label>Coût €</label><input type="number" id="f16"></div>';
+    c+='<input type="hidden" id="f15" value="">';
+    c+='<div class="fld-row"><div class="fld"><label>Départ</label><input type="date" id="f17"></div><div class="fld"><label>Retour</label><input type="date" id="f18"></div></div></div>';
+    c+='<button class="btn p" id="save-el-btn" onclick="saveEl()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="edit_element"&&EDIT){
+    var editRb=gr(EDIT.rubrique);
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier '+(editRb?editRb.n:'élément')+'</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
+    c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'"'+(STAT[i].id===EDIT.statut?' selected':'')+'>'+STAT[i].l+'</option>';c+='</select></div>';
+    c+='<input type="hidden" id="f2" value="'+(EDIT.rubrique||'accessoires')+'">';
+    c+='<div class="fld"><label>Description</label><textarea id="f4">'+(EDIT.description||"")+'</textarea></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Dimensions</label><input id="f5" value="'+(EDIT.dimensions||"")+'"></div><div class="fld"><label>Quantité</label><input type="number" id="f6" value="'+(EDIT.quantite||1)+'"></div></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7" value="'+(EDIT.couleur||"")+'"></div><div class="fld"><label>Matière</label><input id="f8" value="'+(EDIT.matiere||"")+'"></div></div>';
+    c+='<div class="fld"><label>Tags</label><input id="f9" value="'+(EDIT.tags||"")+'"></div>';
+    c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10" value="'+(EDIT.scene||"")+'"></div><div class="fld"><label>Personnage</label><input id="f11" value="'+(EDIT.role||"")+'"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12" value="'+(EDIT.dateJeu||"")+'"></div><div class="fld"><label>Continuité</label><input id="f13" value="'+(EDIT.continuity||"")+'"></div></div>';
+    if(D.loueurs.length){c+='<div class="fld"><label>Loueur</label><select id="f14"><option value="">Aucun</option>';for(var i=0;i<D.loueurs.length;i++)c+='<option value="'+D.loueurs[i].id+'"'+(D.loueurs[i].id===EDIT.loueurId?' selected':'')+'>'+D.loueurs[i].nom+'</option>';c+='</select></div>';}
+    c+='<div class="fld"><label>Coût €</label><input type="number" id="f16" value="'+(EDIT.coutReel||"")+'"></div>';
+    c+='<input type="hidden" id="f15" value="'+(EDIT.coutLocation||"")+'">';
+    c+='<div class="fld-row"><div class="fld"><label>Départ</label><input type="date" id="f17" value="'+(EDIT.dateDepart||"")+'"></div><div class="fld"><label>Retour</label><input type="date" id="f18" value="'+(EDIT.dateRetour||"")+'"></div></div>';
+    c+='<button class="btn p" onclick="updateEl()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="nl"){
+    c='<div class="mbar"></div><div class="mtit">🏪 Nouveau loueur</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1"></div>';
+    c+='<div class="fld"><label>Spécialité</label><input id="f2"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Contact</label><input id="f3"></div><div class="fld"><label>Téléphone</label><input type="tel" id="f4"></div></div>';
+    c+='<div class="fld"><label>Email</label><input type="email" id="f5"></div>';
+    c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲':'▼ Plus')+'</div>';
+    c+='<div class="form-section'+(MORE?'':' hidden')+'"><div class="fld"><label>Adresse</label><input id="f6"></div><div class="fld"><label>Notes</label><textarea id="f7"></textarea></div></div>';
+    c+='<button class="btn p" onclick="saveLo()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="edit_loueur"&&EDIT){
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier loueur</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
+    c+='<div class="fld"><label>Spécialité</label><input id="f2" value="'+(EDIT.specialite||"")+'"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Contact</label><input id="f3" value="'+(EDIT.contact||"")+'"></div><div class="fld"><label>Téléphone</label><input type="tel" id="f4" value="'+(EDIT.telephone||"")+'"></div></div>';
+    c+='<div class="fld"><label>Email</label><input type="email" id="f5" value="'+(EDIT.email||"")+'"></div>';
+    c+='<div class="fld"><label>Adresse</label><input id="f6" value="'+(EDIT.adresse||"")+'"></div>';
+    c+='<div class="fld"><label>Notes</label><textarea id="f7">'+(EDIT.notes||"")+'</textarea></div>';
+    c+='<button class="btn p" onclick="updateLo()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="ndep"){
+    c='<div class="mbar"></div><div class="mtit">💰 Nouvelle dépense</div>';
+    c+='<div class="fld"><label>Description *</label><input id="f2"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Montant € *</label><input type="number" step="0.01" id="f4"></div><div class="fld"><label>Type</label><select id="f1">';for(var i=0;i<TDEP.length;i++)c+='<option value="'+TDEP[i].id+'">'+TDEP[i].l+'</option>';c+='</select></div></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Date</label><input type="date" id="f5" value="'+new Date().toISOString().split("T")[0]+'"></div><div class="fld"><label>Fournisseur</label><input id="f6"></div></div>';
+    c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲':'▼ Estimé')+'</div>';
+    c+='<div class="fld'+(MORE?'':' hidden')+'"><label>Estimé €</label><input type="number" step="0.01" id="f3"></div>';
+    c+='<button class="btn p" onclick="saveDep()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="edit_depense"&&EDIT){
+    c='<div class="mbar"></div><div class="mtit">✏️ Modifier dépense</div>';
+    c+='<div class="fld"><label>Description</label><input id="f2" value="'+(EDIT.description||"")+'"></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Montant €</label><input type="number" step="0.01" id="f4" value="'+(EDIT.montant||"")+'"></div><div class="fld"><label>Type</label><select id="f1">';for(var i=0;i<TDEP.length;i++)c+='<option value="'+TDEP[i].id+'"'+(TDEP[i].id===EDIT.type?' selected':'')+'>'+TDEP[i].l+'</option>';c+='</select></div></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Date</label><input type="date" id="f5" value="'+(EDIT.date||"")+'"></div><div class="fld"><label>Fournisseur</label><input id="f6" value="'+(EDIT.fournisseur||"")+'"></div></div>';
+    c+='<div class="fld"><label>Estimé €</label><input type="number" step="0.01" id="f3" value="'+(EDIT.estime||"")+'"></div>';
+    c+='<button class="btn p" onclick="updateDep()">Enregistrer</button><button class="btn d" onclick="delDep()">Supprimer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="rub"){
+    var rb=gr(RB);if(!rb)return"";
+    var els=[];if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].rubrique===rb.id)els.push(DC.elements[i]);
+    c='<div class="mbar"></div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="width:40px;height:40px;background:'+rb.c+'20;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">'+rb.i+'</div><div><div style="font-size:16px;font-weight:600">'+rb.n+'</div><div style="font-size:12px;color:#64748b">'+els.length+' éléments</div></div></div>';
+    var phs=[];for(var i=0;i<els.length;i++)if(els[i].photos)for(var j=0;j<els[i].photos.length;j++)phs.push({data:els[i].photos[j],nom:els[i].nom});
+    if(phs.length){c+='<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px">';for(var i=0;i<phs.length;i++)c+='<img src="'+phs[i].data+'" onclick="event.stopPropagation();openRubPh(\''+RB+'\','+i+')" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer">';c+='</div>';}
+    if(!els.length){c+='<div class="empty"><div class="icon">📦</div><p>Aucun élément</p></div>';}else{c+='<div style="max-height:45vh;overflow-y:auto">';for(var i=0;i<els.length;i++){var e=els[i],st=gs(e.statut);c+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')"><div class="card-icon" style="width:40px;height:40px;font-size:18px">';if(e.photos&&e.photos.length)c+='<img src="'+e.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else c+='📦';c+='</div><div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div></div>';}c+='</div>';}
+    c+='<button class="btn p" style="margin-top:12px" onclick="modal(\'ne\')">+ Ajouter</button>';
+  }
+  return '<div class="modal" onclick="modal(null)"><div class="mpan" onclick="event.stopPropagation()">'+c+'</div></div>';
+}
+
+window.goToRubEl=function(eId){for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eId){EL=DC.elements[i];break}M=null;V="el";R();};
+window.quickValidate=function(eId){if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eId){DC.elements[i].statut="valide";sv();R();break;}};
+window.openRubPh=function(rubId,idx){var phs=[];if(DC&&DC.elements)for(var i=0;i<DC.elements.length;i++){var e=DC.elements[i];if(e.rubrique===rubId&&e.photos)for(var j=0;j<e.photos.length;j++)phs.push({data:e.photos[j],nom:e.nom});}if(phs.length)openPh(phs,idx);};
+
+var PENDING_FILES=[];
+window.prvPh=function(e){
+  var files=e.target.files;PENDING_FILES=[];
+  var pr=document.getElementById("phpr"),pl=document.getElementById("phpl");
+  for(var i=0;i<files.length;i++)PENDING_FILES.push(files[i]);
+  if(pr&&pl&&PENDING_FILES.length){pr.innerHTML='<div style="color:#a5b4fc;font-size:12px">'+PENDING_FILES.length+' photo(s) sélectionnée(s)</div>';pl.style.display="none";}
+};
+
+window.addPh=function(){
+  var i=document.createElement("input");i.type="file";i.accept="image/*";i.multiple=true;
+  i.onchange=function(e){
+    var files=e.target.files;var uploaded=0;var total=files.length;
+    toast("Upload "+total+" photo(s)...");
+    for(var j=0;j<files.length;j++){
+      (function(file){
+        compressPhoto(file,1200,0.7,function(compressed){
+          uploadPhoto(compressed,function(url){
+            if(url){if(!EL.photos)EL.photos=[];EL.photos.push(url);}
+            uploaded++;if(uploaded===total){sv();R();}
+          });
+        });
+      })(files[j]);
+    }
+  };i.click();
+};
+
+function gv(id){var el=document.getElementById(id);return el?el.value.trim():"";}
+
+window.saveP=function(){var n=gv("f1");if(!n)return alert("Nom requis");D.projets.push({id:uid(),nom:n,type:gv("f2")||"film",production:gv("f3"),realisateur:gv("f4"),chefDeco:gv("f5"),datePrepa:gv("f7"),dateTournage:gv("f8"),dateTournageFin:gv("f9"),notes:"",decors:[]});sv();M=null;R();};
+window.updateP=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.type=gv("f2");EDIT.production=gv("f3");EDIT.realisateur=gv("f4");EDIT.chefDeco=gv("f5");EDIT.datePrepa=gv("f7");EDIT.dateTournage=gv("f8");EDIT.dateTournageFin=gv("f9");sv();M=null;R();};
+window.saveDC=function(){var n=gv("f1");if(!n)return alert("Nom requis");if(!P.decors)P.decors=[];P.decors.push({id:uid(),nom:n,adresse:gv("f2"),interieur:gv("f3")==="1",studio:gv("f4")==="1",statut:gv("f5")||"a_preparer",dateInstallation:gv("f6"),dateTournage:gv("f7"),dateTournageFin:gv("f10"),dateDemontage:gv("f9"),sequences:gv("f11"),notes:"",elements:[]});sv();M=null;R();};
+window.updateDC=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.adresse=gv("f2");EDIT.interieur=gv("f3")==="1";EDIT.studio=gv("f4")==="1";EDIT.statut=gv("f5");EDIT.dateInstallation=gv("f6");EDIT.dateTournage=gv("f7");EDIT.dateTournageFin=gv("f10");EDIT.dateDemontage=gv("f9");EDIT.sequences=gv("f11");sv();M=null;R();};
+
+window.saveEl=function(){
+  var n=gv("f1");if(!n)return alert("Nom requis");
+  var btn=document.getElementById("save-el-btn");if(btn)btn.disabled=true;
+  if(!DC.elements)DC.elements=[];
+  var el={id:uid(),nom:n,rubrique:gv("f2")||"mobilier",statut:gv("f3")||"a_sourcer",description:gv("f4"),dimensions:gv("f5"),quantite:gv("f6")||1,couleur:gv("f7"),matiere:gv("f8"),tags:gv("f9"),scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),continuity:gv("f13"),loueurId:gv("f14"),coutLocation:gv("f15"),coutReel:gv("f16"),dateDepart:gv("f17"),dateRetour:gv("f18"),photos:[]};
+  
+  if(PENDING_FILES.length===0){DC.elements.push(el);sv();M=null;PENDING_FILES=[];R();return;}
+  
+  var uploaded=0;var total=PENDING_FILES.length;
+  var status=document.getElementById("upload-status");
+  if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload en cours... 0/'+total+'</div><div class="upload-bar"><div class="upload-fill" style="width:0%"></div></div></div>';
+  
+  for(var i=0;i<PENDING_FILES.length;i++){
+    uploadPhoto(PENDING_FILES[i],function(url){
+      if(url)el.photos.push(url);
+      uploaded++;
+      if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload en cours... '+uploaded+'/'+total+'</div><div class="upload-bar"><div class="upload-fill" style="width:'+Math.round(uploaded/total*100)+'%"></div></div></div>';
+      if(uploaded===total){DC.elements.push(el);sv();M=null;PENDING_FILES=[];R();}
+    });
+  }
+};
+
+window.updateEl=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.rubrique=gv("f2");EDIT.statut=gv("f3");EDIT.description=gv("f4");EDIT.dimensions=gv("f5");EDIT.quantite=gv("f6");EDIT.couleur=gv("f7");EDIT.matiere=gv("f8");EDIT.tags=gv("f9");EDIT.scene=gv("f10");EDIT.role=gv("f11");EDIT.dateJeu=gv("f12");EDIT.continuity=gv("f13");EDIT.loueurId=gv("f14");EDIT.coutLocation=gv("f15");EDIT.coutReel=gv("f16");EDIT.dateDepart=gv("f17");EDIT.dateRetour=gv("f18");sv();M=null;R();};
+window.dupEl=function(){if(!confirm("Dupliquer?"))return;var c=JSON.parse(JSON.stringify(EL));c.id=uid();c.nom+=" (copie)";DC.elements.push(c);sv();alert("Dupliqué!");R();};
+window.saveLo=function(){var n=gv("f1");if(!n)return alert("Nom requis");D.loueurs.push({id:uid(),nom:n,specialite:gv("f2"),contact:gv("f3"),telephone:gv("f4"),email:gv("f5"),adresse:gv("f6"),notes:gv("f7")});sv();M=null;R();};
+window.updateLo=function(){var n=gv("f1");if(!n)return alert("Nom requis");EDIT.nom=n;EDIT.specialite=gv("f2");EDIT.contact=gv("f3");EDIT.telephone=gv("f4");EDIT.email=gv("f5");EDIT.adresse=gv("f6");EDIT.notes=gv("f7");sv();M=null;R();};
+window.saveDep=function(){var m=gv("f4");if(!m)return alert("Montant requis");D.depenses.push({id:uid(),projetId:P?P.id:null,type:gv("f1"),description:gv("f2"),estime:parseFloat(gv("f3"))||0,montant:parseFloat(m),date:gv("f5"),fournisseur:gv("f6")});sv();M=null;R();};
+window.updateDep=function(){var m=gv("f4");if(!m)return alert("Montant requis");EDIT.type=gv("f1");EDIT.description=gv("f2");EDIT.estime=parseFloat(gv("f3"))||0;EDIT.montant=parseFloat(m);EDIT.date=gv("f5");EDIT.fournisseur=gv("f6");sv();M=null;R();};
+window.delDep=function(){if(!confirm("Supprimer?"))return;D.depenses=D.depenses.filter(function(d){return d.id!==EDIT.id});sv();M=null;R();};
+window.delP=function(){if(!confirm("Supprimer?"))return;D.projets=D.projets.filter(function(p){return p.id!==P.id});sv();P=null;V="home";R();};
+window.delD=function(){if(!confirm("Supprimer?"))return;P.decors=P.decors.filter(function(d){return d.id!==DC.id});sv();DC=null;V="proj";R();};
+window.delE=function(){if(!confirm("Supprimer?"))return;DC.elements=DC.elements.filter(function(e){return e.id!==EL.id});sv();EL=null;V="dec";R();};
+window.delL=function(){if(!confirm("Supprimer?"))return;D.loueurs=D.loueurs.filter(function(l){return l.id!==LO.id});sv();LO=null;V="lou";R();};
+
+// Init
+if(CODE){ if(!HAS_FIREBASE && CODE!=="LOCAL") CODE="LOCAL"; subscribeToProject(CODE); } else R();
+})();
 </script>
 </body>
 </html>
