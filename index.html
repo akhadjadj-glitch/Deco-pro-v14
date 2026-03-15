@@ -208,10 +208,11 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-day.today .day-name{color:#a5b4fc}
 .cal-day .day-num{font-size:15px;font-weight:700}
 .cal-day.today .day-num{color:#a5b4fc}
-.cal-bar{height:3px;border-radius:2px;margin:2px 2px 0}
+.cal-bar{height:3px;border-radius:2px;margin:1px 2px 0;position:relative}
 .cal-bar.prepa{background:#f59e0b}
 .cal-bar.shoot{background:#ec4899}
 .cal-bar.demo{background:#8b5cf6}
+.cal-bar-label{position:absolute;top:4px;left:0;font-size:7px;color:#fff;white-space:nowrap;line-height:1;pointer-events:none}
 .cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
 .cal-badge{width:6px;height:6px;border-radius:50%}
 .cal-badge.red{background:#ef4444}
@@ -528,83 +529,6 @@ function getDecorBudget(dc){
 }
 
 // Timeline planning
-function rTimeline(){
-  if(!P||!P.decors||!P.decors.length)return "";
-  var decors=P.decors.filter(function(d){return d.dateInstallation||d.dateTournage||d.dateDemontage;});
-  if(!decors.length)return "";
-  
-  function pDate(s){if(!s)return null;var p=s.split("-");return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]),12,0,0,0);}
-  function diffD(a,b){return Math.round((b-a)/(1000*60*60*24));}
-  var MOIS=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
-  function fmtD(d){return d.getDate()+' '+MOIS[d.getMonth()];}
-  
-  // Trier par date de prepa/tournage
-  decors.sort(function(a,b){
-    var da=pDate(a.dateInstallation||a.dateTournage)||new Date(9999,0);
-    var db=pDate(b.dateInstallation||b.dateTournage)||new Date(9999,0);
-    return da-db;
-  });
-  
-  var h='<div class="box" style="padding:12px">';
-  h+='<div style="font-weight:600;font-size:14px;margin-bottom:10px">📅 Planning décors</div>';
-  
-  // Legende
-  h+='<div style="display:flex;gap:12px;margin-bottom:10px;font-size:11px">';
-  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block"></span>Prépa</span>';
-  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#ec4899;display:inline-block"></span>Tournage</span>';
-  h+='<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;display:inline-block"></span>Démontage</span>';
-  h+='</div>';
-  
-  for(var i=0;i<decors.length;i++){
-    var d=decors[i];
-    h+='<div style="margin-bottom:10px;cursor:pointer" onclick="go(\'dec\',\''+d.id+'\')">';
-    h+='<div style="font-size:13px;font-weight:600;margin-bottom:4px">'+d.nom+(d.sequences?' <span style="color:#64748b;font-weight:400">Sq.'+d.sequences+'</span>':'')+'</div>';
-    h+='<div style="display:flex;height:22px;border-radius:6px;overflow:hidden;background:rgba(255,255,255,0.03)">';
-    
-    var segments=[];
-    var pi=pDate(d.dateInstallation),pt=pDate(d.dateTournage),ptf=pDate(d.dateTournageFin),pdm=pDate(d.dateDemontage);
-    
-    if(pi&&pt){
-      var days=diffD(pi,pt);if(days<1)days=1;
-      segments.push({color:'#f59e0b',label:'Prépa '+fmtD(pi),days:days});
-    } else if(pi){
-      segments.push({color:'#f59e0b',label:'Prépa '+fmtD(pi),days:1});
-    }
-    
-    if(pt){
-      var end=ptf||pt;
-      var days=diffD(pt,end)+1;if(days<1)days=1;
-      segments.push({color:'#ec4899',label:'Tournage '+fmtD(pt)+(ptf?' → '+fmtD(ptf):''),days:days});
-    }
-    
-    if(pdm){
-      // Espace entre tournage fin et demontage
-      if(ptf||pt){
-        var last=ptf||pt;
-        var gap=diffD(last,pdm)-1;
-        if(gap>0)segments.push({color:'transparent',label:'',days:gap});
-      }
-      segments.push({color:'#8b5cf6',label:'Démont. '+fmtD(pdm),days:1});
-    }
-    
-    var totalSeg=0;for(var j=0;j<segments.length;j++)totalSeg+=segments[j].days;
-    if(totalSeg<1)totalSeg=1;
-    
-    for(var j=0;j<segments.length;j++){
-      var seg=segments[j];
-      var pct=Math.max(seg.days/totalSeg*100,2);
-      if(seg.color!=='transparent'){
-        h+='<div style="width:'+pct+'%;background:'+seg.color+';display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:600;padding:0 4px;white-space:nowrap;overflow:hidden">'+(pct>15?seg.label:'')+'</div>';
-      } else {
-        h+='<div style="width:'+pct+'%"></div>';
-      }
-    }
-    h+='</div></div>';
-  }
-  h+='</div>';
-  return h;
-}
-
 // Navigation
 window.go=function(v,id){
   VW=null;VWC=null;GSQ="";
@@ -853,9 +777,9 @@ function rCalendarStrip(){
     if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
     h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
     h+='<div class="day-num">'+dd+'</div>';
-    if(alerts.prepa.length)h+='<div class="cal-bar prepa"></div>';
-    if(alerts.shoot.length)h+='<div class="cal-bar shoot"></div>';
-    if(alerts.demontage.length)h+='<div class="cal-bar demo"></div>';
+    if(alerts.prepa.length)h+='<div class="cal-bar prepa"><span class="cal-bar-label">'+alerts.prepa[0].d.nom.substring(0,6)+'</span></div>';
+    if(alerts.shoot.length)h+='<div class="cal-bar shoot"><span class="cal-bar-label">'+alerts.shoot[0].d.nom.substring(0,6)+'</span></div>';
+    if(alerts.demontage.length)h+='<div class="cal-bar demo"><span class="cal-bar-label">'+alerts.demontage[0].d.nom.substring(0,6)+'</span></div>';
     h+='<div class="cal-badges">';
     if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
     if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
@@ -1118,9 +1042,6 @@ function rProj(){
   h+='<div class="abtn" onclick="edit(\'projet\',P)">✏️ Modifier</div>';
   h+='<div class="abtn d" onclick="delP()">🗑️</div>';
   h+='</div>';
-  
-  // Timeline planning
-  h+=rTimeline();
   
   // Compteurs par statut
   if(P.decors&&P.decors.length){
