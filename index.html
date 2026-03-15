@@ -208,11 +208,10 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-day.today .day-name{color:#a5b4fc}
 .cal-day .day-num{font-size:15px;font-weight:700}
 .cal-day.today .day-num{color:#a5b4fc}
-.cal-bar{height:3px;border-radius:2px;margin:1px 2px 0;position:relative}
+.cal-bar{height:14px;border-radius:3px;margin:1px 1px 0;font-size:7px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:14px;padding:0 2px}
 .cal-bar.prepa{background:#f59e0b}
 .cal-bar.shoot{background:#ec4899}
 .cal-bar.demo{background:#8b5cf6}
-.cal-bar-label{position:absolute;top:4px;left:0;font-size:7px;color:#fff;white-space:nowrap;line-height:1;pointer-events:none}
 .cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
 .cal-badge{width:6px;height:6px;border-radius:50%}
 .cal-badge.red{background:#ef4444}
@@ -528,7 +527,8 @@ function getDecorBudget(dc){
   return {loc:loc,achat:achat,total:total};
 }
 
-// Timeline planning
+// (rTimeline supprimee - planning visible directement sur le calendrier)
+
 // Navigation
 window.go=function(v,id){
   VW=null;VWC=null;GSQ="";
@@ -777,9 +777,9 @@ function rCalendarStrip(){
     if(isNewMonth)h+='<div class="day-month">'+MOIS[d.getMonth()]+'</div>';
     h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
     h+='<div class="day-num">'+dd+'</div>';
-    if(alerts.prepa.length)h+='<div class="cal-bar prepa"><span class="cal-bar-label">'+alerts.prepa[0].d.nom.substring(0,6)+'</span></div>';
-    if(alerts.shoot.length)h+='<div class="cal-bar shoot"><span class="cal-bar-label">'+alerts.shoot[0].d.nom.substring(0,6)+'</span></div>';
-    if(alerts.demontage.length)h+='<div class="cal-bar demo"><span class="cal-bar-label">'+alerts.demontage[0].d.nom.substring(0,6)+'</span></div>';
+    if(alerts.prepa.length)h+='<div class="cal-bar prepa" title="Prépa: '+alerts.prepa.map(function(x){return x.d.nom}).join(", ")+'">'+alerts.prepa[0].d.nom.substring(0,5)+'</div>';
+    if(alerts.shoot.length)h+='<div class="cal-bar shoot" title="Tournage: '+alerts.shoot.map(function(x){return x.d.nom}).join(", ")+'">'+alerts.shoot[0].d.nom.substring(0,5)+'</div>';
+    if(alerts.demontage.length)h+='<div class="cal-bar demo" title="Démont: '+alerts.demontage.map(function(x){return x.d.nom}).join(", ")+'">'+alerts.demontage[0].d.nom.substring(0,5)+'</div>';
     h+='<div class="cal-badges">';
     if(alerts.urgents.length)h+='<div class="cal-badge red"></div>';
     if(alerts.retards.length)h+='<div class="cal-badge orange"></div>';
@@ -896,7 +896,7 @@ window.printProjet=function(pId){
   html+="<h1>"+proj.nom+"</h1><p>"+(proj.production||"")+" • "+(proj.realisateur||"")+"</p>";
   if(proj.decors)for(var j=0;j<proj.decors.length;j++){
     var dc=proj.decors[j];html+="<h2>"+dc.nom+"</h2><p>"+(dc.adresse||"")+"</p>";
-    if(dc.elements&&dc.elements.length){html+="<table><tr><th>Élément</th><th>Rubrique</th><th>Statut</th><th>Scène</th></tr>";
+    if(dc.elements&&dc.elements.length){html+="<table><tr><th>Élément</th><th>Rubrique</th><th>Statut</th><th>Séquence</th></tr>";
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];var st=gs(e.statut);var rb=gr(e.rubrique);html+="<tr><td><strong>"+e.nom+"</strong></td><td>"+(rb?rb.n:"")+"</td><td>"+st.l+"</td><td>"+(e.scene||"")+"</td></tr>";}
       html+="</table>";}
   }
@@ -1042,6 +1042,8 @@ function rProj(){
   h+='<div class="abtn" onclick="edit(\'projet\',P)">✏️ Modifier</div>';
   h+='<div class="abtn d" onclick="delP()">🗑️</div>';
   h+='</div>';
+  
+  // (Timeline supprimee - planning visible sur le calendrier)
   
   // Compteurs par statut
   if(P.decors&&P.decors.length){
@@ -1204,7 +1206,7 @@ function rEl(){
   
   h+='<div class="chips">';
   if(rb)h+='<div class="chip purple">'+rb.i+' '+rb.n+'</div>';
-  if(EL.scene)h+='<div class="chip">🎬 Sc.'+EL.scene+'</div>';
+  if(EL.scene)h+='<div class="chip">🎬 Sq.'+EL.scene+'</div>';
   if(EL.role)h+='<div class="chip pink">👤 '+EL.role+'</div>';
   if(EL.dateJeu)h+='<div class="chip">📅 '+fd(EL.dateJeu)+'</div>';
   h+='</div>';
@@ -1346,6 +1348,7 @@ function rAcc(){
 
 function rSearch(){
   var results=search(GSQ);var h='<div class="page-title">🔍 Recherche</div>';
+  h+='<div class="hdr-search" style="margin-bottom:12px"><input placeholder="Rechercher un élément, décor, loueur..." value="'+GSQ+'" oninput="setGSQ(this.value)" autofocus></div>';
   if(!GSQ||GSQ.length<2){h+='<div class="empty"><div class="icon">🔍</div><p>Tapez au moins 2 caractères</p></div>';}else if(!results.length){h+='<div class="empty"><div class="icon">😕</div><p>Aucun résultat pour "'+GSQ+'"</p></div>';}else{h+='<div class="page-sub">'+results.length+' résultat(s)</div>';for(var i=0;i<results.length;i++){var r=results[i];if(r.t==="projet")h+='<div class="card" onclick="go(\'proj\',\''+r.item.id+'\')"><div class="card-icon">📁</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Projet</p></div></div>';else if(r.t==="decor")h+='<div class="card" onclick="goTo(\''+r.p.id+'\',\''+r.item.id+'\')"><div class="card-icon">🎭</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Décor • '+r.p.nom+'</p></div></div>';else if(r.t==="element"){h+='<div class="card" onclick="goTo(\''+r.p.id+'\',\''+r.d.id+'\',\''+r.item.id+'\')">';if(r.item.photos&&r.item.photos.length)h+='<img src="'+r.item.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else h+='<div class="card-icon">📦</div>';h+='<div class="card-info"><h3>'+r.item.nom+'</h3><p>'+r.d.nom+' • '+r.p.nom+'</p></div></div>';}else if(r.t==="loueur")h+='<div class="card" onclick="go(\'loud\',\''+r.item.id+'\')"><div class="card-icon">🏪</div><div class="card-info"><h3>'+r.item.nom+'</h3><p>Loueur</p></div></div>';}}
   return h;
 }
