@@ -1667,7 +1667,7 @@ function rModal(){
     c+='<div id="upload-status"></div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Canapé cuir"></div>';
     c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div>';
-    c+='<input type="hidden" id="f2" value="'+(rb?rb.id:'mobilier')+'">';
+    c+='<input type="hidden" id="f2" value="'+(rb?rb.id:'accessoires')+'">';
     c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲ Moins':'▼ Plus d\'options')+'</div>';
     c+='<div class="form-section'+(MORE?'':' hidden')+'">';
     c+='<div class="fld"><label>Description</label><textarea id="f4"></textarea></div>';
@@ -1859,7 +1859,7 @@ window.saveEl=function(){
   var urgEl=document.getElementById("urgent");
   if(urgEl && urgEl.value==="1") isUrg=true;
   
-  var el={id:uid(),nom:n,rubrique:gv("f2")||"mobilier",statut:gv("f3")||"a_sourcer",description:gv("f4"),dimensions:gv("f5"),quantite:gv("f6")||1,couleur:gv("f7"),matiere:gv("f8"),tags:gv("f9"),scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),urgent:isUrg,loueurId:gv("f14"),coutLocation:gv("f15"),coutReel:gv("f16"),dateDepart:gv("f17"),dateRetour:gv("f18"),photos:[]};
+  var el={id:uid(),nom:n,rubrique:gv("f2")||"accessoires",statut:gv("f3")||"a_sourcer",description:gv("f4"),dimensions:gv("f5"),quantite:gv("f6")||1,couleur:gv("f7"),matiere:gv("f8"),tags:gv("f9"),scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),urgent:isUrg,loueurId:gv("f14"),coutLocation:gv("f15"),coutReel:gv("f16"),dateDepart:gv("f17"),dateRetour:gv("f18"),photos:[]};
   
   if(PENDING_FILES.length===0){DC.elements.push(el);sv();M=null;PENDING_FILES=[];R();return;}
   
