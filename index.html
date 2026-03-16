@@ -226,6 +226,8 @@ img.broken{display:none}
 .cal-day.today .day-num{color:#fff}
 .cal-day .day-week{font-size:7px;color:#475569;margin-bottom:1px}
 .cal-bar{height:16px;border-radius:4px;margin:2px 0 0;font-size:8px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:16px;padding:0 3px;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.cal-bar.proj-prepa{background:rgba(245,158,11,0.4);border:1px solid #f59e0b;color:#fcd34d}
+.cal-bar.proj-shoot{background:rgba(236,72,153,0.4);border:1px solid #ec4899;color:#f9a8d4}
 .cal-bar.prepa{background:#f59e0b}
 .cal-bar.shoot{background:#ec4899}
 .cal-bar.demo{background:#8b5cf6}
@@ -905,8 +907,10 @@ function rCalendarStrip(){
 
   // Legende
   h+='<div class="cal-legend">';
-  h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f59e0b"></div>Prépa</div>';
-  h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ec4899"></div>Tournage</div>';
+  h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(245,158,11,0.4);border:1px solid #f59e0b"></div>Prépa projet</div>';
+  h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(236,72,153,0.4);border:1px solid #ec4899"></div>Tournage projet</div>';
+  h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#f59e0b"></div>Prépa décor</div>';
+  h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ec4899"></div>Tournage décor</div>';
   h+='<div class="cal-legend-item"><div class="cal-legend-dot" style="background:#8b5cf6"></div>Démontage</div>';
   h+='</div>';
 
@@ -933,6 +937,10 @@ function rCalendarStrip(){
     h+='<div class="day-name">'+JOURS[d.getDay()]+'</div>';
     h+='<div class="day-num">'+dd+'</div>';
 
+    // Barres PROJET (prepa + tournage global)
+    if(alerts.projPrepa.length)h+='<div class="cal-bar proj-prepa" title="Prépa projet: '+alerts.projPrepa.map(function(x){return x.nom}).join(", ")+'">PREP</div>';
+    if(alerts.projTournage.length)h+='<div class="cal-bar proj-shoot" title="Tournage projet: '+alerts.projTournage.map(function(x){return x.nom}).join(", ")+'">TURN</div>';
+
     // Barres decors
     if(alerts.prepa.length){var pn=alerts.prepa.map(function(x){return x.d.nom.substring(0,6)});h+='<div class="cal-bar prepa" title="Prépa: '+alerts.prepa.map(function(x){return x.d.nom}).join(", ")+'">'+pn[0]+(pn.length>1?' +':'')+'</div>';}
     if(alerts.shoot.length){var sn=alerts.shoot.map(function(x){return x.d.nom.substring(0,6)});h+='<div class="cal-bar shoot" title="Tournage: '+alerts.shoot.map(function(x){return x.d.nom}).join(", ")+'">'+sn[0]+(sn.length>1?' +':'')+'</div>';}
@@ -954,10 +962,12 @@ function rCalendarStrip(){
     var sp=CALSEL.split("-");var selDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2]),12,0,0,0);
     var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
     var selAlerts=getAlertsForDate(selDate);
-    var total=selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
+    var total=selAlerts.projPrepa.length+selAlerts.projTournage.length+selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
     h+='<div class="cal-detail">';
     h+='<div style="font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:6px">'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' — '+total+' evnt</div>';
     if(total>0){
+      for(var i=0;i<selAlerts.projPrepa.length;i++){var x=selAlerts.projPrepa[i];h+='<div class="cal-detail-item" onclick="go(\'proj\',\''+x.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:rgba(245,158,11,0.4);border:1px solid #f59e0b;flex-shrink:0"></div><strong>'+x.nom+'</strong><span style="color:#fcd34d;margin-left:auto;font-size:11px">Prépa projet</span></div>';}
+      for(var i=0;i<selAlerts.projTournage.length;i++){var x=selAlerts.projTournage[i];h+='<div class="cal-detail-item" onclick="go(\'proj\',\''+x.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:rgba(236,72,153,0.4);border:1px solid #ec4899;flex-shrink:0"></div><strong>'+x.nom+'</strong><span style="color:#f9a8d4;margin-left:auto;font-size:11px">Tournage projet</span></div>';}
       for(var i=0;i<selAlerts.prepa.length;i++){var x=selAlerts.prepa[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#f59e0b;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Prépa</span></div>';}
       for(var i=0;i<selAlerts.shoot.length;i++){var x=selAlerts.shoot[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#ef4444;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#ef4444;margin-left:auto;font-size:11px">Tournage</span></div>';}
       for(var i=0;i<selAlerts.demontage.length;i++){var x=selAlerts.demontage[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;flex-shrink:0"></div><strong>'+x.d.nom+'</strong><span style="color:#8b5cf6;margin-left:auto;font-size:11px">Démontage</span></div>';}
@@ -978,9 +988,15 @@ function rCalendarStrip(){
 
 function getAlertsForDate(date){
   var d0=new Date(date);d0.setHours(12,0,0,0);var d0t=d0.getTime();
-  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[]};
+  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[],projPrepa:[],projTournage:[]};
   function normD(s){if(!s)return null;var parts=s.split("-");return new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0,0).getTime();}
-  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];
+    // Dates projet
+    var ppS=normD(p.datePrepa),ppE=normD(p.dateTournage);
+    if(ppS!==null){if(ppE===null)ppE=ppS;if(d0t>=ppS&&d0t<ppE)items.projPrepa.push(p);}
+    var ptS=normD(p.dateTournage),ptE=normD(p.dateTournageFin);
+    if(ptS!==null){if(ptE===null)ptE=ptS;if(d0t>=ptS&&d0t<=ptE)items.projTournage.push(p);}
+    if(!p.decors)continue;
     for(var j=0;j<p.decors.length;j++){var dc=p.decors[j];
       var pS=normD(dc.dateInstallation),pE=normD(dc.dateTournage);
       if(pS!==null){if(pE===null)pE=pS+86400000;if(d0t>=pS&&d0t<pE)items.prepa.push({d:dc,p:p});}
