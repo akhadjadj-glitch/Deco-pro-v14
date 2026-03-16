@@ -295,6 +295,7 @@ img.broken{display:none}
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 
 <script>
 // Global image error handler - replace broken images with placeholder
@@ -1220,6 +1221,8 @@ function rProj(){
   h+='<div class="abtn p" onclick="modal(\'nd\')">+ Décor</div>';
   h+='<div class="abtn" onclick="edit(\'projet\',P)">✏️ Modifier</div>';
   h+='<div class="abtn d" onclick="delP()">🗑️</div>';
+  h+='<div class="abtn" onclick="window.exportCSVTemplate()">📥 Export CSV</div>';
+  h+='<div class="abtn" onclick="window.importCSV()">📤 Import CSV</div>';
   h+='</div>';
   
   // (Timeline supprimee - planning visible sur le calendrier)
@@ -1899,6 +1902,141 @@ window.delP=function(){if(!confirm("Supprimer?"))return;D.projets=D.projets.filt
 window.delD=function(){if(!confirm("Supprimer?"))return;P.decors=P.decors.filter(function(d){return d.id!==DC.id});sv();DC=null;V="proj";R();};
 window.delE=function(){if(!confirm("Supprimer?"))return;DC.elements=DC.elements.filter(function(e){return e.id!==EL.id});sv();EL=null;V="dec";R();};
 window.delL=function(){if(!confirm("Supprimer?"))return;D.loueurs=D.loueurs.filter(function(l){return l.id!==LO.id});sv();LO=null;V="lou";R();};
+
+// === CSV Import/Export ===
+window.exportCSVTemplate=function(){
+  if(!P||!P.decors||!P.decors.length)return toast("Aucun décor à exporter",true);
+  var sep=";";
+  var lines=["nom_decor"+sep+"datePrepa"+sep+"dateTournage"+sep+"dateTournageFin"+sep+"dateDemontage"+sep+"sequences"];
+  for(var i=0;i<P.decors.length;i++){
+    var d=P.decors[i];
+    var nom=d.nom.replace(/"/g,'""');
+    if(nom.indexOf(sep)>=0||nom.indexOf('"')>=0)nom='"'+nom+'"';
+    lines.push(nom+sep+(d.dateInstallation||"")+sep+(d.dateTournage||"")+sep+(d.dateTournageFin||"")+sep+(d.dateDemontage||"")+sep+(d.sequences||""));
+  }
+  var csv="\uFEFF"+lines.join("\n");
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download=P.nom.replace(/[^a-zA-Z0-9_-]/g,"_")+"_decors.csv";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(P.decors.length+" décors exportés");
+};
+
+window.importCSV=function(){
+  if(!P)return;
+  var inp=document.createElement("input");
+  inp.type="file";
+  inp.accept=".csv,.xlsx,.xls";
+  inp.onchange=function(e){
+    var file=e.target.files[0];
+    if(!file)return;
+    var ext=file.name.split(".").pop().toLowerCase();
+    if(ext==="xlsx"||ext==="xls"){
+      if(typeof XLSX==="undefined")return toast("Librairie XLSX non chargée",true);
+      var reader=new FileReader();
+      reader.onload=function(ev){
+        try{
+          var wb=XLSX.read(ev.target.result,{type:"array"});
+          var ws=wb.Sheets[wb.SheetNames[0]];
+          var csv=XLSX.utils.sheet_to_csv(ws,{FS:";"});
+          processCSVData(csv);
+        }catch(err){toast("Erreur lecture Excel: "+err.message,true);}
+      };
+      reader.readAsArrayBuffer(file);
+    }else{
+      var reader=new FileReader();
+      reader.onload=function(ev){processCSVData(ev.target.result);};
+      reader.readAsText(file,"UTF-8");
+    }
+  };
+  inp.click();
+};
+
+function processCSVData(csv){
+  if(!P||!P.decors)return;
+  var lines=csv.split(/\r?\n/);
+  if(lines.length<2)return toast("Fichier vide",true);
+  // Detect separator
+  var sep=";";
+  var hdr=lines[0];
+  if(hdr.indexOf(";")<0&&hdr.indexOf(",")>=0)sep=",";
+  if(hdr.indexOf("\t")>=0&&hdr.indexOf(";")<0&&hdr.indexOf(",")<0)sep="\t";
+  // Parse header
+  var cols=parseCSVLine(hdr,sep);
+  for(var i=0;i<cols.length;i++)cols[i]=cols[i].trim().toLowerCase().replace(/\s+/g,"");
+  // Find column indices
+  var iNom=findCol(cols,["nom_decor","nomdecor","nom","decor","name"]);
+  var iPrepa=findCol(cols,["dateprepa","prepa","dateinstallation","installation"]);
+  var iTournage=findCol(cols,["datetournage","tournage","tournagedebut"]);
+  var iTourFin=findCol(cols,["datetournagefin","tournagefin","fintournage"]);
+  var iDemo=findCol(cols,["datedemontage","demontage","demolition"]);
+  var iSeq=findCol(cols,["sequences","sequence","seq","sq"]);
+  if(iNom<0)return toast("Colonne 'nom_decor' introuvable dans le CSV",true);
+  // Build lookup map
+  var map={};
+  for(var i=0;i<P.decors.length;i++){
+    var key=P.decors[i].nom.trim().toLowerCase();
+    if(!map[key])map[key]=[];
+    map[key].push(P.decors[i]);
+  }
+  var updated=0,notFound=[];
+  for(var i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    var vals=parseCSVLine(lines[i],sep);
+    var nom=(vals[iNom]||"").trim();
+    if(!nom)continue;
+    var key=nom.toLowerCase();
+    var matches=map[key];
+    if(!matches||!matches.length){notFound.push(nom);continue;}
+    for(var j=0;j<matches.length;j++){
+      var d=matches[j];
+      if(iPrepa>=0&&vals[iPrepa]&&vals[iPrepa].trim())d.dateInstallation=normalizeDate(vals[iPrepa].trim());
+      if(iTournage>=0&&vals[iTournage]&&vals[iTournage].trim())d.dateTournage=normalizeDate(vals[iTournage].trim());
+      if(iTourFin>=0&&vals[iTourFin]&&vals[iTourFin].trim())d.dateTournageFin=normalizeDate(vals[iTourFin].trim());
+      if(iDemo>=0&&vals[iDemo]&&vals[iDemo].trim())d.dateDemontage=normalizeDate(vals[iDemo].trim());
+      if(iSeq>=0&&vals[iSeq]&&vals[iSeq].trim())d.sequences=vals[iSeq].trim();
+    }
+    updated++;
+  }
+  sv();R();
+  var msg=updated+" décors mis à jour";
+  if(notFound.length)msg+=" ("+notFound.length+" non trouvés)";
+  toast(msg);
+}
+
+function findCol(cols,names){
+  for(var i=0;i<cols.length;i++){for(var j=0;j<names.length;j++){if(cols[i]===names[j])return i;}}
+  return -1;
+}
+
+function parseCSVLine(line,sep){
+  var result=[],current="",inQuotes=false;
+  for(var i=0;i<line.length;i++){
+    var c=line[i];
+    if(inQuotes){
+      if(c==='"'){if(i+1<line.length&&line[i+1]==='"'){current+='"';i++;}else{inQuotes=false;}}
+      else{current+=c;}
+    }else{
+      if(c==='"'){inQuotes=true;}
+      else if(c===sep){result.push(current);current="";}
+      else{current+=c;}
+    }
+  }
+  result.push(current);
+  return result;
+}
+
+function normalizeDate(s){
+  // Accept YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  var m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if(m)return m[3]+"-"+(m[2].length<2?"0":"")+m[2]+"-"+(m[1].length<2?"0":"")+m[1];
+  var m2=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2})$/);
+  if(m2)return "20"+m2[3]+"-"+(m2[2].length<2?"0":"")+m2[2]+"-"+(m2[1].length<2?"0":"")+m2[1];
+  return s;
+}
 
 // Init
 if(CODE){ if(!HAS_FIREBASE && CODE!=="LOCAL") CODE="LOCAL"; subscribeToProject(CODE); } else R();
