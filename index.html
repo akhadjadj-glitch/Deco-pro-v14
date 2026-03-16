@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#6366f1">
 <meta name="description" content="Application de gestion de décors pour le cinéma et la télévision.">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://*.firebasestorage.app wss://*.firebaseio.com data: blob: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https://*.firebasestorage.app data: blob:;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com https://*.firebasestorage.app wss://*.firebaseio.com data: blob: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https://*.firebasestorage.app https://firebasestorage.googleapis.com data: blob:;">
 <link rel="preconnect" href="https://www.gstatic.com">
 <link rel="preconnect" href="https://firestore.googleapis.com">
 <link rel="dns-prefetch" href="https://www.gstatic.com">
@@ -331,7 +331,33 @@ function loadLocalData(){
   catch(e){return {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[]};}
 }
 function saveLocalData(data){
-  localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[]}));
+  try {
+    localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[]}));
+  } catch(e) {
+    console.error("localStorage plein, tentative sans photos...");
+    // Clone data sans les photos base64 pour ne pas depasser la limite
+    var clone = JSON.parse(JSON.stringify(data||D));
+    for(var i=0;i<clone.projets.length;i++){
+      var p=clone.projets[i];
+      if(p.decors)for(var j=0;j<p.decors.length;j++){
+        var d=p.decors[j];
+        if(d.elements)for(var k=0;k<d.elements.length;k++){
+          var el=d.elements[k];
+          if(el.photos){
+            // Garder seulement les URLs Firebase (pas les base64)
+            el.photos=el.photos.filter(function(ph){return ph&&!ph.startsWith("data:");});
+          }
+        }
+      }
+    }
+    try {
+      localStorage.setItem("decorpro_local_data", JSON.stringify(clone));
+      toast("Photos trop lourdes pour le stockage local. Activez Firebase Storage.");
+    } catch(e2) {
+      console.error("Impossible de sauvegarder:", e2);
+      toast("Erreur de sauvegarde - stockage plein");
+    }
+  }
 }
 function fileToDataUrl(file, callback){
   var reader = new FileReader();
@@ -368,6 +394,20 @@ window.D=D;window.P=P;window.DC=DC;window.EL=EL;window.LO=LO;
 
 window.addEventListener("online", function(){ONLINE=true;R();});
 window.addEventListener("offline", function(){ONLINE=false;R();});
+// Gestionnaire global images cassees
+document.addEventListener("error",function(e){
+  if(e.target.tagName==="IMG"){
+    e.target.style.display="none";
+    var p=e.target.parentElement;
+    if(p&&!p.querySelector(".ph-err")){
+      var s=document.createElement("div");
+      s.className="ph-err";
+      s.style.cssText="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.05);border-radius:8px;color:#64748b;font-size:20px";
+      s.textContent="📷";
+      p.appendChild(s);
+    }
+  }
+},true);
 
 function gs(id){for(var i=0;i<STAT.length;i++)if(STAT[i].id===id)return STAT[i];return STAT[0]}
 function gsd(id){for(var i=0;i<STATD.length;i++)if(STATD[i].id===id)return STATD[i];return STATD[0]}
@@ -472,18 +512,33 @@ function sv(){saveToFirebase();toast("Sauvegardé");}
 
 // Photo upload to Firebase Storage
 function uploadPhoto(file, callback){
-  if(!HAS_FIREBASE || !CODE){ fileToDataUrl(file, callback); return; }
-  var path = "projects/"+CODE+"/photos/"+uid()+"_"+file.name;
-  var ref = storage.ref(path);
-  var task = ref.put(file);
-  task.on("state_changed", 
-    function(snapshot){
-      var pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      if(window.updateUploadProgress)window.updateUploadProgress(pct);
-    },
-    function(err){console.error("Upload error:",err);callback(null);},
-    function(){ task.snapshot.ref.getDownloadURL().then(function(url){ callback(url); }); }
-  );
+  if(!HAS_FIREBASE || !CODE || !storage){
+    console.log("Mode local: photo en base64");
+    fileToDataUrl(file, callback);
+    return;
+  }
+  try {
+    var path = "projects/"+CODE+"/photos/"+uid()+"_"+file.name;
+    var ref = storage.ref(path);
+    var task = ref.put(file);
+    task.on("state_changed",
+      function(snapshot){
+        var pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        if(window.updateUploadProgress)window.updateUploadProgress(pct);
+      },
+      function(err){
+        console.error("Upload Firebase echoue, fallback base64:",err);
+        fileToDataUrl(file, callback);
+      },
+      function(){ task.snapshot.ref.getDownloadURL().then(function(url){ callback(url); }).catch(function(err){
+        console.error("getDownloadURL echoue, fallback base64:",err);
+        fileToDataUrl(file, callback);
+      }); }
+    );
+  } catch(err) {
+    console.error("Storage error, fallback base64:",err);
+    fileToDataUrl(file, callback);
+  }
 }
 
 function getAlerts(){
@@ -538,11 +593,23 @@ function compressPhoto(file,maxW,quality,cb){
       if(w>maxW){h=h*(maxW/w);w=maxW;}
       var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
       var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
-      canvas.toBlob(function(blob){cb(new File([blob],file.name,{type:"image/jpeg"}));},
-        "image/jpeg",quality||0.7);
+      if(canvas.toBlob){
+        canvas.toBlob(function(blob){
+          if(blob)cb(new File([blob],file.name,{type:"image/jpeg"}));
+          else cb(file);
+        },"image/jpeg",quality||0.7);
+      } else {
+        // Fallback pour ancien Safari
+        var dataUrl=canvas.toDataURL("image/jpeg",quality||0.7);
+        var arr=dataUrl.split(","),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]),n=bstr.length,u8=new Uint8Array(n);
+        while(n--)u8[n]=bstr.charCodeAt(n);
+        cb(new File([u8],file.name,{type:mime}));
+      }
     };
+    img.onerror=function(){cb(file);};
     img.src=e.target.result;
   };
+  reader.onerror=function(){cb(file);};
   reader.readAsDataURL(file);
 }
 
@@ -1215,13 +1282,12 @@ function rDec(){
       h+='<div class="stit"><span>'+avItems.length+' élément(s) à valider</span></div>';
       for(var j=0;j<avItems.length;j++){
         var e=avItems[j],st=gs(e.statut);
-        h+='<div class="swipe-wrap"><div class="swipe-bg"><span onclick="swipeDeleteEl(\''+e.id+'\')">🗑️<span>Suppr.</span></span></div><div class="swipe-inner">';
-        h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')" style="margin-bottom:0">';
+        h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')">';
         if(e.photos&&e.photos.length)h+='<img src="'+e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">';
         else h+='<div class="card-icon">📦</div>';
         h+='<div class="card-info"><h3>'+e.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>'+(e.scene?' • Sq.'+e.scene:'')+'</p></div>';
         h+='<div class="card-actions"><div class="card-act view" onclick="event.stopPropagation();quickValidate(\''+e.id+'\')">✅</div></div>';
-        h+='</div></div></div>';
+        h+='</div>';
       }
     }
   }else if(TB==="portfolio"){
@@ -1435,7 +1501,7 @@ window.editDep=function(id){for(var i=0;i<D.depenses.length;i++)if(D.depenses[i]
 function rAcc(){
   var items=[];for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;for(var k=0;k<d.elements.length;k++){var e=d.elements[k];if(e.rubrique==="accessoires")items.push({e:e,d:d,p:p});}}}
   if(SQ){var q=SQ.toLowerCase();items=items.filter(function(x){return x.e.nom.toLowerCase().indexOf(q)>=0||(x.e.role&&x.e.role.toLowerCase().indexOf(q)>=0);});}
-  var h='<div class="page-title">🎭 Accessoires de jeu</div><div class="page-sub">'+items.length+' accessoires</div>';
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div class="page-title" style="margin-bottom:0">🎭 Accessoires de jeu</div><div class="page-sub">'+items.length+' accessoires</div></div><button class="btn p" style="padding:8px 16px;font-size:14px;white-space:nowrap" onclick="modal(\'acc_add\')">+ Ajouter</button></div>';
   h+='<div class="hdr-search" style="margin-bottom:12px"><input placeholder="Rechercher..." value="'+SQ+'" oninput="setSQ(this.value)"></div>';
   if(!items.length){h+='<div class="empty"><div class="icon">🎭</div><p>Aucun accessoire</p></div>';}else{for(var i=0;i<items.length;i++){var x=items[i],e=x.e,st=gs(e.statut);h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')">';if(e.photos&&e.photos.length)h+='<img src="'+e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">';else h+='<div class="card-icon">🎭</div>';h+='<div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3><p>'+(e.scene?'Sq.'+e.scene+' ':'')+(e.role?'👤 '+e.role+' ':'')+(e.dateJeu?'📅 '+fd(e.dateJeu):'')+'</p></div><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div>';}}
   return h;
@@ -1635,9 +1701,33 @@ function rModal(){
     c='<div class="mbar"></div><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="width:40px;height:40px;background:'+rb.c+'20;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">'+rb.i+'</div><div><div style="font-size:16px;font-weight:600">'+rb.n+'</div><div style="font-size:12px;color:#64748b">'+els.length+' éléments</div></div></div>';
     var phs=[];for(var i=0;i<els.length;i++)if(els[i].photos)for(var j=0;j<els[i].photos.length;j++)phs.push({data:els[i].photos[j],nom:els[i].nom});
     if(phs.length){c+='<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px">';for(var i=0;i<phs.length;i++)c+='<img src="'+phs[i].data+'" onclick="event.stopPropagation();openRubPh(\''+RB+'\','+i+')" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer">';c+='</div>';}
-    if(!els.length){c+='<div class="empty"><div class="icon">📦</div><p>Aucun élément</p></div>';}else{c+='<div style="max-height:45vh;overflow-y:auto">';for(var i=0;i<els.length;i++){var e=els[i],st=gs(e.statut);c+='<div class="swipe-wrap"><div class="swipe-bg"><span onclick="swipeDeleteEl(\''+e.id+'\')">🗑️<span>Suppr.</span></span></div><div class="swipe-inner"><div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')" style="margin-bottom:0"><div class="card-icon" style="width:40px;height:40px;font-size:18px">';if(e.photos&&e.photos.length)c+='<img src="'+e.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else c+='📦';c+='</div><div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div></div></div></div>';}c+='</div>';}
+    if(!els.length){c+='<div class="empty"><div class="icon">📦</div><p>Aucun élément</p></div>';}else{c+='<div style="max-height:45vh;overflow-y:auto">';for(var i=0;i<els.length;i++){var e=els[i],st=gs(e.statut);c+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')" style="margin-bottom:2px"><div class="card-icon" style="width:40px;height:40px;font-size:18px">';if(e.photos&&e.photos.length)c+='<img src="'+e.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else c+='📦';c+='</div><div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div></div>';}c+='</div>';}
     c+='<button class="btn p" style="margin-top:12px" onclick="modal(\'ne\')">+ Ajouter</button>';
   }
+  else if(M==="acc_add"){
+    // Etape 1 : choisir projet et decor
+    var allDecs=[];
+    for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(p.decors)for(var j=0;j<p.decors.length;j++)allDecs.push({p:p,d:p.decors[j]});}
+    c='<div class="mbar"></div><div class="mtit">🎭 Nouvel accessoire de jeu</div>';
+    if(!allDecs.length){
+      c+='<div class="empty"><div class="icon">🎬</div><p>Aucun décor disponible</p><p style="font-size:12px">Créez d\'abord un projet et un décor</p></div>';
+      c+='<button class="btn s" onclick="modal(null)">Fermer</button>';
+    } else {
+      c+='<div class="fld"><label>Décor *</label><select id="acc_dec">';
+      for(var i=0;i<allDecs.length;i++)c+='<option value="'+allDecs[i].p.id+'|'+allDecs[i].d.id+'">'+allDecs[i].p.nom+' → '+allDecs[i].d.nom+'</option>';
+      c+='</select></div>';
+      c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Vase ancien"></div>';
+      c+='<div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10" placeholder="Ex: 12"></div><div class="fld"><label>Rôle</label><input id="f11" placeholder="Ex: Sam"></div></div>';
+      c+='<div class="fld"><label>Date de jeu</label><input type="date" id="f12"></div>';
+      c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div>';
+      c+='<div class="fld"><label>Description</label><input id="f4"></div>';
+      c+='<div class="fld-row"><div class="fld"><label>Dimensions</label><input id="f5"></div><div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div></div>';
+      c+='<div class="drop" onclick="document.getElementById(\'phi\').click()"><div id="phpr"></div><div id="phpl"><span class="icon">📸</span><p>Ajouter photos</p></div><input type="file" accept="image/*" multiple id="phi" style="display:none" onchange="prvPh(event)"></div>';
+      c+='<div id="upload-status"></div>';
+      c+='<button class="btn p" id="save-el-btn" onclick="saveAccFromTab()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+    }
+  }
+
   return '<div class="modal" onclick="modal(null)"><div class="mpan" onclick="event.stopPropagation()">'+c+'</div></div>';
 }
 
@@ -1739,12 +1829,44 @@ window.saveEl=function(){
   if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload en cours... 0/'+total+'</div><div class="upload-bar"><div class="upload-fill" style="width:0%"></div></div></div>';
   
   for(var i=0;i<PENDING_FILES.length;i++){
-    uploadPhoto(PENDING_FILES[i],function(url){
-      if(url)el.photos.push(url);
-      uploaded++;
-      if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload en cours... '+uploaded+'/'+total+'</div><div class="upload-bar"><div class="upload-fill" style="width:'+Math.round(uploaded/total*100)+'%"></div></div></div>';
-      if(uploaded===total){DC.elements.push(el);sv();M=null;PENDING_FILES=[];R();}
-    });
+    (function(file){
+      compressPhoto(file,1200,0.7,function(compressed){
+        uploadPhoto(compressed,function(url){
+          if(url)el.photos.push(url);
+          uploaded++;
+          if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload en cours... '+uploaded+'/'+total+'</div><div class="upload-bar"><div class="upload-fill" style="width:'+Math.round(uploaded/total*100)+'%"></div></div></div>';
+          if(uploaded===total){DC.elements.push(el);sv();M=null;PENDING_FILES=[];R();}
+        });
+      });
+    })(PENDING_FILES[i]);
+  }
+};
+
+window.saveAccFromTab=function(){
+  var n=gv("f1");if(!n)return alert("Nom requis");
+  var sel=gv("acc_dec");if(!sel)return alert("Choisissez un décor");
+  var parts=sel.split("|"),pId=parts[0],dId=parts[1];
+  // Trouver le projet et decor
+  var targetP=null,targetD=null;
+  for(var i=0;i<D.projets.length;i++){if(D.projets[i].id===pId){targetP=D.projets[i];if(targetP.decors)for(var j=0;j<targetP.decors.length;j++)if(targetP.decors[j].id===dId)targetD=targetP.decors[j];break;}}
+  if(!targetP||!targetD)return alert("Décor introuvable");
+  if(!targetD.elements)targetD.elements=[];
+  var el={id:uid(),nom:n,rubrique:"accessoires",statut:gv("f3")||"a_sourcer",description:gv("f4"),dimensions:gv("f5"),quantite:gv("f6")||1,scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),urgent:false,photos:[]};
+  if(PENDING_FILES.length===0){targetD.elements.push(el);sv();M=null;PENDING_FILES=[];R();return;}
+  var uploaded=0,total=PENDING_FILES.length;
+  var status=document.getElementById("upload-status");
+  if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload... 0/'+total+'</div></div>';
+  for(var i=0;i<PENDING_FILES.length;i++){
+    (function(file){
+      compressPhoto(file,1200,0.7,function(compressed){
+        uploadPhoto(compressed,function(url){
+          if(url)el.photos.push(url);
+          uploaded++;
+          if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload... '+uploaded+'/'+total+'</div></div>';
+          if(uploaded===total){targetD.elements.push(el);sv();M=null;PENDING_FILES=[];R();}
+        });
+      });
+    })(PENDING_FILES[i]);
   }
 };
 
