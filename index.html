@@ -115,6 +115,8 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .photo-thumb.active{border-color:#6366f1}
 .photo-thumb img{width:100%;height:100%;object-fit:cover}
 .photo-add{background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:20px;color:#64748b}
+img[src]{background:#1e293b}
+img.broken{display:none}
 
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
 .chip{padding:4px 10px;border-radius:12px;font-size:11px;background:rgba(255,255,255,0.1)}
@@ -209,7 +211,7 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-legend-item{display:flex;align-items:center;gap:3px;font-size:9px;color:#64748b}
 .cal-legend-dot{width:8px;height:8px;border-radius:2px}
 .cal-days{display:flex;gap:3px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;scroll-behavior:smooth}
-.cal-day{flex-shrink:0;width:50px;padding:6px 3px;border-radius:10px;background:rgba(255,255,255,0.04);text-align:center;cursor:pointer;position:relative;transition:all 0.2s;scroll-snap-align:start;border:1px solid transparent}
+.cal-day{flex-shrink:0;width:56px;padding:6px 3px;border-radius:10px;background:rgba(255,255,255,0.04);text-align:center;cursor:pointer;position:relative;transition:all 0.2s;scroll-snap-align:start;border:1px solid transparent}
 .cal-day:active{transform:scale(0.96)}
 .cal-day.today{background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.5)}
 .cal-day.today .day-num{background:#6366f1;color:#fff;border-radius:50%;width:26px;height:26px;line-height:26px;margin:0 auto}
@@ -223,17 +225,17 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 .cal-day .day-num{font-size:15px;font-weight:700}
 .cal-day.today .day-num{color:#fff}
 .cal-day .day-week{font-size:7px;color:#475569;margin-bottom:1px}
-.cal-bar{height:14px;border-radius:3px;margin:1px 1px 0;font-size:7px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:14px;padding:0 2px}
+.cal-bar{height:16px;border-radius:4px;margin:2px 0 0;font-size:8px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:16px;padding:0 3px;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
 .cal-bar.prepa{background:#f59e0b}
 .cal-bar.shoot{background:#ec4899}
 .cal-bar.demo{background:#8b5cf6}
-.cal-badges{display:flex;gap:2px;justify-content:center;margin-top:3px;min-height:6px;flex-wrap:wrap}
-.cal-badge{width:6px;height:6px;border-radius:50%}
-.cal-badge.red{background:#ef4444}
-.cal-badge.orange{background:#f59e0b}
-.cal-badge.pink{background:#ec4899}
-.cal-badge.blue{background:#3b82f6}
-.cal-badge.green{background:#10b981}
+.cal-badges{display:flex;gap:3px;justify-content:center;margin-top:4px;min-height:10px;flex-wrap:wrap}
+.cal-badge{width:8px;height:8px;border-radius:50%;box-shadow:0 0 4px currentColor}
+.cal-badge.red{background:#ef4444;color:#ef4444}
+.cal-badge.orange{background:#f59e0b;color:#f59e0b}
+.cal-badge.pink{background:#ec4899;color:#ec4899}
+.cal-badge.blue{background:#3b82f6;color:#3b82f6}
+.cal-badge.green{background:#10b981;color:#10b981}
 .cal-detail{margin-top:8px}
 .cal-detail-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer}
 .cal-detail-item:active{background:rgba(255,255,255,0.08)}
@@ -295,8 +297,23 @@ button,input,select,textarea{font:inherit;font-size:16px;border:none;background:
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 
 <script>
+// Global image error handler - replace broken images with placeholder
+document.addEventListener('error', function(e){
+  if(e.target.tagName === 'IMG'){
+    e.target.style.display='none';
+    var ph = e.target.parentElement;
+    if(ph && !ph.querySelector('.img-placeholder')){
+      var div = document.createElement('div');
+      div.className='img-placeholder';
+      div.style.cssText='width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#1e293b;color:#475569;font-size:24px;border-radius:8px;min-height:44px';
+      div.textContent='📷';
+      ph.appendChild(div);
+    }
+  }
+}, true);
+
 // ============================================
-// 🔥 FIREBASE CONFIG - REMPLACEZ PAR VOS VALEURS
+// FIREBASE CONFIG - REMPLACEZ PAR VOS VALEURS
 // ============================================
 const firebaseConfig = {
   apiKey: "AIzaSyC8ODVc9s7ItdYpETiKfegRSFsPyFC7mpY",
@@ -509,6 +526,7 @@ function saveToFirebase(){
 }
 
 function sv(){saveToFirebase();toast("Sauvegardé");}
+window.sv=sv;
 
 // Photo upload to Firebase Storage
 function uploadPhoto(file, callback){
