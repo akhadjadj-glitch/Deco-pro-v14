@@ -403,7 +403,7 @@ var CURRENT_USER = { nom: "Utilisateur Local", role: "Chef Décorateur" };
 var V="home",P=null,DC=null,EL=null,LO=null,RB=null,M=null,MN=false,TB="rub",VW=null,VWC=null,VWI=0,SQ="",GSQ="",PHS=[],EDIT=null,MORE=false,RTL="all";
 var CALSEL=null;
 var CALOFF=0;
-var DFILT="all";
+var DFILT="all";var DSQ="";
 var DSORT="name";
 var SEARCHOPEN=false;
 var ONLINE = navigator.onLine;
@@ -603,6 +603,7 @@ function toast(msg,err){
 
 // Filtres decors
 window.setDFilt=function(f){DFILT=f;R();};
+window.setDSQ=function(v){DSQ=v;R();};
 window.setDSort=function(s){DSORT=s;R();};
 window.toggleSearch=function(){SEARCHOPEN=!SEARCHOPEN;if(SEARCHOPEN){V="search";GSQ="";}R();};
 
@@ -1243,8 +1244,9 @@ function rProj(){
   h+='<div class="abtn" onclick="window.importCSV()">📤 Import CSV</div>';
   h+='</div>';
   
-  // (Timeline supprimee - planning visible sur le calendrier)
-  
+  // Recherche decors
+  h+='<div class="hdr-search" style="margin:12px 0 8px"><input placeholder="Rechercher un décor..." value="'+(DSQ||'')+'" oninput="setDSQ(this.value)"></div>';
+
   // Compteurs par statut
   if(P.decors&&P.decors.length){
     var counts={};for(var i=0;i<STATD.length;i++)counts[STATD[i].id]=0;
@@ -1261,7 +1263,8 @@ function rProj(){
   }else{
     // Filtrer
     var filtered=P.decors;
-    if(DFILT!=="all")filtered=P.decors.filter(function(d){return d.statut===DFILT;});
+    if(DSQ){var q=DSQ.toLowerCase();filtered=filtered.filter(function(d){return d.nom.toLowerCase().indexOf(q)>=0||(d.sequences&&d.sequences.toLowerCase().indexOf(q)>=0);});}
+    if(DFILT!=="all")filtered=filtered.filter(function(d){return d.statut===DFILT;});
     // Trier par date tournage
     filtered.sort(function(a,b){
       var da=a.dateTournage?new Date(a.dateTournage).getTime():99999999999999;
