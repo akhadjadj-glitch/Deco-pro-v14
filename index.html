@@ -1667,7 +1667,7 @@ function rModal(){
     c+='<div id="upload-status"></div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Canapé cuir"></div>';
     c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div>';
-    c+='<input type="hidden" id="f2" value="'+(rb?rb.id:'accessoires')+'">';
+    c+='<div class="fld"><label>Rubrique</label><select id="f2">';for(var ri=0;ri<RUB.length;ri++)c+='<option value="'+RUB[ri].id+'"'+(rb&&rb.id===RUB[ri].id?' selected':(!rb&&RUB[ri].id==='accessoires'?' selected':''))+'>'+RUB[ri].i+' '+RUB[ri].n+'</option>';c+='</select></div>';
     c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲ Moins':'▼ Plus d\'options')+'</div>';
     c+='<div class="form-section'+(MORE?'':' hidden')+'">';
     c+='<div class="fld"><label>Description</label><textarea id="f4"></textarea></div>';
@@ -1685,7 +1685,7 @@ function rModal(){
     c='<div class="mbar"></div><div class="mtit">✏️ Modifier '+(editRb?editRb.n:'élément')+'</div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" value="'+EDIT.nom+'"></div>';
     c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'"'+(STAT[i].id===EDIT.statut?' selected':'')+'>'+STAT[i].l+'</option>';c+='</select></div>';
-    c+='<input type="hidden" id="f2" value="'+(EDIT.rubrique||'accessoires')+'">';
+    c+='<div class="fld"><label>Rubrique</label><select id="f2">';for(var ri=0;ri<RUB.length;ri++)c+='<option value="'+RUB[ri].id+'"'+(EDIT.rubrique===RUB[ri].id?' selected':'')+'>'+RUB[ri].i+' '+RUB[ri].n+'</option>';c+='</select></div>';
     c+='<div class="fld"><label>Description</label><textarea id="f4">'+(EDIT.description||"")+'</textarea></div>';
     c+='<div class="fld-row"><div class="fld"><label>Dimensions</label><input id="f5" value="'+(EDIT.dimensions||"")+'"></div><div class="fld"><label>Quantité</label><input type="number" id="f6" value="'+(EDIT.quantite||1)+'"></div></div>';
     c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7" value="'+(EDIT.couleur||"")+'"></div><div class="fld"><label>Matière</label><input id="f8" value="'+(EDIT.matiere||"")+'"></div></div>';
