@@ -1662,7 +1662,6 @@ function rModal(){
   else if(M==="ne"){
     var rb=RB?gr(RB):null;
     c='<div class="mbar"></div><div class="mtit">'+(rb?rb.i+' '+rb.n:'📦 Nouvel élément')+'</div>';
-    c+='<div class="abtn p" style="justify-content:center;margin-bottom:12px;display:flex;padding:12px 10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);" onclick="smartScan()"><span style="font-size:18px">📸</span> Scanner avec l\'IA</div>';
     c+='<div class="drop" onclick="document.getElementById(\'phi\').click()"><div id="phpr"></div><div id="phpl"><span class="icon">📸</span><p>Ajouter photos</p></div><input type="file" accept="image/*" multiple id="phi" style="display:none" onchange="prvPh(event)"></div>';
     c+='<div id="upload-status"></div>';
     c+='<div class="fld"><label>Nom *</label><input id="f1" placeholder="Ex: Canapé cuir"></div>';
