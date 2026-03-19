@@ -1465,11 +1465,9 @@ function rEl(){
 }
 
 function rLou(){
-  var h='<div class="page-title">🏪 Loueurs</div>';
-  h+='<div class="page-sub">'+D.loueurs.length+' contacts</div>';
+  var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div class="page-title" style="margin-bottom:0">🏪 Loueurs</div><div class="page-sub">'+D.loueurs.length+' contacts</div></div><button class="btn p" style="padding:8px 16px;font-size:14px;white-space:nowrap" onclick="modal(\'nl\')">+ Ajouter</button></div>';
   if(!D.loueurs.length){h+='<div class="empty"><div class="icon">🏪</div><p>Aucun loueur</p></div>';}
   else{for(var i=0;i<D.loueurs.length;i++){var l=D.loueurs[i];h+='<div class="card" onclick="go(\'loud\',\''+l.id+'\')"><div class="card-icon">🏪</div><div class="card-info"><h3>'+l.nom+'</h3><p>'+(l.specialite||'Loueur')+'</p></div><div class="card-actions">';if(l.telephone)h+='<a href="tel:'+l.telephone+'" class="card-act view" onclick="event.stopPropagation()">📞</a>';h+='<div class="card-act edit" onclick="event.stopPropagation();edit(\'loueur\',D.loueurs['+i+'])">✏️</div></div></div>';}}
-  h+='<button class="fab" onclick="modal(\'nl\')">+</button>';
   return h;
 }
 
