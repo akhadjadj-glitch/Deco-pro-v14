@@ -612,26 +612,32 @@ window.toggleSearch=function(){SEARCHOPEN=!SEARCHOPEN;if(SEARCHOPEN){V="search";
 
 // Compression photo
 function compressPhoto(file,maxW,quality,cb){
+  var MAX_SIZE=2*1024*1024; // 2 Mo max
   var reader=new FileReader();
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
+      function tryCompress(w,h,q){
+        var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+        var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
+        if(canvas.toBlob){
+          canvas.toBlob(function(blob){
+            if(blob&&blob.size>MAX_SIZE&&q>0.3){
+              tryCompress(Math.round(w*0.8),Math.round(h*0.8),q-0.1);
+            } else if(blob){
+              cb(new File([blob],file.name,{type:"image/jpeg"}));
+            } else cb(file);
+          },"image/jpeg",q);
+        } else {
+          var dataUrl=canvas.toDataURL("image/jpeg",q);
+          var arr=dataUrl.split(","),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]),n=bstr.length,u8=new Uint8Array(n);
+          while(n--)u8[n]=bstr.charCodeAt(n);
+          cb(new File([u8],file.name,{type:mime}));
+        }
+      }
       var w=img.width,h=img.height;
       if(w>maxW){h=h*(maxW/w);w=maxW;}
-      var canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
-      var ctx=canvas.getContext("2d");ctx.drawImage(img,0,0,w,h);
-      if(canvas.toBlob){
-        canvas.toBlob(function(blob){
-          if(blob)cb(new File([blob],file.name,{type:"image/jpeg"}));
-          else cb(file);
-        },"image/jpeg",quality||0.7);
-      } else {
-        // Fallback pour ancien Safari
-        var dataUrl=canvas.toDataURL("image/jpeg",quality||0.7);
-        var arr=dataUrl.split(","),mime=arr[0].match(/:(.*?);/)[1],bstr=atob(arr[1]),n=bstr.length,u8=new Uint8Array(n);
-        while(n--)u8[n]=bstr.charCodeAt(n);
-        cb(new File([u8],file.name,{type:mime}));
-      }
+      tryCompress(Math.round(w),Math.round(h),quality||0.7);
     };
     img.onerror=function(){cb(file);};
     img.src=e.target.result;
@@ -1280,7 +1286,8 @@ function rProj(){
       var bud=getDecorBudget(d);
       h+='<div class="card" onclick="go(\'dec\',\''+d.id+'\')">';
       h+='<div class="card-icon">'+(d.interieur?'🏠':'🌳')+'</div>';
-      h+='<div class="card-info"><h3>'+d.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span> '+nel+' él.'+(d.sequences?' • Sq.'+d.sequences:'')+(bud.total>0?' • '+fm(bud.total):'')+'</p></div>';
+      var dtour=d.dateTournage?' • 🎬'+fd(d.dateTournage)+(d.dateTournageFin?'→'+fd(d.dateTournageFin):''):'';
+      h+='<div class="card-info"><h3>'+d.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span> '+nel+' él.'+(d.sequences?' • Sq.'+d.sequences:'')+dtour+(bud.total>0?' • '+fm(bud.total):'')+'</p></div>';
       // Trouver l'index reel dans P.decors pour edit
       var realIdx=-1;for(var j=0;j<P.decors.length;j++)if(P.decors[j].id===d.id){realIdx=j;break;}
       h+='<div class="card-actions"><div class="card-act edit" onclick="event.stopPropagation();DC=P.decors['+realIdx+'];edit(\'decor\',DC)">✏️</div></div>';
@@ -1477,7 +1484,8 @@ function rLouD(){
   h+='<div class="abtn" onclick="edit(\'loueur\',LO)">✏️</div></div>';
   h+='<div class="box">';
   if(LO.contact)h+='<div class="row"><span>Contact</span><span>'+LO.contact+'</span></div>';
-  if(LO.telephone)h+='<div class="row"><span>Téléphone</span><span>'+LO.telephone+'</span></div>';
+  if(LO.telephone)h+='<div class="row"><span>Téléphone</span><span><a href="tel:'+LO.telephone+'" style="color:#6366f1">'+LO.telephone+'</a></span></div>';
+  if(LO.email)h+='<div class="row"><span>Email</span><span><a href="mailto:'+LO.email+'" style="color:#6366f1">'+LO.email+'</a></span></div>';
   if(LO.adresse)h+='<div class="row"><span>Adresse</span><span>'+LO.adresse+'</span></div>';
   if(LO.notes)h+='<div class="row"><span>Notes</span><span>'+LO.notes+'</span></div>';
   h+='</div>';
@@ -1708,8 +1716,8 @@ function rModal(){
     c+='<div class="fld"><label>Spécialité</label><input id="f2"></div>';
     c+='<div class="fld-row"><div class="fld"><label>Contact</label><input id="f3"></div><div class="fld"><label>Téléphone</label><input type="tel" id="f4"></div></div>';
     c+='<div class="fld"><label>Email</label><input type="email" id="f5"></div>';
-    c+='<div class="toggle-more" onclick="toggleMore()">'+(MORE?'▲':'▼ Plus')+'</div>';
-    c+='<div class="form-section'+(MORE?'':' hidden')+'"><div class="fld"><label>Adresse</label><input id="f6"></div><div class="fld"><label>Notes</label><textarea id="f7"></textarea></div></div>';
+    c+='<div class="fld"><label>Adresse</label><input id="f6"></div>';
+    c+='<div class="fld"><label>Notes</label><textarea id="f7"></textarea></div>';
     c+='<button class="btn p" onclick="saveLo()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
   else if(M==="edit_loueur"&&EDIT){
