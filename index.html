@@ -591,7 +591,7 @@ function search(q){
     if(p.decors)for(var j=0;j<p.decors.length;j++){var d=p.decors[j];
       if(d.nom.toLowerCase().indexOf(q)>=0)r.push({t:"decor",item:d,p:p});
       if(d.elements)for(var k=0;k<d.elements.length;k++){var e=d.elements[k];
-        if(e.nom.toLowerCase().indexOf(q)>=0||(e.tags&&e.tags.toLowerCase().indexOf(q)>=0)||(e.scene&&e.scene.toLowerCase().indexOf(q)>=0)||(e.role&&e.role.toLowerCase().indexOf(q)>=0)||(e.repasDetail&&e.repasDetail.toLowerCase().indexOf(q)>=0))r.push({t:"element",item:e,d:d,p:p});}}}
+        if(e.nom.toLowerCase().indexOf(q)>=0||(e.tags&&e.tags.toLowerCase().indexOf(q)>=0)||(e.scene&&e.scene.toLowerCase().indexOf(q)>=0)||(e.role&&e.role.toLowerCase().indexOf(q)>=0)||(e.nourriture&&e.nourriture.toLowerCase().indexOf(q)>=0)||(e.boisson&&e.boisson.toLowerCase().indexOf(q)>=0))r.push({t:"element",item:e,d:d,p:p});}}}
   for(var i=0;i<D.loueurs.length;i++)if(D.loueurs[i].nom.toLowerCase().indexOf(q)>=0)r.push({t:"loueur",item:D.loueurs[i]});
   return r.slice(0,20);
 }
@@ -1154,11 +1154,11 @@ window.printDecor=function(pId,dId){
       html+="</tr>";
     }
     html+="</table>";
-    var repasItems=[];for(var k=0;k<dc.elements.length;k++){if(dc.elements[k].rubrique==="repas"||dc.elements[k].repasDetail)repasItems.push(dc.elements[k]);}
+    var repasItems=[];for(var k=0;k<dc.elements.length;k++){if(dc.elements[k].rubrique==="repas")repasItems.push(dc.elements[k]);}
     if(repasItems.length){
       html+="<h2>🍽️ Repas / Nourriture / Boissons</h2>";
-      html+="<table><tr><th>Sq.</th><th>Nom</th><th>Personnage(s)</th><th>Repas / Nourriture / Boissons</th><th>Statut</th></tr>";
-      for(var k=0;k<repasItems.length;k++){var e=repasItems[k],st=gs(e.statut);html+="<tr><td>"+(e.scene||"")+"</td><td><strong>"+e.nom+"</strong></td><td>"+(e.role||"")+"</td><td>"+(e.repasDetail||e.description||"")+"</td><td>"+st.l+"</td></tr>";}
+      html+="<table><tr><th>SÉQ.</th><th>ÉP.</th><th>DÉCOR</th><th>RÔLES</th><th>NOURRITURE</th><th>BOISSON</th></tr>";
+      for(var k=0;k<repasItems.length;k++){var e=repasItems[k];html+="<tr><td><strong>"+(e.scene||"")+"</strong></td><td>"+(e.episode?"#"+e.episode:"")+"</td><td>"+dc.nom+"</td><td>"+(e.role||"")+"</td><td>"+(e.nourriture||e.repasDetail||"")+"</td><td>"+(e.boisson||"")+"</td></tr>";}
       html+="</table>";
     }
   }
@@ -1477,10 +1477,14 @@ function rEl(){
   if(EL.quantite&&EL.quantite>1)h+='<div class="row"><span>Quantité</span><span>'+EL.quantite+'</span></div>';
   h+='</div>';
 
-  if(EL.repasDetail){
+  if(EL.episode)h+='<div class="box"><div class="row"><span>Épisode</span><span>#'+EL.episode+'</span></div></div>';
+
+  if(EL.nourriture||EL.boisson||EL.repasDetail){
     h+='<div class="box" style="background:rgba(249,115,22,0.1);border-left:3px solid #f97316">';
     h+='<div style="font-weight:600;margin-bottom:6px;font-size:13px;color:#f97316">🍽️ Repas / Boissons</div>';
-    h+='<p style="font-size:13px;white-space:pre-wrap">'+EL.repasDetail+'</p>';
+    if(EL.nourriture)h+='<div class="row"><span style="color:#f97316">Nourriture</span><span style="white-space:pre-wrap">'+EL.nourriture+'</span></div>';
+    if(EL.boisson)h+='<div class="row"><span style="color:#06b6d4">Boisson</span><span style="white-space:pre-wrap">'+EL.boisson+'</span></div>';
+    if(EL.repasDetail&&!EL.nourriture&&!EL.boisson)h+='<p style="font-size:13px;white-space:pre-wrap">'+EL.repasDetail+'</p>';
     h+='</div>';
   }
 
@@ -1632,38 +1636,45 @@ function rAcc(){
 
 function rRepas(){
   var items=[];for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;for(var k=0;k<d.elements.length;k++){var e=d.elements[k];if(e.rubrique==="repas")items.push({e:e,d:d,p:p});}}}
-  if(SQ){var q=SQ.toLowerCase();items=items.filter(function(x){return x.e.nom.toLowerCase().indexOf(q)>=0||(x.e.role&&x.e.role.toLowerCase().indexOf(q)>=0)||(x.e.scene&&x.e.scene.toLowerCase().indexOf(q)>=0)||(x.d.nom&&x.d.nom.toLowerCase().indexOf(q)>=0)||(x.e.repasDetail&&x.e.repasDetail.toLowerCase().indexOf(q)>=0);});}
+  if(SQ){var q=SQ.toLowerCase();items=items.filter(function(x){return x.e.nom.toLowerCase().indexOf(q)>=0||(x.e.role&&x.e.role.toLowerCase().indexOf(q)>=0)||(x.e.scene&&x.e.scene.toLowerCase().indexOf(q)>=0)||(x.d.nom&&x.d.nom.toLowerCase().indexOf(q)>=0)||(x.e.nourriture&&x.e.nourriture.toLowerCase().indexOf(q)>=0)||(x.e.boisson&&x.e.boisson.toLowerCase().indexOf(q)>=0);});}
   if(ASORT==="seq"){items.sort(function(a,b){var sa=parseInt(a.e.scene)||9999,sb=parseInt(b.e.scene)||9999;return sa-sb;});}
   else if(ASORT==="decor"){items.sort(function(a,b){return a.d.nom.toLowerCase()<b.d.nom.toLowerCase()?-1:1;});}
-  else if(ASORT==="role"){items.sort(function(a,b){var ra=(a.e.role||"zzz").toLowerCase(),rb=(b.e.role||"zzz").toLowerCase();return ra<rb?-1:ra>rb?1:0;});}
+  else if(ASORT==="episode"){items.sort(function(a,b){var ea=parseInt(a.e.episode)||9999,eb=parseInt(b.e.episode)||9999;return ea-eb;});}
   else{items.sort(function(a,b){var sa=parseInt(a.e.scene)||9999,sb=parseInt(b.e.scene)||9999;return sa-sb;});}
   var h='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div class="page-title" style="margin-bottom:0">🍽️ Repas / Boissons</div><div class="page-sub">'+items.length+' élément(s)</div></div><button class="btn p" style="padding:8px 16px;font-size:14px;white-space:nowrap" onclick="modal(\'repas_add\')">+ Ajouter</button></div>';
-  h+='<div class="hdr-search" style="margin-bottom:8px"><input placeholder="Rechercher séquence, décor, rôle, repas..." value="'+SQ+'" oninput="setSQ(this.value)"></div>';
+  h+='<div class="hdr-search" style="margin-bottom:8px"><input placeholder="Rechercher séquence, décor, rôle, nourriture, boisson..." value="'+SQ+'" oninput="setSQ(this.value)"></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">';
   h+='<div class="filter-chip'+(ASORT==="seq"?" on":"")+'" onclick="setASort(\'seq\')">Par séquence</div>';
+  h+='<div class="filter-chip'+(ASORT==="episode"?" on":"")+'" onclick="setASort(\'episode\')">Par épisode</div>';
   h+='<div class="filter-chip'+(ASORT==="decor"?" on":"")+'" onclick="setASort(\'decor\')">Par décor</div>';
-  h+='<div class="filter-chip'+(ASORT==="role"?" on":"")+'" onclick="setASort(\'role\')">Par rôle</div>';
   h+='</div>';
   if(!items.length){h+='<div class="empty"><div class="icon">🍽️</div><p>Aucun repas / boisson</p><p style="font-size:12px">Ajoutez les besoins en nourriture et boissons pour chaque scène.</p></div>';}
   else{
-    var lastGroup="";
-    for(var i=0;i<items.length;i++){var x=items[i],e=x.e,st=gs(e.statut);
-      var grp="";
-      if(ASORT==="seq")grp="Sq."+(e.scene||"?");
-      else if(ASORT==="decor")grp=x.d.nom;
-      else if(ASORT==="role")grp=e.role||"Sans rôle";
-      else grp="Sq."+(e.scene||"?");
-      if(grp!==lastGroup){lastGroup=grp;h+='<div class="stit" style="margin-top:12px">'+grp+'</div>';}
-      h+='<div class="card" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')" style="flex-direction:column;align-items:stretch;gap:6px">';
-      h+='<div style="display:flex;align-items:center;gap:10px">';
-      if(e.photos&&e.photos.length)h+='<img src="'+e.photos[0]+'" style="width:44px;height:44px;object-fit:cover;border-radius:8px">';
-      else h+='<div class="card-icon">🍽️</div>';
-      h+='<div class="card-info"><h3>'+e.nom+'</h3>';
-      h+='<p style="font-size:11px;color:#94a3b8">'+(e.scene?'Sq.'+e.scene+' ':'')+'📍 '+x.d.nom+(e.role?' • 👤 '+e.role:'')+'</p>';
-      h+='</div><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div>';
-      if(e.repasDetail){h+='<div style="font-size:12px;color:#f97316;background:rgba(249,115,22,0.1);padding:6px 10px;border-radius:8px;margin-top:2px">🍽️ '+e.repasDetail+'</div>';}
-      h+='</div>';
+    // Affichage tableau
+    h+='<div style="overflow-x:auto">';
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+    h+='<thead><tr style="background:rgba(249,115,22,0.15);color:#f97316">';
+    h+='<th style="padding:8px 6px;text-align:left;font-weight:700;white-space:nowrap">SÉQ.</th>';
+    h+='<th style="padding:8px 6px;text-align:left;font-weight:700;white-space:nowrap">ÉP.</th>';
+    h+='<th style="padding:8px 6px;text-align:left;font-weight:700">DÉCOR</th>';
+    h+='<th style="padding:8px 6px;text-align:left;font-weight:700">RÔLES</th>';
+    h+='<th style="padding:8px 6px;text-align:left;font-weight:700">NOURRITURE</th>';
+    h+='<th style="padding:8px 6px;text-align:left;font-weight:700">BOISSON</th>';
+    h+='</tr></thead><tbody>';
+    var lastEp="";
+    for(var i=0;i<items.length;i++){var x=items[i],e=x.e;
+      var epLabel=e.episode||"";
+      if(ASORT==="episode"&&epLabel!==lastEp){lastEp=epLabel;h+='<tr><td colspan="6" style="padding:8px 6px;font-weight:700;font-size:13px;background:rgba(255,255,255,0.05);color:#a5b4fc;border-top:2px solid rgba(249,115,22,0.3)">ÉPISODE '+(epLabel||"?")+'</td></tr>';}
+      h+='<tr style="border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')">';
+      h+='<td style="padding:8px 6px;font-weight:700;color:#e2e8f0">'+(e.scene||"")+'</td>';
+      h+='<td style="padding:8px 6px;color:#94a3b8">'+(e.episode?"#"+e.episode:"")+'</td>';
+      h+='<td style="padding:8px 6px;color:#e2e8f0">'+x.d.nom+'</td>';
+      h+='<td style="padding:8px 6px;color:#94a3b8">'+(e.role||"")+'</td>';
+      h+='<td style="padding:8px 6px;color:#f97316">'+(e.nourriture||"")+'</td>';
+      h+='<td style="padding:8px 6px;color:#06b6d4">'+(e.boisson||"")+'</td>';
+      h+='</tr>';
     }
+    h+='</tbody></table></div>';
   }
   return h;
 }
@@ -1797,7 +1808,7 @@ function rModal(){
     c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7"></div><div class="fld"><label>Matière</label><input id="f8"></div></div>';
     c+='<div class="fld"><label>Tags intelligents (IA ou max)</label><input id="f9" placeholder="Ex: vintage, bois..."></div>';
     c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10"></div><div class="fld"><label>Personnage</label><input id="f11"></div></div><div class="fld-row"><div class="fld"><label>Date jeu</label><input type="date" id="f12"></div><div class="fld"><label style="color:#ef4444">Urgent ?</label><select id="urgent"><option value="0">Non</option><option value="1">Oui</option></select></div></div></div>';
-    c+='<div style="background:rgba(249,115,22,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#f97316;font-size:12px;font-weight:600;margin-bottom:8px">🍽️ Repas / Boissons</div><div class="fld"><label>Détail repas / nourriture / boissons</label><textarea id="f_repas" rows="2" placeholder="Ex: Vaisselle, verres, menu à déterminer..."></textarea></div></div>';
+    c+='<div style="background:rgba(249,115,22,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#f97316;font-size:12px;font-weight:600;margin-bottom:8px">🍽️ Repas / Boissons</div><div class="fld"><label>N° Épisode</label><input id="f_episode" placeholder="Ex: 1"></div><div class="fld"><label>Nourriture</label><textarea id="f_nourriture" rows="2" placeholder="Ex: 3 maquettes gâteau, panier pleurotes..."></textarea></div><div class="fld"><label>Boisson</label><textarea id="f_boisson" rows="2" placeholder="Ex: Bouteilles alcool, tasses café..."></textarea></div></div>';
     if(D.loueurs.length){c+='<div class="fld"><label>Loueur</label><select id="f14"><option value="">Aucun</option>';for(var i=0;i<D.loueurs.length;i++)c+='<option value="'+D.loueurs[i].id+'">'+D.loueurs[i].nom+'</option>';c+='</select></div>';}
     c+='<div class="fld-row"><div class="fld"><label>Coût loc</label><input type="number" id="f15" placeholder="En €"></div><div class="fld"><label>Coût réel (Achat)</label><input type="number" id="f16" placeholder="En €"></div></div>';
     c+='<div class="fld-row"><div class="fld"><label>Départ loc</label><input type="date" id="f17"></div><div class="fld"><label>Retour loc</label><input type="date" id="f18"></div></div></div>';
@@ -1814,7 +1825,7 @@ function rModal(){
     c+='<div class="fld-row"><div class="fld"><label>Couleur</label><input id="f7" value="'+(EDIT.couleur||"")+'"></div><div class="fld"><label>Matière</label><input id="f8" value="'+(EDIT.matiere||"")+'"></div></div>';
     c+='<div class="fld"><label>Tags</label><input id="f9" value="'+(EDIT.tags||"")+'"></div>';
     c+='<div style="background:rgba(236,72,153,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#ec4899;font-size:12px;font-weight:600;margin-bottom:8px">🎭 Accessoire</div><div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10" value="'+(EDIT.scene||"")+'"></div><div class="fld"><label>Personnage</label><input id="f11" value="'+(EDIT.role||"")+'"></div></div><div class="fld"><label>Date jeu</label><input type="date" id="f12" value="'+(EDIT.dateJeu||"")+'"></div><div class="fld"><label>Continuité</label><input id="f13" value="'+(EDIT.continuity||"")+'"></div></div>';
-    c+='<div style="background:rgba(249,115,22,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#f97316;font-size:12px;font-weight:600;margin-bottom:8px">🍽️ Repas / Boissons</div><div class="fld"><label>Détail repas / nourriture / boissons</label><textarea id="f_repas" rows="2">'+(EDIT.repasDetail||"")+'</textarea></div></div>';
+    c+='<div style="background:rgba(249,115,22,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#f97316;font-size:12px;font-weight:600;margin-bottom:8px">🍽️ Repas / Boissons</div><div class="fld"><label>N° Épisode</label><input id="f_episode" value="'+(EDIT.episode||"")+'"></div><div class="fld"><label>Nourriture</label><textarea id="f_nourriture" rows="2">'+(EDIT.nourriture||"")+'</textarea></div><div class="fld"><label>Boisson</label><textarea id="f_boisson" rows="2">'+(EDIT.boisson||"")+'</textarea></div></div>';
     if(D.loueurs.length){c+='<div class="fld"><label>Loueur</label><select id="f14"><option value="">Aucun</option>';for(var i=0;i<D.loueurs.length;i++)c+='<option value="'+D.loueurs[i].id+'"'+(D.loueurs[i].id===EDIT.loueurId?' selected':'')+'>'+D.loueurs[i].nom+'</option>';c+='</select></div>';}
     c+='<div class="fld"><label>Coût €</label><input type="number" id="f16" value="'+(EDIT.coutReel||"")+'"></div>';
     c+='<input type="hidden" id="f15" value="'+(EDIT.coutLocation||"")+'">';
@@ -1901,16 +1912,14 @@ function rModal(){
       c+='<div class="fld"><label>Décor *</label><select id="acc_dec">';
       for(var i=0;i<allDecs.length;i++)c+='<option value="'+allDecs[i].p.id+'|'+allDecs[i].d.id+'">'+allDecs[i].p.nom+' → '+allDecs[i].d.nom+'</option>';
       c+='</select></div>';
+      c+='<div class="fld-row"><div class="fld"><label>Séquence *</label><input id="f10" placeholder="Ex: 204"></div><div class="fld"><label>N° Épisode</label><input id="f_episode" placeholder="Ex: 1"></div></div>';
       c+='<div class="fld"><label>Nom / Intitulé *</label><input id="f1" placeholder="Ex: Dîner de pouvoir"></div>';
-      c+='<div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10" placeholder="Ex: 204"></div><div class="fld"><label>Personnage(s)</label><input id="f11" placeholder="Ex: Philippe, Kalh"></div></div>';
-      c+='<div class="fld"><label>Détail repas / nourriture / boissons *</label><textarea id="f_repas" rows="3" placeholder="Ex: Vaisselle, verres, menu à déterminer, bouteilles alcool..."></textarea></div>';
-      c+='<div class="fld"><label>Date de jeu</label><input type="date" id="f12"></div>';
+      c+='<div class="fld"><label>Personnage(s) / Rôles</label><input id="f11" placeholder="Ex: Philippe, Kalh"></div>';
+      c+='<div style="background:rgba(249,115,22,0.1);border-radius:10px;padding:10px;margin-bottom:12px"><div style="color:#f97316;font-size:12px;font-weight:600;margin-bottom:8px">🍽️ Détail Repas</div>';
+      c+='<div class="fld"><label>Nourriture</label><textarea id="f_nourriture" rows="2" placeholder="Ex: 3 maquettes gâteau, panier pleurotes, menu à déterminer..."></textarea></div>';
+      c+='<div class="fld"><label>Boisson</label><textarea id="f_boisson" rows="2" placeholder="Ex: Bouteilles alcool, tasses café, champagne..."></textarea></div></div>';
       c+='<div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div>';
-      c+='<div class="fld"><label>Description complémentaire</label><input id="f4" placeholder="Notes supplémentaires"></div>';
-      c+='<div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div>';
-      c+='<div class="drop" onclick="document.getElementById(\'phi\').click()"><div id="phpr"></div><div id="phpl"><span class="icon">📸</span><p>Ajouter photos</p></div><input type="file" accept="image/*" multiple id="phi" style="display:none" onchange="prvPh(event)"></div>';
-      c+='<div id="upload-status"></div>';
-      c+='<button class="btn p" id="save-el-btn" onclick="saveRepasFromTab()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+      c+='<button class="btn p" onclick="saveRepasFromTab()">Enregistrer</button><button class="btn s" onclick="modal(null)">Annuler</button>';
     }
   }
 
@@ -2006,8 +2015,10 @@ window.saveEl=function(){
   var urgEl=document.getElementById("urgent");
   if(urgEl && urgEl.value==="1") isUrg=true;
   
-  var repasEl=document.getElementById("f_repas");var repasVal=repasEl?repasEl.value:"";
-  var el={id:uid(),nom:n,rubrique:gv("f2")||"accessoires",statut:gv("f3")||"a_sourcer",description:gv("f4"),dimensions:gv("f5"),quantite:gv("f6")||1,couleur:gv("f7"),matiere:gv("f8"),tags:gv("f9"),scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),urgent:isUrg,loueurId:gv("f14"),coutLocation:gv("f15"),coutReel:gv("f16"),dateDepart:gv("f17"),dateRetour:gv("f18"),repasDetail:repasVal,photos:[]};
+  var epEl=document.getElementById("f_episode");var epVal=epEl?epEl.value:"";
+  var nourEl=document.getElementById("f_nourriture");var nourVal=nourEl?nourEl.value:"";
+  var boisEl=document.getElementById("f_boisson");var boisVal=boisEl?boisEl.value:"";
+  var el={id:uid(),nom:n,rubrique:gv("f2")||"accessoires",statut:gv("f3")||"a_sourcer",description:gv("f4"),dimensions:gv("f5"),quantite:gv("f6")||1,couleur:gv("f7"),matiere:gv("f8"),tags:gv("f9"),scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),urgent:isUrg,loueurId:gv("f14"),coutLocation:gv("f15"),coutReel:gv("f16"),dateDepart:gv("f17"),dateRetour:gv("f18"),episode:epVal,nourriture:nourVal,boisson:boisVal,photos:[]};
   
   // Auto-placement par sequence
   var targetDC=DC;
@@ -2071,27 +2082,12 @@ window.saveRepasFromTab=function(){
   for(var i=0;i<D.projets.length;i++){if(D.projets[i].id===pId){targetP=D.projets[i];if(targetP.decors)for(var j=0;j<targetP.decors.length;j++)if(targetP.decors[j].id===dId)targetD=targetP.decors[j];break;}}
   if(!targetP||!targetD)return alert("Décor introuvable");
   if(!targetD.elements)targetD.elements=[];
-  var el={id:uid(),nom:n,rubrique:"repas",statut:gv("f3")||"a_sourcer",description:gv("f4"),quantite:gv("f6")||1,scene:gv("f10"),role:gv("f11"),dateJeu:gv("f12"),repasDetail:gv("f_repas"),urgent:false,photos:[]};
+  var el={id:uid(),nom:n,rubrique:"repas",statut:gv("f3")||"a_sourcer",scene:gv("f10"),episode:gv("f_episode"),role:gv("f11"),nourriture:gv("f_nourriture"),boisson:gv("f_boisson"),urgent:false,photos:[]};
   if(el.scene){var found=findDecorBySeq(el.scene);if(found){targetD=found.d;if(!targetD.elements)targetD.elements=[];toast("Placé dans "+found.d.nom);}}
-  if(PENDING_FILES.length===0){targetD.elements.push(el);sv();M=null;PENDING_FILES=[];R();return;}
-  var uploaded=0,total=PENDING_FILES.length;
-  var status=document.getElementById("upload-status");
-  if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload... 0/'+total+'</div></div>';
-  for(var i=0;i<PENDING_FILES.length;i++){
-    (function(file){
-      compressPhoto(file,1200,0.7,function(compressed){
-        uploadPhoto(compressed,function(url){
-          if(url)el.photos.push(url);
-          uploaded++;
-          if(status)status.innerHTML='<div class="upload-progress"><div style="font-size:12px">Upload... '+uploaded+'/'+total+'</div></div>';
-          if(uploaded===total){targetD.elements.push(el);sv();M=null;PENDING_FILES=[];R();}
-        });
-      });
-    })(PENDING_FILES[i]);
-  }
+  targetD.elements.push(el);sv();M=null;R();
 };
 
-window.updateEl=function(){var n=gv("f1");if(!n)return alert("Nom requis");var oldScene=EDIT.scene;EDIT.nom=n;EDIT.rubrique=gv("f2");EDIT.statut=gv("f3");EDIT.description=gv("f4");EDIT.dimensions=gv("f5");EDIT.quantite=gv("f6");EDIT.couleur=gv("f7");EDIT.matiere=gv("f8");EDIT.tags=gv("f9");EDIT.scene=gv("f10");EDIT.role=gv("f11");EDIT.dateJeu=gv("f12");EDIT.continuity=gv("f13");EDIT.loueurId=gv("f14");EDIT.coutLocation=gv("f15");EDIT.coutReel=gv("f16");EDIT.dateDepart=gv("f17");EDIT.dateRetour=gv("f18");var repasEl=document.getElementById("f_repas");if(repasEl)EDIT.repasDetail=repasEl.value;
+window.updateEl=function(){var n=gv("f1");if(!n)return alert("Nom requis");var oldScene=EDIT.scene;EDIT.nom=n;EDIT.rubrique=gv("f2");EDIT.statut=gv("f3");EDIT.description=gv("f4");EDIT.dimensions=gv("f5");EDIT.quantite=gv("f6");EDIT.couleur=gv("f7");EDIT.matiere=gv("f8");EDIT.tags=gv("f9");EDIT.scene=gv("f10");EDIT.role=gv("f11");EDIT.dateJeu=gv("f12");EDIT.continuity=gv("f13");EDIT.loueurId=gv("f14");EDIT.coutLocation=gv("f15");EDIT.coutReel=gv("f16");EDIT.dateDepart=gv("f17");EDIT.dateRetour=gv("f18");var repasEl=document.getElementById("f_repas");if(repasEl)EDIT.repasDetail=repasEl.value;var epEl=document.getElementById("f_episode");if(epEl)EDIT.episode=epEl.value;var nourEl=document.getElementById("f_nourriture");if(nourEl)EDIT.nourriture=nourEl.value;var boisEl=document.getElementById("f_boisson");if(boisEl)EDIT.boisson=boisEl.value;
   // Si la sequence a change, deplacer vers le bon decor
   if(EDIT.scene&&EDIT.scene!==oldScene){var found=findDecorBySeq(EDIT.scene);if(found&&DC&&found.d.id!==DC.id){moveElToDecor(EDIT,DC,found.d);DC=found.d;toast("Déplacé vers "+found.d.nom);}}
   sv();M=null;R();};
