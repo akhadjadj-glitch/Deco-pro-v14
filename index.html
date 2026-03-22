@@ -3485,7 +3485,7 @@ function rContacts(){
     h+='<div class="filter-row" style="margin-bottom:10px">';
     h+='<div class="filter-chip'+(CT_FILTER===""?" on":"")+'" onclick="setCtFilter(\'\')">Tous</div>';
     for(var i=0;i<posteList.length;i++){
-      h+='<div class="filter-chip'+(CT_FILTER===posteList[i]?" on":"")+'" onclick="setCtFilter(\''+posteList[i].replace(/'/g,"\\'")+'\')">' +posteList[i]+'</div>';
+      var pn=posteList[i].split(String.fromCharCode(39)).join("");h+='<div class="filter-chip'+(CT_FILTER===posteList[i]?" on":"")+'" onclick="setCtFilter(\''+pn+'\')">' +posteList[i]+'</div>';
     }
     h+='</div>';
   }
