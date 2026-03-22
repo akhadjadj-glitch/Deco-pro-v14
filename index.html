@@ -352,12 +352,12 @@ try{
   HAS_FIREBASE = false;
 }
 function loadLocalData(){
-  try{return JSON.parse(localStorage.getItem("decorpro_local_data")||'{"projets":[],"loueurs":[],"depenses":[],"objets":[],"locations":[],"users":[]}');}
-  catch(e){return {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[]};}
+  try{return JSON.parse(localStorage.getItem("decorpro_local_data")||'{"projets":[],"loueurs":[],"depenses":[],"objets":[],"locations":[],"users":[],"planningEvents":[]}');}
+  catch(e){return {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]};}
 }
 function saveLocalData(data){
   try {
-    localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[]}));
+    localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]}));
   } catch(e) {
     console.error("localStorage plein, tentative sans photos...");
     // Clone data sans les photos base64 pour ne pas depasser la limite
@@ -400,7 +400,7 @@ var TDEP=[{id:"location",l:"Location"},{id:"achat",l:"Achat"},{id:"transport",l:
 
 // State
 var CODE = localStorage.getItem("dp_code") || null;
-var D = {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[]};
+var D = {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]};
 var ROLES = ["Chef Déco", "1er Assistant(e)", "Ensemblier/ère", "Régie d'extérieur", "Assistant(e)", "Ripper", "Accessoiriste", "Production"];
 var CURRENT_USER = JSON.parse(localStorage.getItem("dp_user") || '{"nom":"","email":"","role":"Chef Décorateur"}');
 var V="home",P=null,DC=null,EL=null,LO=null,RB=null,M=null,MN=false,TB="rub",VW=null,VWC=null,VWI=0,SQ="",GSQ="",PHS=[],EDIT=null,MORE=false,RTL="all";
@@ -502,6 +502,7 @@ function subscribeToProject(code){
       D.objets = data.objets || [];
       D.locations = data.locations || [];
       D.users = data.users || [];
+      D.planningEvents = data.planningEvents || [];
       if(P){var pid=P.id;P=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pid){P=D.projets[i];break}}
       if(DC&&P&&P.decors){var did=DC.id;DC=null;for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===did){DC=P.decors[i];break}}
       if(EL&&DC&&DC.elements){var eid=EL.id;EL=null;for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eid){EL=DC.elements[i];break}}
@@ -524,6 +525,7 @@ function saveToFirebase(){
     objets: D.objets,
     locations: D.locations,
     users: D.users,
+    planningEvents: D.planningEvents || [],
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function(){
     SYNCING=false;R();
@@ -811,7 +813,7 @@ window.createProject=function(){
     CODE="LOCAL";
     localStorage.setItem("dp_code",CODE);
     D=loadLocalData();
-    if(!D.projets)D={projets:[],loueurs:[],depenses:[],users:[]};
+    if(!D.projets)D={projets:[],loueurs:[],depenses:[],users:[],planningEvents:[]};
     registerUserConnection();
     V="home"; R();
     return;
@@ -819,9 +821,9 @@ window.createProject=function(){
   var code = genCode();
   CODE=code;
   localStorage.setItem("dp_code",CODE);
-  D={projets:[],loueurs:[],depenses:[],users:[]};
+  D={projets:[],loueurs:[],depenses:[],users:[],planningEvents:[]};
   db.collection("projects").doc(CODE).set({
-    projets:[],loueurs:[],depenses:[],users:[],
+    projets:[],loueurs:[],depenses:[],users:[],planningEvents:[],
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function(){ subscribeToProject(CODE); setTimeout(registerUserConnection,1000); });
 };
@@ -854,6 +856,7 @@ window.importData=function(){
         if(imported.projets)D.projets=imported.projets;
         if(imported.loueurs)D.loueurs=imported.loueurs;
         if(imported.depenses)D.depenses=imported.depenses;
+        if(imported.planningEvents)D.planningEvents=imported.planningEvents;
         sv();
         MN=false;
         R();
@@ -873,7 +876,7 @@ window.leaveProject=function(){
   CODE=null;
   localStorage.removeItem("dp_code");
   if(!HAS_FIREBASE) saveLocalData(D);
-  D={projets:[],loueurs:[],depenses:[],users:[]};
+  D={projets:[],loueurs:[],depenses:[],users:[],planningEvents:[]};
   MN=false;
   R();
 };
@@ -1964,21 +1967,26 @@ function rPlanning(){
     var departs=dayEvents.filter(function(ev){return ev.type==="depart";});
     var retours=dayEvents.filter(function(ev){return ev.type==="retour";});
 
+    // Événements personnalisés pour ce jour
+    var customEvts=(D.planningEvents||[]).filter(function(ev){return ev.date===ds;});
+    var hasAny=dayEvents.length||customEvts.length;
+
     var bgColor=isToday?'rgba(99,102,241,0.15)':isWeekend?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.04)';
     var borderColor=isToday?'#6366f1':'transparent';
 
-    h+='<div id="'+(isToday?'plan-today':'')+'" style="background:'+bgColor+';border:1px solid '+borderColor+';border-radius:12px;padding:12px;margin-bottom:8px'+(isWeekend&&!dayEvents.length?';opacity:0.5':'')+'">';
-    // En-tête jour
+    h+='<div id="'+(isToday?'plan-today':'')+'" style="background:'+bgColor+';border:1px solid '+borderColor+';border-radius:12px;padding:12px;margin-bottom:8px'+(isWeekend&&!hasAny?';opacity:0.5':'')+'">';
+    // En-tête jour avec bouton +
     h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-    h+='<div style="min-width:50px;text-align:center"><div style="font-size:10px;font-weight:600;color:'+(isToday?'#a5b4fc':'#64748b')+'">'+jours[d.getDay()]+'</div>';
+    h+='<div style="min-width:50px;text-align:center;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\')">';
+    h+='<div style="font-size:10px;font-weight:600;color:'+(isToday?'#a5b4fc':'#64748b')+'">'+jours[d.getDay()]+'</div>';
     h+='<div style="font-size:22px;font-weight:700;color:'+(isToday?'#fff':'#94a3b8')+'">'+d.getDate()+'</div>';
     h+='<div style="font-size:10px;color:#64748b">'+mois[d.getMonth()]+'</div></div>';
 
-    if(!dayEvents.length){
-      h+='<div style="flex:1;color:#475569;font-size:12px;padding:4px 0">Aucun événement</div>';
+    if(!hasAny){
+      h+='<div style="flex:1;color:#475569;font-size:12px;padding:4px 0;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\')">Aucun événement — appuyez pour ajouter</div>';
     }else{
       h+='<div style="flex:1">';
-      // Tournages
+      // Tournages (couleur rose = tournage)
       if(tournages.length){
         for(var t=0;t<tournages.length;t++){
           var ev=tournages[t];
@@ -1994,14 +2002,14 @@ function rPlanning(){
           h+='</div></div>';
         }
       }
-      // Prépa
+      // Prépa (couleur jaune/orange = prépa)
       if(prepas.length){
         for(var t=0;t<prepas.length;t++){
           h+='<div style="background:rgba(245,158,11,0.15);border-left:3px solid #f59e0b;border-radius:6px;padding:6px 10px;margin-bottom:4px;cursor:pointer;font-size:12px" onclick="goToDecor(\''+prepas[t].projet.id+'\',\''+prepas[t].decor.id+'\')">';
           h+='<span style="color:#fcd34d">🏗️ Prépa</span> <span style="color:#e2e8f0">'+prepas[t].decor.nom+'</span></div>';
         }
       }
-      // Démontage
+      // Démontage auto (couleur violet)
       if(demontages.length){
         for(var t=0;t<demontages.length;t++){
           h+='<div style="background:rgba(139,92,246,0.15);border-left:3px solid #8b5cf6;border-radius:6px;padding:6px 10px;margin-bottom:4px;font-size:12px;cursor:pointer" onclick="goToDecor(\''+demontages[t].projet.id+'\',\''+demontages[t].decor.id+'\')">';
@@ -2027,8 +2035,47 @@ function rPlanning(){
       if(retours.length){
         h+='<div style="font-size:11px;color:#10b981;padding:2px 0">📥 '+retours.length+' retour(s) location : '+retours.map(function(x){return x.element.nom}).join(", ")+'</div>';
       }
+
+      // === ÉVÉNEMENTS PERSONNALISÉS ===
+      for(var ce=0;ce<customEvts.length;ce++){
+        var cev=customEvts[ce];
+        var pt=getPlanType(cev.type);
+        var loueur=cev.loueurId?gl(cev.loueurId):null;
+        // Décors liés (multi)
+        var decorNoms=[];
+        var dids=cev.decorIds||( cev.decorId?[cev.decorId]:[]);
+        for(var di2=0;di2<dids.length;di2++){
+          for(var pi=0;pi<D.projets.length;pi++){var pp=D.projets[pi];if(pp.decors)for(var dj=0;dj<pp.decors.length;dj++)if(pp.decors[dj].id===dids[di2]){decorNoms.push(pp.decors[dj].nom);}}
+        }
+        h+='<div style="background:rgba(255,255,255,0.06);border-left:3px solid '+pt.c+';border-radius:6px;padding:8px 10px;margin-bottom:4px;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\',\''+cev.id+'\')">';
+        h+='<div style="display:flex;align-items:center;justify-content:space-between">';
+        h+='<div style="font-size:13px;font-weight:600;color:'+pt.c+'">'+pt.i+' '+cev.titre+'</div>';
+        if(cev.heure)h+='<div style="font-size:11px;color:#94a3b8">🕐 '+cev.heure+'</div>';
+        h+='</div>';
+        // Infos liées
+        var infos=[];
+        if(decorNoms.length)infos.push('🎬 '+decorNoms.join(', '));
+        if(loueur)infos.push('🏪 '+loueur.nom);
+        if(cev.notes)infos.push(cev.notes.substring(0,60)+(cev.notes.length>60?'...':''));
+        if(infos.length){
+          h+='<div style="font-size:11px;color:#94a3b8;margin-top:3px">'+infos.join(' • ')+'</div>';
+        }
+        // Photos miniatures
+        if(cev.photos&&cev.photos.length){
+          h+='<div style="display:flex;gap:3px;margin-top:4px">';
+          for(var ph=0;ph<Math.min(cev.photos.length,4);ph++){
+            h+='<img src="'+cev.photos[ph]+'" style="width:32px;height:32px;object-fit:cover;border-radius:4px">';
+          }
+          if(cev.photos.length>4)h+='<div style="width:32px;height:32px;border-radius:4px;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8">+' +(cev.photos.length-4)+'</div>';
+          h+='</div>';
+        }
+        h+='</div>';
+      }
+
       h+='</div>';
     }
+    // Bouton + pour ajouter un événement
+    h+='<div style="text-align:right;margin-top:4px"><div onclick="openPlanEventModal(\''+ds+'\')" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#6366f1;padding:4px 10px;border-radius:6px;background:rgba(99,102,241,0.1)">➕ Ajouter</div></div>';
     h+='</div></div>';
   }
 
@@ -2042,6 +2089,169 @@ window.goToDecor=function(pId,dId){
   for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pId){P=D.projets[i];break;}
   if(P&&P.decors)for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===dId){DC=P.decors[i];break;}
   V="dec";TB="rub";R();
+};
+
+// === ÉVÉNEMENTS PLANNING PERSONNALISÉS ===
+var PLAN_TYPES=[
+  {id:"enlevement",l:"Enlèvement",i:"🚚",c:"#3b82f6"},
+  {id:"rendu",l:"Rendu",i:"📦",c:"#22c55e"},
+  {id:"installation",l:"Installation Décor",i:"🏗️",c:"#f59e0b"},
+  {id:"demontage_custom",l:"Démontage",i:"🔧",c:"#8b5cf6"},
+  {id:"meublage",l:"Meublage / Accessoires",i:"🪑",c:"#6366f1"},
+  {id:"autre_event",l:"Autre",i:"📌",c:"#64748b"}
+];
+function getPlanType(id){for(var i=0;i<PLAN_TYPES.length;i++)if(PLAN_TYPES[i].id===id)return PLAN_TYPES[i];return PLAN_TYPES[5];}
+
+var PLAN_EDIT_DATE=null;
+var PLAN_EDIT_EVT=null;
+
+window.openPlanEventModal=function(dateStr,evtId){
+  PLAN_EDIT_DATE=dateStr;
+  PLAN_EDIT_EVT=evtId?getPlEvt(evtId):null;
+  M="plan_event";R();
+};
+
+function getPlEvt(id){
+  if(!D.planningEvents)return null;
+  for(var i=0;i<D.planningEvents.length;i++)if(D.planningEvents[i].id===id)return D.planningEvents[i];
+  return null;
+}
+
+window.savePlanEvent=function(){
+  var type=document.getElementById("pe-type").value;
+  var notes=document.getElementById("pe-notes").value.trim();
+  var loueurId=document.getElementById("pe-loueur").value;
+  var heure=document.getElementById("pe-heure").value;
+
+  // Décors cochés
+  var decorIds=[];
+  var cbs=document.querySelectorAll(".pe-decor-cb:checked");
+  for(var i=0;i<cbs.length;i++)decorIds.push(cbs[i].value);
+
+  // Photos
+  var photos=PLAN_EDIT_EVT?PLAN_EDIT_EVT.photos||[]:[];
+  var newPhotos=PHS||[];
+  if(newPhotos.length)photos=photos.concat(newPhotos);
+
+  if(!type){toast("Choisissez un type",true);return;}
+
+  var evt={
+    id:PLAN_EDIT_EVT?PLAN_EDIT_EVT.id:uid(),
+    date:PLAN_EDIT_DATE,
+    type:type,
+    titre:getPlanType(type).l,
+    notes:notes,
+    loueurId:loueurId||"",
+    decorIds:decorIds,
+    heure:heure||"",
+    photos:photos,
+    createdAt:PLAN_EDIT_EVT?PLAN_EDIT_EVT.createdAt:new Date().toISOString()
+  };
+
+  if(!D.planningEvents)D.planningEvents=[];
+
+  if(PLAN_EDIT_EVT){
+    for(var i=0;i<D.planningEvents.length;i++){
+      if(D.planningEvents[i].id===evt.id){D.planningEvents[i]=evt;break;}
+    }
+  }else{
+    D.planningEvents.push(evt);
+  }
+  sv();
+  M=null;PLAN_EDIT_EVT=null;PHS=[];R();
+  toast("✅ Événement enregistré");
+};
+
+window.deletePlanEvent=function(id){
+  if(!confirm("Supprimer cet événement ?"))return;
+  D.planningEvents=D.planningEvents.filter(function(e){return e.id!==id;});
+  sv();M=null;PLAN_EDIT_EVT=null;R();
+  toast("Événement supprimé");
+};
+
+function rPlanEventModal(){
+  var h='<div class="modal" onclick="M=null;R()">';
+  h+='<div class="mpan" onclick="event.stopPropagation()">';
+  h+='<div class="mbar"></div>';
+  var dateLabel=PLAN_EDIT_DATE?fd(new Date(PLAN_EDIT_DATE)):"";
+  h+='<div class="mtit">'+(PLAN_EDIT_EVT?"✏️ Modifier":"➕ Ajouter")+' un événement — '+dateLabel+'</div>';
+
+  // Type
+  h+='<div class="fld"><label>Type d\'événement</label><select id="pe-type">';
+  for(var i=0;i<PLAN_TYPES.length;i++){
+    var sel=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.type===PLAN_TYPES[i].id?" selected":"";
+    h+='<option value="'+PLAN_TYPES[i].id+'"'+sel+'>'+PLAN_TYPES[i].i+' '+PLAN_TYPES[i].l+'</option>';
+  }
+  h+='</select></div>';
+
+  // Heure
+  h+='<div class="fld"><label>Heure (optionnel)</label><input type="time" id="pe-heure" value="'+(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.heure?PLAN_EDIT_EVT.heure:"")+'"></div>';
+
+  // Décors liés (multi-select checkboxes)
+  var selDecors=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.decorIds?PLAN_EDIT_EVT.decorIds:(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.decorId?[PLAN_EDIT_EVT.decorId]:[]);
+  h+='<div class="fld"><label>Décor(s) lié(s)</label>';
+  h+='<div style="max-height:150px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px">';
+  var hasDecors=false;
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){
+      var d=p.decors[j];hasDecors=true;
+      var chk=selDecors.indexOf(d.id)>=0?" checked":"";
+      h+='<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.05)">';
+      h+='<input type="checkbox" class="pe-decor-cb" value="'+d.id+'"'+chk+' style="width:16px;height:16px;accent-color:#6366f1">';
+      h+='<span>'+d.nom+'</span><span style="font-size:11px;color:#64748b;margin-left:auto">'+p.nom+'</span></label>';
+    }
+  }
+  if(!hasDecors)h+='<div style="color:#64748b;font-size:12px;padding:4px">Aucun décor disponible</div>';
+  h+='</div></div>';
+
+  // Loueur lié
+  h+='<div class="fld"><label>Loueur lié (optionnel)</label><select id="pe-loueur"><option value="">— Aucun —</option>';
+  for(var i=0;i<D.loueurs.length;i++){
+    var l=D.loueurs[i];
+    var sel3=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.loueurId===l.id?" selected":"";
+    h+='<option value="'+l.id+'"'+sel3+'>'+l.nom+'</option>';
+  }
+  h+='</select></div>';
+
+  // Notes
+  h+='<div class="fld"><label>Notes / infos détaillées</label><textarea id="pe-notes" placeholder="Infos complémentaires...">'+(PLAN_EDIT_EVT?PLAN_EDIT_EVT.notes||"":"")+'</textarea></div>';
+
+  // Photos
+  h+='<div class="fld"><label>Photos (optionnel)</label>';
+  if(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.photos&&PLAN_EDIT_EVT.photos.length){
+    h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
+    for(var p=0;p<PLAN_EDIT_EVT.photos.length;p++){
+      h+='<img src="'+PLAN_EDIT_EVT.photos[p]+'" style="width:50px;height:50px;object-fit:cover;border-radius:6px">';
+    }
+    h+='</div>';
+  }
+  h+='<input type="file" accept="image/*" multiple onchange="planEventPhotos(this)"></div>';
+
+  // Boutons
+  h+='<button class="btn p" onclick="savePlanEvent()">💾 Enregistrer</button>';
+  if(PLAN_EDIT_EVT){
+    h+='<button class="btn" style="background:rgba(239,68,68,0.2);color:#ef4444" onclick="deletePlanEvent(\''+PLAN_EDIT_EVT.id+'\')">🗑️ Supprimer</button>';
+  }
+  h+='<button class="btn" style="background:rgba(255,255,255,0.1)" onclick="M=null;R()">Annuler</button>';
+
+  h+='</div></div>';
+  return h;
+};
+
+window.planEventPhotos=function(input){
+  PHS=[];
+  var files=input.files;
+  var loaded=0;
+  for(var i=0;i<files.length;i++){
+    (function(f){
+      var reader=new FileReader();
+      reader.onload=function(e){
+        PHS.push(e.target.result);
+        loaded++;
+      };
+      reader.readAsDataURL(f);
+    })(files[i]);
+  }
 };
 
 // Impression planning
@@ -2194,8 +2404,11 @@ function rMenu(){
 }
 
 function rModal(){
+  // Planning event a sa propre modale complète
+  if(M==="plan_event") return rPlanEventModal();
+
   var c="";
-  
+
   if(M==="np"){
     c='<div class="mbar"></div><div class="mtit">🎬 Nouveau projet</div>';
     c+='<div class="fld"><label>Nom du projet *</label><input id="f1" placeholder="Ex: Mon Film"></div>';
@@ -2860,7 +3073,7 @@ function normalizeDate(s){
 }
 
 // === ADMIN ===
-var ADMIN_CODE="ADMIN2026";
+var ADMIN_CODE=localStorage.getItem("adminCode")||"DÉCOPROV14";
 var ADMIN_UNLOCKED=false;
 
 window.openAdmin=function(){
@@ -3005,7 +3218,7 @@ function rAdmin(){
   h+='<div style="font-size:14px;font-weight:700;margin-bottom:8px">🔐 Code admin</div>';
   h+='<div style="font-size:12px;color:#94a3b8;margin-bottom:8px">Changez le code administrateur</div>';
   h+='<div class="fld"><input id="admin-code-input" placeholder="Nouveau code admin" value="'+ADMIN_CODE+'"></div>';
-  h+='<button class="abtn p" onclick="ADMIN_CODE=document.getElementById(\'admin-code-input\').value;toast(\'Code admin mis à jour\')">Modifier le code</button>';
+  h+='<button class="abtn p" onclick="var nc=document.getElementById(\'admin-code-input\').value.trim();if(!nc){toast(\'Le code ne peut pas être vide\',true);return;}ADMIN_CODE=nc.toUpperCase();localStorage.setItem(\'adminCode\',ADMIN_CODE);toast(\'✅ Code admin mis à jour\')">Modifier le code</button>';
   h+='</div>';
 
   // Bouton retour
