@@ -353,11 +353,11 @@ try{
 }
 function loadLocalData(){
   try{return JSON.parse(localStorage.getItem("decorpro_local_data")||'{"projets":[],"loueurs":[],"depenses":[],"objets":[],"locations":[],"users":[],"planningEvents":[]}');}
-  catch(e){return {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]};}
+  catch(e){return {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[],contacts:[]};}
 }
 function saveLocalData(data){
   try {
-    localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]}));
+    localStorage.setItem("decorpro_local_data", JSON.stringify(data||D||{projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[],contacts:[]}));
   } catch(e) {
     console.error("localStorage plein, tentative sans photos...");
     // Clone data sans les photos base64 pour ne pas depasser la limite
@@ -400,7 +400,7 @@ var TDEP=[{id:"location",l:"Location"},{id:"achat",l:"Achat"},{id:"transport",l:
 
 // State
 var CODE = localStorage.getItem("dp_code") || null;
-var D = {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]};
+var D = {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[],contacts:[]};
 var ROLES = ["Chef Déco", "1er Assistant(e)", "Ensemblier/ère", "Régie d'extérieur", "Assistant(e)", "Ripper", "Accessoiriste", "Production"];
 var CURRENT_USER = JSON.parse(localStorage.getItem("dp_user") || '{"nom":"","email":"","role":"Chef Décorateur"}');
 // Device ID unique pour connexion multi-devices
@@ -506,6 +506,7 @@ function subscribeToProject(code){
       D.locations = data.locations || [];
       D.users = data.users || [];
       D.planningEvents = data.planningEvents || [];
+      D.contacts = data.contacts || [];
       if(P){var pid=P.id;P=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pid){P=D.projets[i];break}}
       if(DC&&P&&P.decors){var did=DC.id;DC=null;for(var i=0;i<P.decors.length;i++)if(P.decors[i].id===did){DC=P.decors[i];break}}
       if(EL&&DC&&DC.elements){var eid=EL.id;EL=null;for(var i=0;i<DC.elements.length;i++)if(DC.elements[i].id===eid){EL=DC.elements[i];break}}
@@ -529,6 +530,7 @@ function saveToFirebase(){
     locations: D.locations,
     users: D.users,
     planningEvents: D.planningEvents || [],
+    contacts: D.contacts || [],
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(function(){
     SYNCING=false;R();
@@ -1037,6 +1039,7 @@ function R(){
   else if(V==="print")h+=rPrint();
   else if(V==="search")h+=rSearch();
   else if(V==="admin")h+=rAdmin();
+  else if(V==="contacts")h+=rContacts();
   h+='</main>';
   h+=rNavbar();
   if(M)h+=rModal();
@@ -1142,6 +1145,7 @@ function rBread(){
   if(V==="rent"||V==="rentals"){h+='<span class="current">Locations</span>';}
   if(V==="dep"){h+='<span class="current">Budget</span>';}
   if(V==="planning"){h+='<span class="current">Planning Tournage</span>';}
+  if(V==="contacts"){h+='<span class="current">Fiche Technique</span>';}
   if(V==="acc"){h+='<span class="current">Accessoires</span>';}
   if(V==="obj"){h+='<span class="current">Inventaire Global</span>';}
   if(V==="admin"){h+='<span class="current">🔐 Administration</span>';}
@@ -2617,6 +2621,7 @@ function rMenu(){
   h+='<div class="menu-item" onclick="go(\'rent\');menu(false)">🛒 Achat</div>';
   h+='<div class="menu-item" onclick="go(\'dep\');menu(false)">💰 Dépenses</div>';
   h+='<div class="menu-item" onclick="go(\'lou\');menu(false)">🏪 Loueurs</div>';
+  h+='<div class="menu-item" onclick="go(\'contacts\');menu(false)">📇 Fiche Technique</div>';
   h+='<div style="border-top:1px solid rgba(255,255,255,0.1);margin:12px 0"></div>';
   h+='<div class="menu-item" onclick="exportData()">📤 Exporter les données</div>';
   h+='<div class="menu-item" onclick="importData()">📥 Importer des données</div>';
@@ -2822,6 +2827,16 @@ function rModal(){
     for(var i=0;i<ROLES.length;i++)c+='<option value="'+ROLES[i]+'"'+(CURRENT_USER.role===ROLES[i]?' selected':'')+'>'+ROLES[i]+'</option>';
     c+='</select></div>';
     c+='<button class="btn p" onclick="saveEditProfil()">✅ Valider</button>';
+    c+='<button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
+  else if(M==="contact_add"){
+    c='<div class="mbar"></div><div class="mtit">'+(EDIT?"✏️ Modifier":"➕ Nouveau")+' contact</div>';
+    c+='<div class="fld"><label>Nom *</label><input id="ct-nom" value="'+(EDIT?EDIT.nom:"")+'"></div>';
+    c+='<div class="fld"><label>Poste / Fonction</label><input id="ct-poste" placeholder="Ex: Chef Op, Scripte..." value="'+(EDIT?EDIT.poste||"":"")+'"></div>';
+    c+='<div class="fld"><label>Telephone</label><input type="tel" id="ct-tel" placeholder="06 12 34 56 78" value="'+(EDIT?EDIT.telephone||"":"")+'"></div>';
+    c+='<div class="fld"><label>Email</label><input type="email" id="ct-email" placeholder="nom@exemple.fr" value="'+(EDIT?EDIT.email||"":"")+'"></div>';
+    c+='<button class="btn p" onclick="saveContact()">💾 Enregistrer</button>';
+    if(EDIT)c+='<button class="btn" style="background:rgba(239,68,68,0.2);color:#ef4444" onclick="deleteContact(\''+EDIT.id+'\')">🗑️ Supprimer</button>';
     c+='<button class="btn s" onclick="modal(null)">Annuler</button>';
   }
 
@@ -3442,6 +3457,177 @@ function getProjectStats(){
   }
   return {photos:totalPhotos,elements:totalElements,decors:totalDecors,repas:totalRepas,loueurs:D.loueurs.length,depenses:D.depenses.length};
 }
+
+// === FICHE TECHNIQUE (contacts) ===
+var CT_FILTER="";
+window.setCtFilter=function(v){CT_FILTER=v;R();};
+
+function rContacts(){
+  if(!D.contacts)D.contacts=[];
+  var h='<div class="page-title">📇 Fiche Technique</div>';
+  h+='<div class="page-sub">'+D.contacts.length+' contact(s)</div>';
+
+  // Boutons action
+  h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">';
+  h+='<div class="abtn p" onclick="addContact()">➕ Ajouter</div>';
+  h+='<div class="abtn" onclick="importContacts()">📥 Importer CSV</div>';
+  h+='<div class="abtn" onclick="exportContacts()">📤 Exporter</div>';
+  h+='</div>';
+
+  // Barre de recherche
+  h+='<div class="fld" style="margin-bottom:12px"><input placeholder="🔍 Rechercher un contact..." value="'+CT_FILTER+'" oninput="setCtFilter(this.value)"></div>';
+
+  // Extraire les postes uniques pour filtre
+  var postes={};
+  for(var i=0;i<D.contacts.length;i++){if(D.contacts[i].poste)postes[D.contacts[i].poste]=true;}
+  var posteList=Object.keys(postes).sort();
+  if(posteList.length>1){
+    h+='<div class="filter-row" style="margin-bottom:10px">';
+    h+='<div class="filter-chip'+(CT_FILTER===""?" on":"")+'" onclick="setCtFilter(\'\')">Tous</div>';
+    for(var i=0;i<posteList.length;i++){
+      h+='<div class="filter-chip'+(CT_FILTER===posteList[i]?" on":"")+'" onclick="setCtFilter(\''+posteList[i].replace(/'/g,"\\'")+'\')">' +posteList[i]+'</div>';
+    }
+    h+='</div>';
+  }
+
+  // Filtrer
+  var filtered=D.contacts.filter(function(c){
+    if(!CT_FILTER)return true;
+    var q=CT_FILTER.toLowerCase();
+    return (c.nom&&c.nom.toLowerCase().indexOf(q)>=0)||(c.poste&&c.poste.toLowerCase().indexOf(q)>=0)||(c.email&&c.email.toLowerCase().indexOf(q)>=0)||(c.telephone&&c.telephone.indexOf(q)>=0);
+  });
+
+  // Liste
+  if(filtered.length===0){
+    h+='<div class="empty"><div class="icon">📇</div><p>Aucun contact</p><p style="font-size:12px;color:#64748b">Ajoutez manuellement ou importez un fichier CSV</p></div>';
+  }else{
+    for(var i=0;i<filtered.length;i++){
+      var c=filtered[i];
+      h+='<div class="box" style="margin-bottom:6px;padding:12px">';
+      h+='<div style="display:flex;align-items:center;gap:10px">';
+      h+='<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0">'+(c.nom?c.nom.charAt(0).toUpperCase():"?")+'</div>';
+      h+='<div style="flex:1;min-width:0">';
+      h+='<div style="font-size:14px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+c.nom+'</div>';
+      if(c.poste)h+='<div style="font-size:11px;color:#a5b4fc">'+c.poste+'</div>';
+      h+='</div>';
+      h+='<div style="display:flex;gap:6px;flex-shrink:0">';
+      if(c.telephone)h+='<a href="tel:'+c.telephone+'" style="width:32px;height:32px;border-radius:50%;background:rgba(16,185,129,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none" title="'+c.telephone+'">📞</a>';
+      if(c.email)h+='<a href="mailto:'+c.email+'" style="width:32px;height:32px;border-radius:50%;background:rgba(99,102,241,0.15);display:flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none" title="'+c.email+'">✉️</a>';
+      h+='<div onclick="editContact(\''+c.id+'\')" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer">✏️</div>';
+      h+='</div></div>';
+      // Détails sous le nom
+      var details=[];
+      if(c.telephone)details.push('📞 '+c.telephone);
+      if(c.email)details.push('✉️ '+c.email);
+      if(details.length)h+='<div style="font-size:11px;color:#64748b;margin-top:6px;padding-left:50px">'+details.join(' • ')+'</div>';
+      h+='</div>';
+    }
+  }
+  return h;
+}
+
+// Ajouter un contact manuellement
+window.addContact=function(){M="contact_add";EDIT=null;R();};
+window.editContact=function(id){
+  if(!D.contacts)return;
+  for(var i=0;i<D.contacts.length;i++){if(D.contacts[i].id===id){EDIT=D.contacts[i];M="contact_add";R();return;}}
+};
+
+window.saveContact=function(){
+  var nom=(document.getElementById("ct-nom")||{}).value||"";
+  if(!nom.trim())return alert("Nom requis");
+  var tel=(document.getElementById("ct-tel")||{}).value||"";
+  var email=(document.getElementById("ct-email")||{}).value||"";
+  var poste=(document.getElementById("ct-poste")||{}).value||"";
+  if(!D.contacts)D.contacts=[];
+  if(EDIT){
+    EDIT.nom=nom.trim();EDIT.telephone=tel.trim();EDIT.email=email.trim();EDIT.poste=poste.trim();
+  }else{
+    D.contacts.push({id:uid(),nom:nom.trim(),telephone:tel.trim(),email:email.trim(),poste:poste.trim()});
+  }
+  sv();modal(null);
+};
+
+window.deleteContact=function(id){
+  if(!confirm("Supprimer ce contact ?"))return;
+  D.contacts=D.contacts.filter(function(c){return c.id!==id;});
+  sv();modal(null);
+};
+
+// Import CSV contacts
+window.importContacts=function(){
+  var input=document.createElement("input");
+  input.type="file";input.accept=".csv,.txt,.vcf";
+  input.onchange=function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      var text=ev.target.result;
+      if(!D.contacts)D.contacts=[];
+      var added=0;
+      // Detect format
+      if(text.indexOf("BEGIN:VCARD")>=0){
+        // VCF format
+        var cards=text.split("BEGIN:VCARD");
+        for(var i=1;i<cards.length;i++){
+          var card=cards[i];
+          var fn=(card.match(/FN[;:]([^\r\n]+)/)||[])[1]||"";
+          var tel=(card.match(/TEL[^:]*:([^\r\n]+)/)||[])[1]||"";
+          var em=(card.match(/EMAIL[^:]*:([^\r\n]+)/)||[])[1]||"";
+          var org=(card.match(/TITLE[;:]([^\r\n]+)/)||[])[1]||(card.match(/ORG[;:]([^\r\n]+)/)||[])[1]||"";
+          if(fn.trim()){D.contacts.push({id:uid(),nom:fn.trim(),telephone:tel.trim(),email:em.trim(),poste:org.trim()});added++;}
+        }
+      }else{
+        // CSV format
+        var lines=text.split(/\r?\n/);
+        var sep=lines[0].indexOf(";")>=0?";":lines[0].indexOf("\t")>=0?"\t":",";
+        var header=lines[0].toLowerCase().split(sep).map(function(h){return h.trim().replace(/"/g,"");});
+        var iNom=-1,iTel=-1,iEmail=-1,iPoste=-1;
+        for(var h=0;h<header.length;h++){
+          var col=header[h];
+          if(col==="nom"||col==="name"||col==="prenom"||col==="prénom"||col==="first name"||col==="last name"||col==="full name")iNom=h;
+          if(col==="telephone"||col==="téléphone"||col==="tel"||col==="phone"||col==="mobile"||col==="portable"||col==="numero"||col==="numéro")iTel=h;
+          if(col==="email"||col==="e-mail"||col==="mail"||col==="adresse mail"||col==="adresse e-mail")iEmail=h;
+          if(col==="poste"||col==="fonction"||col==="role"||col==="rôle"||col==="titre"||col==="title"||col==="department"||col==="service")iPoste=h;
+        }
+        // Si pas de header reconnu, deviner : col1=nom, col2=tel, col3=email
+        if(iNom<0&&header.length>=1)iNom=0;
+        if(iTel<0&&header.length>=2)iTel=1;
+        if(iEmail<0&&header.length>=3)iEmail=2;
+        if(iPoste<0&&header.length>=4)iPoste=3;
+        for(var l=1;l<lines.length;l++){
+          if(!lines[l].trim())continue;
+          var vals=lines[l].split(sep).map(function(v){return v.trim().replace(/^"|"$/g,"");});
+          var nom=iNom>=0?vals[iNom]||"":"";
+          if(!nom)continue;
+          var tel=iTel>=0?vals[iTel]||"":"";
+          var email=iEmail>=0?vals[iEmail]||"":"";
+          var poste=iPoste>=0?vals[iPoste]||"":"";
+          D.contacts.push({id:uid(),nom:nom,telephone:tel,email:email,poste:poste});
+          added++;
+        }
+      }
+      sv();R();
+      toast(added+" contact(s) importé(s)");
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+// Export contacts CSV
+window.exportContacts=function(){
+  if(!D.contacts||!D.contacts.length)return toast("Aucun contact",true);
+  var csv="Nom;Telephone;Email;Poste\n";
+  for(var i=0;i<D.contacts.length;i++){
+    var c=D.contacts[i];
+    csv+='"'+(c.nom||"")+'";'+(c.telephone||"")+';'+(c.email||"")+';"'+(c.poste||"")+'"\n';
+  }
+  var blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="fiche_technique_contacts.csv";a.click();
+  URL.revokeObjectURL(a.href);
+};
 
 function rAdmin(){
   if(!ADMIN_UNLOCKED)return '<div class="empty"><div class="icon">🔐</div><p>Accès refusé</p></div>';
