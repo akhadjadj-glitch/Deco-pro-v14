@@ -243,9 +243,9 @@ img.broken{display:none}
 .cal-badge.pink{background:#ec4899;color:#ec4899}
 .cal-badge.blue{background:#3b82f6;color:#3b82f6}
 .cal-badge.green{background:#10b981;color:#10b981}
-.cal-detail{margin-top:8px}
-.cal-detail-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer}
-.cal-detail-item:active{background:rgba(255,255,255,0.08)}
+.cal-detail{margin-top:10px;background:rgba(255,255,255,0.03);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.06)}
+.cal-detail-item{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,0.05);margin-bottom:4px;font-size:12px;cursor:pointer;transition:background 0.15s}
+.cal-detail-item:active{background:rgba(255,255,255,0.1)}
 .cal-strip.compact{margin-bottom:0}
 .cal-strip.compact .cal-header{margin-bottom:4px}
 .cal-strip.compact .cal-header span{font-size:11px}
@@ -403,6 +403,9 @@ var CODE = localStorage.getItem("dp_code") || null;
 var D = {projets:[],loueurs:[],depenses:[],objets:[],locations:[],users:[],planningEvents:[]};
 var ROLES = ["Chef Déco", "1er Assistant(e)", "Ensemblier/ère", "Régie d'extérieur", "Assistant(e)", "Ripper", "Accessoiriste", "Production"];
 var CURRENT_USER = JSON.parse(localStorage.getItem("dp_user") || '{"nom":"","email":"","role":"Chef Décorateur"}');
+// Device ID unique pour connexion multi-devices
+var DEVICE_ID = localStorage.getItem("dp_device_id");
+if(!DEVICE_ID){DEVICE_ID=uid()+"_"+Date.now();localStorage.setItem("dp_device_id",DEVICE_ID);}
 var V="home",P=null,DC=null,EL=null,LO=null,RB=null,M=null,MN=false,TB="rub",VW=null,VWC=null,VWI=0,SQ="",GSQ="",PHS=[],EDIT=null,MORE=false,RTL="all";
 var CALSEL=null;
 var CALOFF=0;
@@ -772,10 +775,47 @@ function saveUserIdentity(){
   return true;
 }
 
+// Se connecter en tant qu'un compte existant (multi-devices)
+window.loginAsExistingUser=function(userId){
+  if(!D.users)return;
+  for(var i=0;i<D.users.length;i++){
+    if(D.users[i].id===userId){
+      CURRENT_USER={nom:D.users[i].nom,email:D.users[i].email||"",role:D.users[i].role};
+      localStorage.setItem("dp_user",JSON.stringify(CURRENT_USER));
+      registerUserConnection();
+      V="home";R();
+      toast("✅ Connecté en tant que "+CURRENT_USER.nom);
+      return;
+    }
+  }
+};
+
+// Modifier profil depuis le menu
+window.saveEditProfil=function(){
+  var nom=(document.getElementById("ep-nom")||{}).value||"";
+  var role=(document.getElementById("ep-role")||{}).value||"Chef Déco";
+  if(!nom.trim())return alert("Veuillez entrer votre nom");
+  var oldKey=userKey(CURRENT_USER);
+  CURRENT_USER.nom=nom.trim();
+  CURRENT_USER.role=role;
+  localStorage.setItem("dp_user",JSON.stringify(CURRENT_USER));
+  if(D.users){
+    for(var i=0;i<D.users.length;i++){
+      if(userKey(D.users[i])===oldKey){
+        D.users[i].nom=CURRENT_USER.nom;
+        D.users[i].role=CURRENT_USER.role;
+        break;
+      }
+    }
+  }
+  sv();modal(null);
+  toast("✅ Profil mis à jour");
+};
+
 // Identifiant unique pour un utilisateur (email ou prénom+rôle)
 function userKey(u){return u.email?u.email.toLowerCase():(u.nom.toLowerCase()+"_"+u.role.toLowerCase());}
 
-// Enregistrer la connexion dans D.users
+// Enregistrer la connexion dans D.users (multi-devices)
 function registerUserConnection(){
   if(!D.users)D.users=[];
   var myKey=userKey(CURRENT_USER);
@@ -786,12 +826,25 @@ function registerUserConnection(){
       D.users[i].email=CURRENT_USER.email;
       D.users[i].role=CURRENT_USER.role;
       D.users[i].lastSeen=new Date().toISOString();
+      // Multi-devices : stocker les sessions actives
+      if(!D.users[i].devices)D.users[i].devices=[];
+      var devFound=false;
+      for(var d=0;d<D.users[i].devices.length;d++){
+        if(D.users[i].devices[d].deviceId===DEVICE_ID){
+          D.users[i].devices[d].lastSeen=new Date().toISOString();
+          D.users[i].devices[d].online=true;
+          devFound=true;break;
+        }
+      }
+      if(!devFound){
+        D.users[i].devices.push({deviceId:DEVICE_ID,lastSeen:new Date().toISOString(),online:true,connectedAt:new Date().toISOString()});
+      }
       D.users[i].online=true;
       found=true;break;
     }
   }
   if(!found){
-    D.users.push({id:uid(),nom:CURRENT_USER.nom,email:CURRENT_USER.email,role:CURRENT_USER.role,joinedAt:new Date().toISOString(),lastSeen:new Date().toISOString(),online:true});
+    D.users.push({id:uid(),nom:CURRENT_USER.nom,email:CURRENT_USER.email,role:CURRENT_USER.role,joinedAt:new Date().toISOString(),lastSeen:new Date().toISOString(),online:true,devices:[{deviceId:DEVICE_ID,lastSeen:new Date().toISOString(),online:true,connectedAt:new Date().toISOString()}]});
   }
   sv();
 }
@@ -852,15 +905,53 @@ window.importData=function(){
       try{
         var imported=JSON.parse(ev.target.result);
         if(!imported.projets&&!imported.loueurs&&!imported.depenses){alert("Fichier invalide");return;}
-        if(!confirm("Importer ces données ? Cela remplacera les données actuelles."))return;
-        if(imported.projets)D.projets=imported.projets;
-        if(imported.loueurs)D.loueurs=imported.loueurs;
-        if(imported.depenses)D.depenses=imported.depenses;
-        if(imported.planningEvents)D.planningEvents=imported.planningEvents;
-        sv();
-        MN=false;
-        R();
-        alert("Données importées !");
+        var np=imported.projets?imported.projets.length:0;
+        var nd=0;if(imported.projets)for(var x=0;x<imported.projets.length;x++)nd+=imported.projets[x].decors?imported.projets[x].decors.length:0;
+        var npe=imported.planningEvents?imported.planningEvents.length:0;
+        // Vérifier si même projet existe déjà
+        var sameProject=false;
+        if(imported.projets&&imported.projets.length&&D.projets.length){
+          for(var x=0;x<imported.projets.length;x++){
+            for(var y=0;y<D.projets.length;y++){
+              if(imported.projets[x].id===D.projets[y].id){sameProject=true;break;}
+            }
+          }
+        }
+        var msg="Fichier détecté :\n• "+np+" projet(s), "+nd+" décor(s), "+npe+" événement(s) planning\n\n";
+        if(sameProject){
+          msg+="⚠️ Le même projet existe déjà dans l'app.\n\nQue faire ?\n\n• OK = METTRE À JOUR (remplace les dates et données du projet existant, conserve les photos des éléments inchangés)\n• Annuler = Ne rien faire";
+          if(!confirm(msg))return;
+          // MODE MISE À JOUR : remplacer le projet existant mais conserver les photos des éléments
+          for(var x=0;x<imported.projets.length;x++){
+            var ip=imported.projets[x];
+            for(var y=0;y<D.projets.length;y++){
+              if(D.projets[y].id===ip.id){
+                // Sauvegarder les photos des éléments existants
+                var photoMap={};
+                if(D.projets[y].decors){for(var dd=0;dd<D.projets[y].decors.length;dd++){var dc=D.projets[y].decors[dd];if(dc.elements){for(var ee=0;ee<dc.elements.length;ee++){if(dc.elements[ee].photos&&dc.elements[ee].photos.length){photoMap[dc.elements[ee].id]=dc.elements[ee].photos;}}}}}
+                // Remplacer le projet
+                D.projets[y]=ip;
+                // Restaurer les photos
+                if(D.projets[y].decors){for(var dd=0;dd<D.projets[y].decors.length;dd++){var dc=D.projets[y].decors[dd];if(dc.elements){for(var ee=0;ee<dc.elements.length;ee++){if(photoMap[dc.elements[ee].id]&&(!dc.elements[ee].photos||!dc.elements[ee].photos.length)){dc.elements[ee].photos=photoMap[dc.elements[ee].id];}}}}}
+                break;
+              }
+            }
+          }
+        }else{
+          msg+="Que faire ?\n\n• OK = AJOUTER comme nouveau projet\n• Annuler = REMPLACER toutes les données existantes";
+          if(confirm(msg)){
+            // AJOUTER
+            if(imported.projets)for(var x=0;x<imported.projets.length;x++)D.projets.push(imported.projets[x]);
+          }else{
+            if(!confirm("⚠️ REMPLACER toutes les données actuelles ? Cette action est irréversible."))return;
+            if(imported.projets)D.projets=imported.projets;
+          }
+        }
+        if(imported.loueurs){var lIds={};for(var i=0;i<D.loueurs.length;i++)lIds[D.loueurs[i].id]=true;for(var i=0;i<imported.loueurs.length;i++)if(!lIds[imported.loueurs[i].id])D.loueurs.push(imported.loueurs[i]);}
+        if(imported.depenses){var dIds={};for(var i=0;i<D.depenses.length;i++)dIds[D.depenses[i].id]=true;for(var i=0;i<imported.depenses.length;i++)if(!dIds[imported.depenses[i].id])D.depenses.push(imported.depenses[i]);}
+        if(imported.planningEvents){if(!D.planningEvents)D.planningEvents=[];var peIds={};for(var i=0;i<D.planningEvents.length;i++)peIds[D.planningEvents[i].id]=true;for(var i=0;i<imported.planningEvents.length;i++)if(!peIds[imported.planningEvents[i].id])D.planningEvents.push(imported.planningEvents[i]);}
+        sv();MN=false;R();
+        toast("✅ Import réussi ! "+nd+" décors chargés");
       }catch(err){alert("Erreur: fichier JSON invalide");}
     };
     reader.readAsText(file);
@@ -870,8 +961,8 @@ window.importData=function(){
 
 window.leaveProject=function(){
   if(!confirm("Quitter ce projet ?"))return;
-  // Marquer l'utilisateur comme offline
-  if(D.users&&CURRENT_USER.nom){var mk=userKey(CURRENT_USER);for(var i=0;i<D.users.length;i++){if(userKey(D.users[i])===mk){D.users[i].online=false;D.users[i].lastSeen=new Date().toISOString();break;}}sv();}
+  // Marquer le device comme offline (multi-devices)
+  if(D.users&&CURRENT_USER.nom){var mk=userKey(CURRENT_USER);for(var i=0;i<D.users.length;i++){if(userKey(D.users[i])===mk){if(D.users[i].devices){for(var d=0;d<D.users[i].devices.length;d++){if(D.users[i].devices[d].deviceId===DEVICE_ID){D.users[i].devices[d].online=false;D.users[i].devices[d].lastSeen=new Date().toISOString();break;}}}var anyOn=false;if(D.users[i].devices){for(var d=0;d<D.users[i].devices.length;d++){if(D.users[i].devices[d].online&&(new Date()-new Date(D.users[i].devices[d].lastSeen))<600000){anyOn=true;break;}}}D.users[i].online=anyOn;D.users[i].lastSeen=new Date().toISOString();break;}}sv();}
   if(UNSUB)UNSUB();
   CODE=null;
   localStorage.removeItem("dp_code");
@@ -910,6 +1001,8 @@ setInterval(function(){
       if(userKey(D.users[i])===mk){
         D.users[i].lastSeen=new Date().toISOString();
         D.users[i].online=true;
+        // Heartbeat multi-devices
+        if(D.users[i].devices){for(var d=0;d<D.users[i].devices.length;d++){if(D.users[i].devices[d].deviceId===DEVICE_ID){D.users[i].devices[d].lastSeen=new Date().toISOString();D.users[i].devices[d].online=true;break;}}}
         sv();break;
       }
     }
@@ -962,12 +1055,46 @@ function rLogin(){
   h+='<div class="login-logo">🎬</div>';
   h+='<div class="login-title">Décor Pro</div>';
   h+='<div class="login-sub">Gestion de décors collaborative'+(HAS_FIREBASE?'':' • mode local')+'</div>';
+
+  // Si des comptes existent déjà dans les données locales, proposer de se connecter
+  var localData=null;
+  try{localData=JSON.parse(localStorage.getItem("decorpro_local_data")||"null");}catch(e){}
+  var existingUsers=(localData&&localData.users)?localData.users:[];
+  // Aussi vérifier D.users si déjà chargé
+  if(D.users&&D.users.length>existingUsers.length)existingUsers=D.users;
+
+  if(existingUsers.length>0){
+    h+='<div class="login-box" style="margin-bottom:16px">';
+    h+='<div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:4px">👤 Se connecter</div>';
+    h+='<div style="font-size:12px;color:#64748b;margin-bottom:12px">Sélectionnez votre compte pour vous connecter sur cet appareil</div>';
+    for(var i=0;i<existingUsers.length;i++){
+      var u=existingUsers[i];
+      var devCount=u.devices?u.devices.length:0;
+      var isOn=u.online&&u.lastSeen&&(new Date()-new Date(u.lastSeen))<600000;
+      h+='<div class="cal-detail-item" onclick="loginAsExistingUser(\''+u.id+'\')" style="padding:12px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.06)">';
+      h+='<div style="width:42px;height:42px;border-radius:50%;background:'+(isOn?'linear-gradient(135deg,#10b981,#059669)':'linear-gradient(135deg,#6366f1,#4f46e5)')+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;flex-shrink:0">'+u.nom.charAt(0).toUpperCase()+'</div>';
+      h+='<div style="flex:1"><div style="font-size:14px;font-weight:600;color:#e2e8f0">'+u.nom+'</div>';
+      h+='<div style="font-size:11px;color:#a5b4fc">'+u.role+'</div>';
+      if(devCount>0)h+='<div style="font-size:10px;color:#64748b;margin-top:1px">📱 '+devCount+' appareil(s) connecté(s)</div>';
+      h+='</div>';
+      h+='<div style="color:#6366f1;font-size:18px">→</div>';
+      h+='</div>';
+    }
+    h+='<div style="border-top:1px solid rgba(255,255,255,0.08);margin:12px 0;padding-top:12px;text-align:center">';
+    h+='<div style="font-size:12px;color:#64748b;margin-bottom:8px">Pas votre compte ?</div>';
+    h+='</div>';
+    h+='</div>';
+  }
+
   h+='<div class="login-box">';
+  if(existingUsers.length>0){
+    h+='<div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:12px">✨ Nouveau compte</div>';
+  }
   h+='<div class="login-tabs">';
   h+='<div class="login-tab'+(LTAB==="join"?" on":"")+'" onclick="setLTab(\'join\')">Rejoindre</div>';
   h+='<div class="login-tab'+(LTAB==="create"?" on":"")+'" onclick="setLTab(\'create\')">Créer</div>';
   h+='</div>';
-  
+
   // Champs identification utilisateur
   h+='<div class="fld"><label style="color:#a5b4fc">Prénom *</label><input id="user-name" placeholder="Ex: Marie" value="'+(CURRENT_USER.nom||'')+'"></div>';
   h+='<div class="fld"><label style="color:#a5b4fc">Poste *</label><select id="user-role">';
@@ -1111,12 +1238,14 @@ function rCalendarStrip(){
     if(alerts.demontage.length)h+='<div class="cal-bar demo" title="Démontage">'+alerts.demontage[0].d.nom.substring(0,6)+'</div>';
 
     // Pastilles evenements
+    var dayCustomEvts=(D.planningEvents||[]).filter(function(ev){return ev.date===ds;});
     h+='<div class="cal-badges">';
     if(alerts.urgents.length)h+='<div class="cal-badge red" title="'+alerts.urgents.length+' urgent(s)"></div>';
     if(alerts.retards.length)h+='<div class="cal-badge orange" title="'+alerts.retards.length+' retard(s)"></div>';
     if(alerts.tournage.length)h+='<div class="cal-badge pink" title="'+alerts.tournage.length+' tournage(s)"></div>';
     if(alerts.departs.length)h+='<div class="cal-badge blue" title="'+alerts.departs.length+' départ(s)"></div>';
     if(alerts.retours.length)h+='<div class="cal-badge green" title="'+alerts.retours.length+' retour(s)"></div>';
+    if(dayCustomEvts.length)h+='<div class="cal-badge" style="background:#a5b4fc;color:#a5b4fc;box-shadow:0 0 4px #a5b4fc" title="'+dayCustomEvts.length+' événement(s)"></div>';
     h+='</div></div>';
   }
   h+='</div>';
@@ -1125,10 +1254,14 @@ function rCalendarStrip(){
   if(CALSEL){
     var sp=CALSEL.split("-");var selDate=new Date(parseInt(sp[0]),parseInt(sp[1])-1,parseInt(sp[2]),12,0,0,0);
     var JSEL=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+    var MOISL=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
     var selAlerts=getAlertsForDate(selDate);
-    var total=selAlerts.projPrepa.length+selAlerts.projTournage.length+selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length;
+    var selCustom=(D.planningEvents||[]).filter(function(ev){return ev.date===CALSEL;});
+    var total=selAlerts.projPrepa.length+selAlerts.projTournage.length+selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length+selCustom.length;
     h+='<div class="cal-detail">';
-    h+='<div style="font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:6px">'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' — '+total+' evnt</div>';
+    h+='<div style="font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">';
+    h+='<span>'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' '+MOISL[selDate.getMonth()]+'</span>';
+    h+='<span style="font-size:11px;font-weight:500;color:#64748b">'+total+' événement'+(total>1?'s':'')+'</span></div>';
     if(total>0){
       for(var i=0;i<selAlerts.projPrepa.length;i++){var x=selAlerts.projPrepa[i];h+='<div class="cal-detail-item" onclick="go(\'proj\',\''+x.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:rgba(245,158,11,0.4);border:1px solid #f59e0b;flex-shrink:0"></div><strong>'+x.nom+'</strong><span style="color:#fcd34d;margin-left:auto;font-size:11px">Prépa projet</span></div>';}
       for(var i=0;i<selAlerts.projTournage.length;i++){var x=selAlerts.projTournage[i];h+='<div class="cal-detail-item" onclick="go(\'proj\',\''+x.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:rgba(236,72,153,0.4);border:1px solid #ec4899;flex-shrink:0"></div><strong>'+x.nom+'</strong><span style="color:#f9a8d4;margin-left:auto;font-size:11px">Tournage projet</span></div>';}
@@ -1141,9 +1274,13 @@ function rCalendarStrip(){
       for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong><span style="color:#10b981;margin-left:auto;font-size:11px">Retour</span></div>';}
       for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong><span style="color:#3b82f6;margin-left:auto;font-size:11px">Non prêt</span></div>';}
       for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Retard</span></div>';}
+      // Événements personnalisés du planning
+      for(var ci=0;ci<selCustom.length;ci++){var cev=selCustom[ci];var pt=getPlanType(cev.type);h+='<div class="cal-detail-item" onclick="openPlanEventModal(\''+CALSEL+'\',\''+cev.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:'+pt.c+';flex-shrink:0"></div><strong>'+pt.i+' '+pt.l+'</strong>'+(cev.heure?'<span style="color:#94a3b8;margin-left:4px;font-size:11px">'+cev.heure+'</span>':'')+'<span style="color:'+pt.c+';margin-left:auto;font-size:11px">Planning</span></div>';}
     } else {
       h+='<div style="font-size:12px;color:#64748b;padding:4px 0">Rien de prévu</div>';
     }
+    // Bouton ajouter un événement
+    h+='<div style="margin-top:6px;text-align:center"><div onclick="openPlanEventModal(\''+CALSEL+'\')" style="display:inline-flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;color:#6366f1;padding:6px 14px;border-radius:8px;background:rgba(99,102,241,0.1);font-weight:600">➕ Ajouter un événement</div></div>';
     h+='</div>';
   }
   h+='</div>';
@@ -1183,6 +1320,21 @@ function getAlertsForDate(date){
 }
 
 function rCalendar(){return rCalendarStrip();}
+
+// Ouvrir une fenêtre d'impression avec bouton retour
+function openPrintWindow(html){
+  var w=window.open("","_blank");
+  if(!w){alert("Impossible d'ouvrir la fenêtre d'impression. Autorisez les popups.");return;}
+  var toolbar='<div id="print-toolbar" style="position:fixed;top:0;left:0;right:0;z-index:9999;background:#1e293b;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-family:sans-serif;box-shadow:0 2px 8px rgba(0,0,0,0.3)">';
+  toolbar+='<button onclick="window.close();if(!window.closed){history.back()}" style="padding:8px 16px;border-radius:8px;border:none;background:#6366f1;color:#fff;font-size:14px;font-weight:600;cursor:pointer">← Retour</button>';
+  toolbar+='<button onclick="document.getElementById(\'print-toolbar\').style.display=\'none\';window.print();document.getElementById(\'print-toolbar\').style.display=\'flex\'" style="padding:8px 16px;border-radius:8px;border:none;background:#10b981;color:#fff;font-size:14px;font-weight:600;cursor:pointer">🖨️ Imprimer</button>';
+  toolbar+='</div>';
+  // Injecter la toolbar et un padding-top pour ne pas masquer le contenu
+  var fullHtml=html.replace('<body>','<body style="padding-top:56px">'+toolbar);
+  // Ajouter le style @media print pour masquer la toolbar
+  fullHtml=fullHtml.replace('</head>','<style>@media print{#print-toolbar{display:none!important}body{padding-top:0!important}}</style></head>');
+  w.document.write(fullHtml);w.document.close();
+}
 
 function rPrint(){
   var h='<div class="page-title">🖨️ Impression</div>';
@@ -1232,7 +1384,6 @@ function rPrint(){
 window.printProjet=function(pId){
   var proj=null;for(var i=0;i<D.projets.length;i++)if(D.projets[i].id===pId){proj=D.projets[i];break}
   if(!proj)return;
-  var w=window.open("","_blank");
   var html="<html><head><title>"+proj.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:4px}h2{margin-top:20px;color:#6366f1;border-bottom:2px solid #6366f1;padding-bottom:4px}h3{margin-top:12px;color:#555}.el{padding:8px 0;border-bottom:1px solid #eee}.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;background:#f1f5f9;margin-left:6px}table{width:100%;border-collapse:collapse;margin-top:8px}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid #eee;font-size:13px}th{font-weight:600;color:#64748b}</style></head><body>";
   html+="<h1>"+proj.nom+"</h1><p>"+(proj.production||"")+" • "+(proj.realisateur||"")+"</p>";
   if(proj.decors)for(var j=0;j<proj.decors.length;j++){
@@ -1241,7 +1392,7 @@ window.printProjet=function(pId){
       for(var k=0;k<dc.elements.length;k++){var e=dc.elements[k];var st=gs(e.statut);var rb=gr(e.rubrique);html+="<tr><td><strong>"+e.nom+"</strong></td><td>"+(rb?rb.n:"")+"</td><td>"+st.l+"</td><td>"+(e.scene||"")+"</td></tr>";}
       html+="</table>";}
   }
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 window.printAll=function(){if(D.projets.length)printProjet(D.projets[0].id);};
@@ -1252,7 +1403,6 @@ window.printDecor=function(pId,dId){
   var dc=null;for(var i=0;i<proj.decors.length;i++)if(proj.decors[i].id===dId){dc=proj.decors[i];break}
   if(!dc)return;
   var bud=getDecorBudget(dc);
-  var w=window.open("","_blank");
   var html="<html><head><title>"+dc.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333;max-width:800px;margin:0 auto}h1{margin-bottom:4px;color:#6366f1}h2{margin-top:16px;font-size:16px;border-bottom:1px solid #ddd;padding-bottom:4px}.info{display:flex;gap:20px;flex-wrap:wrap;margin:8px 0;font-size:13px;color:#555}.info span{background:#f1f5f9;padding:4px 10px;border-radius:6px}.date-bar{display:flex;gap:12px;margin:10px 0}.date-box{padding:6px 12px;border-radius:8px;font-size:12px;font-weight:600;color:#fff}.prepa{background:#f59e0b}.tournage{background:#ec4899}.demo{background:#8b5cf6}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:12px}td,th{padding:6px 8px;text-align:left;border-bottom:1px solid #eee}th{font-weight:600;color:#64748b;background:#f8fafc}.budget{background:#f0fdf4;border-radius:8px;padding:12px;margin-top:12px}.budget strong{color:#10b981;font-size:16px}img{width:60px;height:60px;object-fit:cover;border-radius:6px}</style></head><body>";
   html+="<h1>"+dc.nom+"</h1>";
   html+="<div class='info'><span>"+(dc.interieur?"Intérieur":"Extérieur")+" • "+(dc.studio?"Studio":"Naturel")+"</span>";
@@ -1287,26 +1437,24 @@ window.printDecor=function(pId,dId){
     if(bud.achat>0)html+="<div>Achat: "+fm(bud.achat)+"</div>";
     html+="<div><strong>Total: "+fm(bud.total)+"</strong></div></div>";
   }
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 window.printBudget=function(){
-  var w=window.open("","_blank");
   var deps=D.depenses.slice();deps.sort(function(a,b){return new Date(b.date||0)-new Date(a.date||0)});
   var total=0;for(var i=0;i<deps.length;i++)total+=parseFloat(deps[i].montant)||0;
   var html="<html><head><title>Budget</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:12px}table{width:100%;border-collapse:collapse}td,th{padding:8px;text-align:left;border-bottom:1px solid #eee;font-size:13px}th{font-weight:600;color:#64748b}.total{font-size:18px;font-weight:700;margin-top:16px}</style></head><body>";
   html+="<h1>💰 Budget</h1><table><tr><th>Description</th><th>Type</th><th>Montant</th><th>Date</th></tr>";
   for(var i=0;i<deps.length;i++){var d=deps[i];html+="<tr><td>"+(d.description||"")+"</td><td>"+(d.type||"")+"</td><td>"+fm(d.montant)+"</td><td>"+(d.date||"")+"</td></tr>";}
   html+="</table><p class=\"total\">Total: "+fm(total)+"</p></body></html>";
-  w.document.write(html);w.document.close();w.print();
+  openPrintWindow(html);
 };
 
 window.printLoueurs=function(){
-  var w=window.open("","_blank");
   var html="<html><head><title>Loueurs</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:12px}.card{border:1px solid #eee;border-radius:8px;padding:12px;margin-bottom:8px}h3{margin-bottom:4px}.info{font-size:13px;color:#555}</style></head><body>";
   html+="<h1>🏪 Loueurs</h1>";
   for(var i=0;i<D.loueurs.length;i++){var l=D.loueurs[i];html+="<div class=\"card\"><h3>"+l.nom+"</h3><p class=\"info\">"+(l.specialite||"")+"</p>"+(l.telephone?"<p class=\"info\">📞 "+l.telephone+"</p>":"")+(l.email?"<p class=\"info\">✉️ "+l.email+"</p>":"")+(l.adresse?"<p class=\"info\">📍 "+l.adresse+"</p>":"")+"</div>";}
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 window.printJournalier=function(){
@@ -1316,7 +1464,6 @@ window.printJournalier=function(){
   var date = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]), 12, 0, 0, 0);
   var alerts = getAlertsForDate(date);
   
-  var w=window.open("","_blank");
   var html="<html><head><title>Planning "+fd(date)+"</title><style>body{font-family:sans-serif;padding:20px;color:#333}h1{margin-bottom:20px;color:#6366f1}h2{margin-top:20px;font-size:18px;border-bottom:2px solid #ddd;padding-bottom:4px}ul{list-style:none;padding-left:0}li{padding:8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between}li strong{flex:1}</style></head><body>";
   html+="<h1>📅 Planning du "+fd(date)+"</h1>";
   
@@ -1326,7 +1473,7 @@ window.printJournalier=function(){
   if(alerts.departs.length){ html+="<h2>📤 Départs Location</h2><ul>"; for(var i=0;i<alerts.departs.length;i++){var x=alerts.departs[i];html+="<li><strong>"+x.e.nom+"</strong><span>"+x.d.nom+"</span></li>";} html+="</ul>"; }
   if(alerts.retours.length){ html+="<h2>📥 Retours Location</h2><ul>"; for(var i=0;i<alerts.retours.length;i++){var x=alerts.retours[i];html+="<li><strong>"+x.e.nom+"</strong><span>"+x.d.nom+"</span></li>";} html+="</ul>"; }
   
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 // === IMPRESSION PORTFOLIO DECOR + LOUEURS ===
@@ -1335,7 +1482,6 @@ window.printJournalier=function(){
 window.printDecorPortfolio=function(){
   if(!DC)return toast("Aucun décor sélectionné",true);
   var groups=getDecorPortfolioGroups();
-  var w=window.open("","_blank");
   var html="<html><head><title>Portfolio — "+DC.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333;max-width:900px;margin:0 auto}h1{color:#6366f1;margin-bottom:4px}h2{margin-top:20px;font-size:16px;border-bottom:2px solid #6366f1;padding-bottom:4px;color:#6366f1}.info{font-size:13px;color:#555;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}.caption{font-size:10px;color:#666;text-align:center;margin-top:2px}@media print{.grid{break-inside:avoid}}</style></head><body>";
   html+="<h1>🖼️ Portfolio — "+DC.nom+"</h1>";
   html+="<div class='info'>"+(DC.interieur?"Intérieur":"Extérieur")+" • "+(DC.studio?"Studio":"Naturel")+(DC.adresse?" • 📍 "+DC.adresse:"")+(DC.sequences?" • Sq. "+DC.sequences:"")+"</div>";
@@ -1350,7 +1496,7 @@ window.printDecorPortfolio=function(){
       html+="</div>";
     }
   }
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 // Imprimer portfolio + loueurs liés au décor courant
@@ -1362,7 +1508,6 @@ window.printDecorPortfolioWithLoueurs=function(){
   if(DC.elements)for(var i=0;i<DC.elements.length;i++){var e=DC.elements[i];if(e.loueurId)loueurIds[e.loueurId]=true;}
   var linkedLoueurs=[];
   for(var i=0;i<D.loueurs.length;i++){if(loueurIds[D.loueurs[i].id])linkedLoueurs.push(D.loueurs[i]);}
-  var w=window.open("","_blank");
   var html="<html><head><title>Portfolio + Loueurs — "+DC.nom+"</title><style>body{font-family:sans-serif;padding:20px;color:#333;max-width:900px;margin:0 auto}h1{color:#6366f1;margin-bottom:4px}h2{margin-top:24px;font-size:16px;border-bottom:2px solid #6366f1;padding-bottom:4px;color:#6366f1}.info{font-size:13px;color:#555;margin-bottom:16px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}.grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}.caption{font-size:10px;color:#666;text-align:center;margin-top:2px}.loueur-card{border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:10px;page-break-inside:avoid}.loueur-card h3{margin:0 0 6px;font-size:15px}.loueur-info{font-size:13px;color:#555;line-height:1.6}.loueur-items{margin-top:8px;font-size:12px;color:#6366f1}@media print{.grid,.loueur-card{break-inside:avoid}}</style></head><body>";
   html+="<h1>🖼️ Portfolio + Loueurs — "+DC.nom+"</h1>";
   html+="<div class='info'>"+(DC.interieur?"Intérieur":"Extérieur")+" • "+(DC.studio?"Studio":"Naturel")+(DC.adresse?" • 📍 "+DC.adresse:"")+(DC.sequences?" • Sq. "+DC.sequences:"")+"</div>";
@@ -1395,7 +1540,7 @@ window.printDecorPortfolioWithLoueurs=function(){
       html+="</div>";
     }
   }
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 // Impression portfolio depuis la page Impression (choisir un décor)
@@ -1923,15 +2068,24 @@ function rPlanning(){
   h+='<div class="abtn" onclick="planNav(7)">Sem. ▶</div>';
   h+='</div></div>';
 
+  // Légende
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px">';
+  h+='<div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#64748b"><div style="width:8px;height:8px;border-radius:2px;background:#ec4899"></div>Tournage</div>';
+  h+='<div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#64748b"><div style="width:8px;height:8px;border-radius:2px;background:#f59e0b"></div>Prépa</div>';
+  h+='<div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#64748b"><div style="width:8px;height:8px;border-radius:2px;background:#8b5cf6"></div>Démontage</div>';
+  h+='<div style="display:flex;align-items:center;gap:3px;font-size:10px;color:#64748b"><div style="width:8px;height:8px;border-radius:2px;background:#a5b4fc"></div>Événements</div>';
+  h+='</div>';
+
   // Collecter toutes les dates de tournage
   var allEvents=[];
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
     for(var j=0;j<p.decors.length;j++){var d=p.decors[j];
       if(d.dateInstallation)allEvents.push({type:"prepa",date:d.dateInstallation,decor:d,projet:p});
       if(d.dateTournage){
-        var start=new Date(d.dateTournage);var end=d.dateTournageFin?new Date(d.dateTournageFin):start;
+        var start=new Date(d.dateTournage+"T12:00:00");var end=d.dateTournageFin?new Date(d.dateTournageFin+"T12:00:00"):new Date(start);
         for(var dt=new Date(start);dt<=end;dt.setDate(dt.getDate()+1)){
-          allEvents.push({type:"tournage",date:dt.toISOString().split("T")[0],decor:d,projet:p});
+          var dty=dt.getFullYear(),dtm=dt.getMonth()+1,dtd=dt.getDate();
+          allEvents.push({type:"tournage",date:dty+'-'+(dtm<10?'0':'')+dtm+'-'+(dtd<10?'0':'')+dtd,decor:d,projet:p});
         }
       }
       if(d.dateDemontage)allEvents.push({type:"demontage",date:d.dateDemontage,decor:d,projet:p});
@@ -1953,9 +2107,10 @@ function rPlanning(){
   var mois=["jan","fév","mar","avr","mai","jun","jul","aoû","sep","oct","nov","déc"];
 
   for(var day=0;day<14;day++){
-    var d=new Date(startDate);d.setDate(d.getDate()+day);
-    var ds=d.toISOString().split("T")[0];
-    var isToday=d.getTime()===today.getTime();
+    var d=new Date(startDate);d.setDate(d.getDate()+day);d.setHours(12,0,0,0);
+    var dy2=d.getFullYear(),dm2=d.getMonth()+1,dd2=d.getDate();
+    var ds=dy2+'-'+(dm2<10?'0':'')+dm2+'-'+(dd2<10?'0':'')+dd2;
+    var isToday=ds===(today.getFullYear()+'-'+((today.getMonth()+1)<10?'0':'')+(today.getMonth()+1)+'-'+(today.getDate()<10?'0':'')+today.getDate());
     var isWeekend=d.getDay()===0||d.getDay()===6;
     var dayEvents=allEvents.filter(function(ev){return ev.date===ds;});
 
@@ -1972,18 +2127,33 @@ function rPlanning(){
     var hasAny=dayEvents.length||customEvts.length;
 
     var bgColor=isToday?'rgba(99,102,241,0.15)':isWeekend?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.04)';
-    var borderColor=isToday?'#6366f1':'transparent';
+    var borderColor=isToday?'#6366f1':hasAny?'rgba(255,255,255,0.08)':'transparent';
 
-    h+='<div id="'+(isToday?'plan-today':'')+'" style="background:'+bgColor+';border:1px solid '+borderColor+';border-radius:12px;padding:12px;margin-bottom:8px'+(isWeekend&&!hasAny?';opacity:0.5':'')+'">';
+    // Séparateur de semaine (avant chaque lundi sauf le premier jour)
+    if(d.getDay()===1&&day>0){
+      var wn=getWeekNumber(d);
+      h+='<div style="display:flex;align-items:center;gap:8px;margin:16px 0 8px"><div style="flex:1;height:1px;background:rgba(99,102,241,0.2)"></div><span style="font-size:10px;color:#6366f1;font-weight:600;white-space:nowrap">SEMAINE '+wn+'</span><div style="flex:1;height:1px;background:rgba(99,102,241,0.2)"></div></div>';
+    }
+
+    // Week-ends vides : version compacte
+    if(isWeekend&&!hasAny){
+      h+='<div id="'+(isToday?'plan-today':'')+'" style="background:'+bgColor+';border-radius:8px;padding:8px 12px;margin-bottom:4px;display:flex;align-items:center;gap:8px;opacity:0.5;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\')">';
+      h+='<span style="font-size:11px;color:#475569;font-weight:600">'+jours[d.getDay()]+' '+d.getDate()+' '+mois[d.getMonth()]+'</span>';
+      h+='<span style="font-size:11px;color:#334155">—</span>';
+      h+='</div>';
+      continue;
+    }
+
+    h+='<div id="'+(isToday?'plan-today':'')+'" style="background:'+bgColor+';border:1px solid '+borderColor+';border-radius:12px;padding:12px;margin-bottom:8px">';
     // En-tête jour avec bouton +
-    h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-    h+='<div style="min-width:50px;text-align:center;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\')">';
-    h+='<div style="font-size:10px;font-weight:600;color:'+(isToday?'#a5b4fc':'#64748b')+'">'+jours[d.getDay()]+'</div>';
-    h+='<div style="font-size:22px;font-weight:700;color:'+(isToday?'#fff':'#94a3b8')+'">'+d.getDate()+'</div>';
-    h+='<div style="font-size:10px;color:#64748b">'+mois[d.getMonth()]+'</div></div>';
+    h+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:'+(hasAny?'10':'4')+'px">';
+    h+='<div style="min-width:54px;text-align:center;cursor:pointer;padding:4px 0;border-radius:10px;background:'+(isToday?'rgba(99,102,241,0.3)':'rgba(255,255,255,0.03)')+'" onclick="openPlanEventModal(\''+ds+'\')">';
+    h+='<div style="font-size:10px;font-weight:700;color:'+(isToday?'#a5b4fc':'#64748b')+';letter-spacing:0.5px">'+jours[d.getDay()]+'</div>';
+    h+='<div style="font-size:24px;font-weight:800;color:'+(isToday?'#fff':'#cbd5e1')+'">'+d.getDate()+'</div>';
+    h+='<div style="font-size:10px;color:'+(isToday?'#a5b4fc':'#64748b')+';font-weight:500">'+mois[d.getMonth()]+'</div></div>';
 
     if(!hasAny){
-      h+='<div style="flex:1;color:#475569;font-size:12px;padding:4px 0;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\')">Aucun événement — appuyez pour ajouter</div>';
+      h+='<div style="flex:1;color:#475569;font-size:12px;padding:4px 0;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\')">Aucun événement</div>';
     }else{
       h+='<div style="flex:1">';
       // Tournages (couleur rose = tournage)
@@ -2049,7 +2219,7 @@ function rPlanning(){
         }
         h+='<div style="background:rgba(255,255,255,0.06);border-left:3px solid '+pt.c+';border-radius:6px;padding:8px 10px;margin-bottom:4px;cursor:pointer" onclick="openPlanEventModal(\''+ds+'\',\''+cev.id+'\')">';
         h+='<div style="display:flex;align-items:center;justify-content:space-between">';
-        h+='<div style="font-size:13px;font-weight:600;color:'+pt.c+'">'+pt.i+' '+cev.titre+'</div>';
+        h+='<div style="font-size:13px;font-weight:600;color:'+pt.c+'">'+pt.i+' '+pt.l+'</div>';
         if(cev.heure)h+='<div style="font-size:11px;color:#94a3b8">🕐 '+cev.heure+'</div>';
         h+='</div>';
         // Infos liées
@@ -2096,11 +2266,9 @@ var PLAN_TYPES=[
   {id:"enlevement",l:"Enlèvement",i:"🚚",c:"#3b82f6"},
   {id:"rendu",l:"Rendu",i:"📦",c:"#22c55e"},
   {id:"installation",l:"Installation Décor",i:"🏗️",c:"#f59e0b"},
-  {id:"demontage_custom",l:"Démontage",i:"🔧",c:"#8b5cf6"},
-  {id:"meublage",l:"Meublage / Accessoires",i:"🪑",c:"#6366f1"},
-  {id:"autre_event",l:"Autre",i:"📌",c:"#64748b"}
+  {id:"demontage_custom",l:"Démontage",i:"🔧",c:"#8b5cf6"}
 ];
-function getPlanType(id){for(var i=0;i<PLAN_TYPES.length;i++)if(PLAN_TYPES[i].id===id)return PLAN_TYPES[i];return PLAN_TYPES[5];}
+function getPlanType(id){for(var i=0;i<PLAN_TYPES.length;i++)if(PLAN_TYPES[i].id===id)return PLAN_TYPES[i];return PLAN_TYPES[0];}
 
 var PLAN_EDIT_DATE=null;
 var PLAN_EDIT_EVT=null;
@@ -2123,10 +2291,10 @@ window.savePlanEvent=function(){
   var loueurId=document.getElementById("pe-loueur").value;
   var heure=document.getElementById("pe-heure").value;
 
-  // Décors cochés
+  // Décors sélectionnés via chips
   var decorIds=[];
-  var cbs=document.querySelectorAll(".pe-decor-cb:checked");
-  for(var i=0;i<cbs.length;i++)decorIds.push(cbs[i].value);
+  var chips=document.querySelectorAll(".pe-decor-chip");
+  for(var i=0;i<chips.length;i++){var did=chips[i].getAttribute("data-id");if(did)decorIds.push(did);}
 
   // Photos
   var photos=PLAN_EDIT_EVT?PLAN_EDIT_EVT.photos||[]:[];
@@ -2158,25 +2326,25 @@ window.savePlanEvent=function(){
     D.planningEvents.push(evt);
   }
   sv();
-  M=null;PLAN_EDIT_EVT=null;PHS=[];R();
+  PLAN_EDIT_EVT=null;modal(null);
   toast("✅ Événement enregistré");
 };
 
 window.deletePlanEvent=function(id){
   if(!confirm("Supprimer cet événement ?"))return;
   D.planningEvents=D.planningEvents.filter(function(e){return e.id!==id;});
-  sv();M=null;PLAN_EDIT_EVT=null;R();
+  PLAN_EDIT_EVT=null;sv();modal(null);
   toast("Événement supprimé");
 };
 
 function rPlanEventModal(){
-  var h='<div class="modal" onclick="M=null;R()">';
+  var h='<div class="modal" onclick="modal(null)">';
   h+='<div class="mpan" onclick="event.stopPropagation()">';
   h+='<div class="mbar"></div>';
   var dateLabel=PLAN_EDIT_DATE?fd(new Date(PLAN_EDIT_DATE)):"";
-  h+='<div class="mtit">'+(PLAN_EDIT_EVT?"✏️ Modifier":"➕ Ajouter")+' un événement — '+dateLabel+'</div>';
+  h+='<div class="mtit">'+(PLAN_EDIT_EVT?"✏️ Modifier":"➕ Ajouter")+' — '+dateLabel+'</div>';
 
-  // Type
+  // 1. Type d'événement
   h+='<div class="fld"><label>Type d\'événement</label><select id="pe-type">';
   for(var i=0;i<PLAN_TYPES.length;i++){
     var sel=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.type===PLAN_TYPES[i].id?" selected":"";
@@ -2184,28 +2352,8 @@ function rPlanEventModal(){
   }
   h+='</select></div>';
 
-  // Heure
-  h+='<div class="fld"><label>Heure (optionnel)</label><input type="time" id="pe-heure" value="'+(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.heure?PLAN_EDIT_EVT.heure:"")+'"></div>';
-
-  // Décors liés (multi-select checkboxes)
-  var selDecors=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.decorIds?PLAN_EDIT_EVT.decorIds:(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.decorId?[PLAN_EDIT_EVT.decorId]:[]);
-  h+='<div class="fld"><label>Décor(s) lié(s)</label>';
-  h+='<div style="max-height:150px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:8px;padding:8px">';
-  var hasDecors=false;
-  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
-    for(var j=0;j<p.decors.length;j++){
-      var d=p.decors[j];hasDecors=true;
-      var chk=selDecors.indexOf(d.id)>=0?" checked":"";
-      h+='<label style="display:flex;align-items:center;gap:8px;padding:6px 4px;cursor:pointer;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.05)">';
-      h+='<input type="checkbox" class="pe-decor-cb" value="'+d.id+'"'+chk+' style="width:16px;height:16px;accent-color:#6366f1">';
-      h+='<span>'+d.nom+'</span><span style="font-size:11px;color:#64748b;margin-left:auto">'+p.nom+'</span></label>';
-    }
-  }
-  if(!hasDecors)h+='<div style="color:#64748b;font-size:12px;padding:4px">Aucun décor disponible</div>';
-  h+='</div></div>';
-
-  // Loueur lié
-  h+='<div class="fld"><label>Loueur lié (optionnel)</label><select id="pe-loueur"><option value="">— Aucun —</option>';
+  // 2. Loueur lié
+  h+='<div class="fld"><label>Loueur lié</label><select id="pe-loueur"><option value="">— Aucun —</option>';
   for(var i=0;i<D.loueurs.length;i++){
     var l=D.loueurs[i];
     var sel3=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.loueurId===l.id?" selected":"";
@@ -2213,50 +2361,125 @@ function rPlanEventModal(){
   }
   h+='</select></div>';
 
-  // Notes
-  h+='<div class="fld"><label>Notes / infos détaillées</label><textarea id="pe-notes" placeholder="Infos complémentaires...">'+(PLAN_EDIT_EVT?PLAN_EDIT_EVT.notes||"":"")+'</textarea></div>';
+  // 3. Heure
+  h+='<div class="fld"><label>Heure</label><input type="time" id="pe-heure" value="'+(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.heure?PLAN_EDIT_EVT.heure:"")+'"></div>';
 
-  // Photos
-  h+='<div class="fld"><label>Photos (optionnel)</label>';
-  if(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.photos&&PLAN_EDIT_EVT.photos.length){
-    h+='<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">';
-    for(var p=0;p<PLAN_EDIT_EVT.photos.length;p++){
-      h+='<img src="'+PLAN_EDIT_EVT.photos[p]+'" style="width:50px;height:50px;object-fit:cover;border-radius:6px">';
+  // 4. Décor(s) lié(s) — menu déroulant multi-select
+  var selDecors=PLAN_EDIT_EVT&&PLAN_EDIT_EVT.decorIds?PLAN_EDIT_EVT.decorIds:(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.decorId?[PLAN_EDIT_EVT.decorId]:[]);
+  h+='<div class="fld"><label>Décor(s) lié(s)</label>';
+  h+='<select id="pe-decor-select" onchange="peAddDecor(this.value);this.value=\'\'">';
+  h+='<option value="">— Ajouter un décor —</option>';
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){
+      var dd=p.decors[j];
+      if(selDecors.indexOf(dd.id)>=0)continue;
+      h+='<option value="'+dd.id+'">'+dd.nom+' ('+p.nom+')</option>';
     }
+  }
+  h+='</select>';
+  // Chips des décors sélectionnés
+  h+='<div id="pe-decor-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">';
+  for(var sd=0;sd<selDecors.length;sd++){
+    var dNom="";
+    for(var pi2=0;pi2<D.projets.length;pi2++){var pp2=D.projets[pi2];if(pp2.decors)for(var dj2=0;dj2<pp2.decors.length;dj2++)if(pp2.decors[dj2].id===selDecors[sd])dNom=pp2.decors[dj2].nom;}
+    h+='<div class="pe-decor-chip" data-id="'+selDecors[sd]+'" style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(99,102,241,0.2);border-radius:8px;font-size:12px;color:#a5b4fc">';
+    h+='🎬 '+dNom+'<span onclick="peRemoveDecor(\''+selDecors[sd]+'\')" style="cursor:pointer;margin-left:4px;color:#ef4444;font-weight:700">✕</span></div>';
+  }
+  h+='</div></div>';
+
+  // 5. Notes / infos détaillées
+  h+='<div class="fld"><label>Infos détaillées</label><textarea id="pe-notes" placeholder="Infos complémentaires...">'+(PLAN_EDIT_EVT?PLAN_EDIT_EVT.notes||"":"")+'</textarea></div>';
+
+  // 6. Photos — même style que le reste de l'app
+  h+='<div class="fld"><label>Photos</label>';
+  if(PLAN_EDIT_EVT&&PLAN_EDIT_EVT.photos&&PLAN_EDIT_EVT.photos.length){
+    h+='<div class="photo-row" style="margin-bottom:8px">';
+    for(var p=0;p<PLAN_EDIT_EVT.photos.length;p++){
+      h+='<div class="photo-thumb" onclick="openPlanEvtPh('+p+')" style="position:relative"><img src="'+PLAN_EDIT_EVT.photos[p]+'">';
+      h+='<div onclick="event.stopPropagation();rmPlanEvtPh('+p+')" style="position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#ef4444;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</div></div>';
+    }
+    h+='<div class="photo-thumb photo-add" onclick="document.getElementById(\'pe-phi\').click()">+</div>';
     h+='</div>';
   }
-  h+='<input type="file" accept="image/*" multiple onchange="planEventPhotos(this)"></div>';
+  h+='<div class="drop" onclick="document.getElementById(\'pe-phi\').click()">';
+  h+='<div id="pe-phpr"></div>';
+  h+='<div id="pe-phpl"><span class="icon">📸</span><p>Ajouter photos</p></div>';
+  h+='<input type="file" accept="image/*" multiple id="pe-phi" style="display:none" onchange="planEventPhotos(this)"></div>';
+  h+='</div>';
 
   // Boutons
   h+='<button class="btn p" onclick="savePlanEvent()">💾 Enregistrer</button>';
   if(PLAN_EDIT_EVT){
     h+='<button class="btn" style="background:rgba(239,68,68,0.2);color:#ef4444" onclick="deletePlanEvent(\''+PLAN_EDIT_EVT.id+'\')">🗑️ Supprimer</button>';
   }
-  h+='<button class="btn" style="background:rgba(255,255,255,0.1)" onclick="M=null;R()">Annuler</button>';
+  h+='<button class="btn" style="background:rgba(255,255,255,0.1)" onclick="modal(null)">Annuler</button>';
 
   h+='</div></div>';
   return h;
 };
 
 window.planEventPhotos=function(input){
-  PHS=[];
   var files=input.files;
-  var loaded=0;
+  var pr=document.getElementById("pe-phpr"),pl=document.getElementById("pe-phpl");
   for(var i=0;i<files.length;i++){
     (function(f){
       var reader=new FileReader();
       reader.onload=function(e){
         PHS.push(e.target.result);
-        loaded++;
+        if(pr&&pl){pr.innerHTML='<div style="color:#a5b4fc;font-size:12px">'+PHS.length+' photo(s) sélectionnée(s)</div>';pl.style.display="none";}
       };
       reader.readAsDataURL(f);
     })(files[i]);
   }
 };
 
+// Ouvrir portfolio d'un événement planning
+window.openPlanEvtPh=function(idx){
+  if(!PLAN_EDIT_EVT||!PLAN_EDIT_EVT.photos)return;
+  var phs=PLAN_EDIT_EVT.photos.map(function(p){return{data:p};});
+  openPh(phs,idx);
+};
+
+// Supprimer une photo d'un événement planning
+window.rmPlanEvtPh=function(idx){
+  if(!PLAN_EDIT_EVT||!PLAN_EDIT_EVT.photos)return;
+  PLAN_EDIT_EVT.photos.splice(idx,1);
+  R();
+};
+
+// Décor chips: ajouter
+window.peAddDecor=function(id){
+  if(!id)return;
+  var chips=document.getElementById("pe-decor-chips");
+  // Trouver le nom
+  var nom="";
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(p.decors)for(var j=0;j<p.decors.length;j++)if(p.decors[j].id===id)nom=p.decors[j].nom;}
+  // Ajouter le chip
+  var chip=document.createElement("div");
+  chip.className="pe-decor-chip";
+  chip.setAttribute("data-id",id);
+  chip.style.cssText="display:flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(99,102,241,0.2);border-radius:8px;font-size:12px;color:#a5b4fc";
+  chip.innerHTML='🎬 '+nom+'<span onclick="peRemoveDecor(\''+id+'\')" style="cursor:pointer;margin-left:4px;color:#ef4444;font-weight:700">✕</span>';
+  chips.appendChild(chip);
+  // Retirer du select
+  var sel=document.getElementById("pe-decor-select");
+  for(var o=0;o<sel.options.length;o++)if(sel.options[o].value===id){sel.remove(o);break;}
+};
+
+// Décor chips: retirer
+window.peRemoveDecor=function(id){
+  var chips=document.querySelectorAll(".pe-decor-chip");
+  for(var i=0;i<chips.length;i++)if(chips[i].getAttribute("data-id")===id){chips[i].remove();break;}
+  // Re-ajouter au select
+  var nom="",proj="";
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(p.decors)for(var j=0;j<p.decors.length;j++)if(p.decors[j].id===id){nom=p.decors[j].nom;proj=p.nom;}}
+  var sel=document.getElementById("pe-decor-select");
+  var opt=document.createElement("option");opt.value=id;opt.textContent=nom+' ('+proj+')';
+  sel.appendChild(opt);
+};
+
 // Impression planning
 window.printPlanning=function(){
-  var w=window.open("","_blank");
   var today=new Date();today.setHours(12,0,0,0);
   var startDate=new Date(today);startDate.setDate(startDate.getDate()+PLAN_OFF);
   var jours=["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -2265,9 +2488,10 @@ window.printPlanning=function(){
   var html="<html><head><title>Planning Tournage</title><style>body{font-family:sans-serif;padding:20px;color:#333;max-width:900px;margin:0 auto}h1{color:#6366f1;margin-bottom:16px}.day{border:1px solid #ddd;border-radius:8px;padding:12px;margin-bottom:8px;page-break-inside:avoid}.day.today{border-color:#6366f1;background:#f0f0ff}.day-header{font-weight:700;font-size:15px;margin-bottom:6px}.ev{padding:4px 0;font-size:13px;border-bottom:1px solid #f0f0f0}.ev:last-child{border:none}.tournage{color:#ec4899;font-weight:600}.prepa{color:#f59e0b}.demo{color:#8b5cf6}.acc{color:#64748b;font-size:12px}@media print{body{padding:10px}.day{margin-bottom:4px;padding:8px}}</style></head><body>";
   html+="<h1>📅 Planning Tournage</h1>";
   for(var day=0;day<14;day++){
-    var d=new Date(startDate);d.setDate(d.getDate()+day);
-    var ds=d.toISOString().split("T")[0];
-    var isToday=d.getTime()===today.getTime();
+    var d=new Date(startDate);d.setDate(d.getDate()+day);d.setHours(12,0,0,0);
+    var pdy=d.getFullYear(),pdm=d.getMonth()+1,pdd=d.getDate();
+    var ds=pdy+'-'+(pdm<10?'0':'')+pdm+'-'+(pdd<10?'0':'')+pdd;
+    var isToday=ds===(today.getFullYear()+'-'+((today.getMonth()+1)<10?'0':'')+(today.getMonth()+1)+'-'+(today.getDate()<10?'0':'')+today.getDate());
     html+="<div class='day"+(isToday?" today":"")+"'><div class='day-header'>"+jours[d.getDay()]+" "+d.getDate()+" "+mois[d.getMonth()]+"</div>";
     var hasEvent=false;
     for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
@@ -2284,7 +2508,7 @@ window.printPlanning=function(){
     if(!hasEvent)html+="<div class='ev' style='color:#999'>Aucun événement</div>";
     html+="</div>";
   }
-  html+="</body></html>";w.document.write(html);w.document.close();w.print();
+  html+="</body></html>";openPrintWindow(html);
 };
 
 function rRentals(){
@@ -2348,7 +2572,9 @@ function rMenu(){
   h+='<div style="font-size:14px;font-weight:600">'+CURRENT_USER.nom+'</div>';
   h+='<div style="font-size:12px;color:#a5b4fc">'+CURRENT_USER.role+'</div>';
   if(CURRENT_USER.email)h+='<div style="font-size:11px;color:#64748b">'+CURRENT_USER.email+'</div>';
-  h+='</div></div></div>';
+  h+='</div></div>';
+  h+='<div style="margin-top:8px"><button class="abtn" onclick="MN=false;modal(\'edit_profil\')" style="font-size:12px;width:100%;justify-content:center">✏️ Modifier mon profil</button></div>';
+  h+='</div>';
 
   // Code projet
   h+='<div class="box" style="margin-bottom:12px"><div style="font-size:11px;color:#64748b;margin-bottom:4px">Code projet</div><div style="font-size:20px;font-weight:700;letter-spacing:2px">'+CODE+'</div></div>';
@@ -2587,6 +2813,16 @@ function rModal(){
       c+='<div class="fld-row"><div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div><div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div></div>';
       c+='<button class="btn p" onclick="saveRepasFromTab()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
     }
+  }
+
+  else if(M==="edit_profil"){
+    c='<div class="mbar"></div><div class="mtit">✏️ Mon profil</div>';
+    c+='<div class="fld"><label>Nom</label><input id="ep-nom" value="'+CURRENT_USER.nom+'"></div>';
+    c+='<div class="fld"><label>Poste</label><select id="ep-role">';
+    for(var i=0;i<ROLES.length;i++)c+='<option value="'+ROLES[i]+'"'+(CURRENT_USER.role===ROLES[i]?' selected':'')+'>'+ROLES[i]+'</option>';
+    c+='</select></div>';
+    c+='<button class="btn p" onclick="saveEditProfil()">✅ Valider</button>';
+    c+='<button class="btn s" onclick="modal(null)">Annuler</button>';
   }
 
   return '<div class="modal" onclick="modal(null)"><div class="mpan" onclick="event.stopPropagation()">'+c+'</div></div>';
@@ -3072,6 +3308,55 @@ function normalizeDate(s){
   return s;
 }
 
+// === Suppression utilisateur (admin) ===
+window.deleteUser=function(userId){
+  if(!ADMIN_UNLOCKED)return;
+  if(!D.users||!D.users.length)return;
+  var u=null;
+  for(var i=0;i<D.users.length;i++){if(D.users[i].id===userId){u=D.users[i];break;}}
+  if(!u)return toast("Utilisateur introuvable",true);
+  if(CURRENT_USER.nom&&userKey(u)===userKey(CURRENT_USER))return toast("Vous ne pouvez pas supprimer votre propre compte",true);
+  if(!confirm("Supprimer le compte de "+u.nom+" ("+u.role+") ?\nCette action est irréversible."))return;
+  D.users=D.users.filter(function(x){return x.id!==userId;});
+  sv();R();
+  toast("✅ Compte supprimé");
+};
+
+// Fusionner un compte doublon vers un compte principal (garde les devices des deux)
+window.mergeUser=function(sourceId,targetId){
+  if(!ADMIN_UNLOCKED||!D.users)return;
+  var source=null,target=null;
+  for(var i=0;i<D.users.length;i++){
+    if(D.users[i].id===sourceId)source=D.users[i];
+    if(D.users[i].id===targetId)target=D.users[i];
+  }
+  if(!source||!target)return toast("Utilisateur introuvable",true);
+  // Fusionner les devices
+  if(!target.devices)target.devices=[];
+  if(source.devices){
+    for(var d=0;d<source.devices.length;d++){
+      var devExists=false;
+      for(var t=0;t<target.devices.length;t++){if(target.devices[t].deviceId===source.devices[d].deviceId){devExists=true;break;}}
+      if(!devExists)target.devices.push(source.devices[d]);
+    }
+  }
+  // Garder la date la plus ancienne
+  if(source.joinedAt&&target.joinedAt&&new Date(source.joinedAt)<new Date(target.joinedAt))target.joinedAt=source.joinedAt;
+  // Garder l'email si le target n'en a pas
+  if(source.email&&!target.email)target.email=source.email;
+  // Supprimer le doublon
+  D.users=D.users.filter(function(x){return x.id!==sourceId;});
+  // Si c'est le user courant qui était le doublon, basculer sur le target
+  if(CURRENT_USER.nom&&userKey(source)===userKey(CURRENT_USER)){
+    CURRENT_USER.nom=target.nom;CURRENT_USER.email=target.email||"";CURRENT_USER.role=target.role;
+    localStorage.setItem("dp_user",JSON.stringify(CURRENT_USER));
+  }
+  sv();R();
+  toast("✅ Comptes fusionnés — "+target.devices.length+" appareil(s)");
+};
+  toast("✅ Compte de "+u.nom+" supprimé");
+};
+
 // === ADMIN ===
 var ADMIN_CODE=localStorage.getItem("adminCode")||"DÉCOPROV14";
 var ADMIN_UNLOCKED=false;
@@ -3090,12 +3375,44 @@ window.openAdmin=function(){
 
 function getStorageSize(){
   var total=0;
+  // localStorage
   try{
     for(var key in localStorage){
       if(localStorage.hasOwnProperty(key)){
-        total+=localStorage[key].length*2; // UTF-16 = 2 bytes per char
+        total+=localStorage[key].length*2;
       }
     }
+  }catch(e){}
+  // Estimer la taille des photos Firebase Storage
+  // Parcourir tous les éléments avec photos (URL = stocké sur Firebase)
+  try{
+    for(var i=0;i<D.projets.length;i++){
+      var p=D.projets[i];
+      if(p.decors){for(var j=0;j<p.decors.length;j++){
+        var d=p.decors[j];
+        if(d.elements){for(var k=0;k<d.elements.length;k++){
+          var el=d.elements[k];
+          if(el.photos){for(var ph=0;ph<el.photos.length;ph++){
+            var photo=el.photos[ph];
+            // Si c'est une URL Firebase (pas base64 local), estimer ~500 Ko par photo
+            if(typeof photo==="string"&&photo.indexOf("firebasestorage")>=0){total+=500*1024;}
+            else if(typeof photo==="object"&&photo.url&&photo.url.indexOf("firebasestorage")>=0){total+=500*1024;}
+            // Si base64, calcul réel
+            else if(typeof photo==="string"&&photo.indexOf("data:")===0){total+=Math.round(photo.length*0.75);}
+            else if(typeof photo==="object"&&photo.url&&photo.url.indexOf("data:")===0){total+=Math.round(photo.url.length*0.75);}
+          }}
+        }}
+      }}
+    }
+    // Photos des événements planning
+    if(D.planningEvents){for(var pe=0;pe<D.planningEvents.length;pe++){
+      var evt=D.planningEvents[pe];
+      if(evt.photos){for(var ph=0;ph<evt.photos.length;ph++){
+        var photo=evt.photos[ph];
+        if(typeof photo==="string"&&photo.indexOf("firebasestorage")>=0){total+=500*1024;}
+        else if(typeof photo==="object"&&photo.url&&photo.url.indexOf("firebasestorage")>=0){total+=500*1024;}
+      }}
+    }}
   }catch(e){}
   return total;
 }
@@ -3136,15 +3453,19 @@ function rAdmin(){
 
   // === Stockage ===
   var storageUsed=getStorageSize();
-  var storageMax=5*1024*1024; // 5 Mo localStorage limit
-  var pct=Math.min(100,Math.round(storageUsed/storageMax*100));
+  var storageMax=5*1024*1024*1024; // 5 Go max
+  var pct=Math.min(100,Math.round(storageUsed/storageMax*10000)/100);
   var barColor=pct>80?"#ef4444":(pct>50?"#f59e0b":"#10b981");
+  var remaining=storageMax-storageUsed;
 
   h+='<div class="box" style="border-left:3px solid #6366f1">';
   h+='<div style="font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">💾 Stockage du projet</div>';
-  h+='<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Utilisé</span><span style="font-weight:600">'+formatBytes(storageUsed)+' / '+formatBytes(storageMax)+'</span></div>';
-  h+='<div style="width:100%;height:12px;background:rgba(255,255,255,0.1);border-radius:6px;overflow:hidden"><div style="width:'+pct+'%;height:100%;background:'+barColor+';border-radius:6px;transition:width 0.3s"></div></div>';
-  h+='<div style="text-align:right;font-size:11px;color:#64748b;margin-top:4px">'+pct+'% utilisé</div>';
+  h+='<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Utilisé</span><span style="font-weight:600">'+formatBytes(storageUsed)+' / 5 Go</span></div>';
+  h+='<div style="width:100%;height:14px;background:rgba(255,255,255,0.1);border-radius:7px;overflow:hidden"><div style="width:'+Math.max(0.5,pct)+'%;height:100%;background:linear-gradient(90deg,'+barColor+','+barColor+'cc);border-radius:7px;transition:width 0.3s"></div></div>';
+  h+='<div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-top:4px"><span>'+pct+'% utilisé</span><span>'+formatBytes(remaining>0?remaining:0)+' restant</span></div>';
+  // Alerte si stockage critique
+  if(pct>90){h+='<div style="margin-top:8px;padding:8px 12px;background:rgba(239,68,68,0.15);border-radius:8px;font-size:12px;color:#fca5a5;display:flex;align-items:center;gap:6px">⚠️ Stockage presque plein ! Pensez à supprimer des photos ou éléments inutiles.</div>';}
+  else if(pct>70){h+='<div style="margin-top:8px;padding:8px 12px;background:rgba(245,158,11,0.15);border-radius:8px;font-size:12px;color:#fcd34d;display:flex;align-items:center;gap:6px">💡 Stockage au-delà de 70%. Surveillez l\'espace restant.</div>';}
 
   // Détails stockage
   var stats=getProjectStats();
@@ -3198,6 +3519,24 @@ function rAdmin(){
       h+='<div>📅 Rejoint le '+joinDate+'</div>';
       h+='<div>'+(isOnline?'🟢 En ligne maintenant':'🔴 Vu '+lastSeen)+'</div>';
       h+='<div>🕐 Dernière activité : '+lastSeen+'</div>';
+      h+='</div>';
+      // Afficher devices connectés
+      var activeDevices=0;
+      if(u.devices&&u.devices.length){for(var dd=0;dd<u.devices.length;dd++){if(u.devices[dd].online&&u.devices[dd].lastSeen&&(new Date()-new Date(u.devices[dd].lastSeen))<600000)activeDevices++;}}
+      if(u.devices&&u.devices.length>0){
+        h+='<div style="margin-top:6px;font-size:11px;color:#a5b4fc;display:flex;align-items:center;gap:4px">📱 '+activeDevices+'/'+u.devices.length+' appareil(s) actif(s)</div>';
+      }
+      // Boutons admin : fusionner ou supprimer
+      h+='<div style="margin-top:8px;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap">';
+      // Bouton fusionner (si plus de 1 user)
+      if(D.users.length>1){
+        h+='<select onchange="if(this.value)mergeUser(\''+u.id+'\',this.value)" style="font-size:11px;padding:4px 8px;border-radius:6px;background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);cursor:pointer"><option value="">🔗 Fusionner avec…</option>';
+        for(var j=0;j<D.users.length;j++){
+          if(D.users[j].id!==u.id)h+='<option value="'+D.users[j].id+'">'+D.users[j].nom+' ('+D.users[j].role+')</option>';
+        }
+        h+='</select>';
+      }
+      h+='<button class="abtn" onclick="deleteUser(\''+u.id+'\')" style="font-size:11px;color:#ef4444;border:1px solid rgba(239,68,68,0.3);padding:4px 10px;border-radius:6px">🗑 Supprimer</button>';
       h+='</div>';
       h+='</div>';
     }
