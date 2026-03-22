@@ -919,7 +919,7 @@ window.importData=function(){
         }
         var msg="Fichier détecté :\n• "+np+" projet(s), "+nd+" décor(s), "+npe+" événement(s) planning\n\n";
         if(sameProject){
-          msg+="⚠️ Le même projet existe déjà dans l'app.\n\nQue faire ?\n\n• OK = METTRE À JOUR (remplace les dates et données du projet existant, conserve les photos des éléments inchangés)\n• Annuler = Ne rien faire";
+          msg+="Le meme projet existe deja.\n\nOK = METTRE A JOUR (remplace les dates, conserve les photos)\nAnnuler = Ne rien faire";
           if(!confirm(msg))return;
           // MODE MISE À JOUR : remplacer le projet existant mais conserver les photos des éléments
           for(var x=0;x<imported.projets.length;x++){
@@ -3353,8 +3353,6 @@ window.mergeUser=function(sourceId,targetId){
   }
   sv();R();
   toast("✅ Comptes fusionnés — "+target.devices.length+" appareil(s)");
-};
-  toast("✅ Compte de "+u.nom+" supprimé");
 };
 
 // === ADMIN ===
