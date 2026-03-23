@@ -2101,7 +2101,9 @@ function rTelOrdi(){
   h+='<div class="acts" style="margin-bottom:8px">';
   h+='<div class="abtn" onclick="window.importTelOrdiJSON()">📥 Import JSON</div>';
   h+='<div class="abtn" onclick="window.exportTelOrdiJSON()">📤 Export JSON</div>';
-  h+='<div class="abtn" onclick="window.downloadTelOrdiTemplate()">📋 Template JSON</div>';
+  h+='<div class="abtn" onclick="window.downloadTelOrdiTemplate()">📋 Template</div>';
+  h+='<div class="abtn" onclick="window.deduplicateTelOrdi()">🧹 Suppr. doublons</div>';
+  h+='<div class="abtn" onclick="window.deleteAllTelOrdi()" style="color:#ef4444">🗑 Tout suppr.</div>';
   h+='</div>';
   h+='<div class="hdr-search" style="margin-bottom:8px"><input placeholder="Rechercher nom, séquence, rôle, décor..." value="'+SQ+'" oninput="setSQ(this.value)"></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">';
@@ -3421,6 +3423,49 @@ window.importTelOrdiJSON=function(){
     reader.readAsText(file);
   };
   inp.click();
+};
+
+// Supprimer les doublons tél/ordi (même séquence + même rôle + même type)
+window.deduplicateTelOrdi=function(){
+  var removed=0;
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;
+      var seen={};
+      var keep=[];
+      for(var k=0;k<d.elements.length;k++){
+        var e=d.elements[k];
+        if(e.rubrique!=="tel_ordi"){keep.push(e);continue;}
+        var key=(e.scene||"")+"_"+(e.role||"").toLowerCase()+"_"+(e.nom||"").toLowerCase().split(" — ")[0];
+        if(seen[key]){
+          // Doublon : garder celui avec date
+          if(e.dateJeu&&!seen[key].dateJeu){
+            keep=keep.filter(function(x){return x.id!==seen[key].id;});
+            keep.push(e);seen[key]=e;
+          }
+          removed++;
+        }else{seen[key]=e;keep.push(e);}
+      }
+      d.elements=keep;
+    }
+  }
+  sv();R();
+  toast(removed?removed+" doublon(s) supprime(s)":"Aucun doublon trouve");
+};
+
+// Supprimer tous les tél/ordi
+window.deleteAllTelOrdi=function(){
+  var count=0;
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;
+      var before=d.elements.length;
+      d.elements=d.elements.filter(function(e){return e.rubrique!=="tel_ordi";});
+      count+=before-d.elements.length;
+    }
+  }
+  if(!count)return toast("Aucun tel/ordi a supprimer");
+  if(!confirm("Supprimer les "+count+" tel/ordi ? Cette action est irreversible."))return;
+  sv();R();
+  toast(count+" tel/ordi supprimes");
 };
 
 window.updateEl=function(){var n=gv("f1");if(!n)return alert("Nom requis");var oldScene=EDIT.scene;EDIT.nom=n;EDIT.rubrique=gv("f2");var newStatut=gv("f3");if(newStatut==="a_valider")newStatut="valide";EDIT.statut=newStatut;EDIT.description=gv("f4");EDIT.dimensions=gv("f5");EDIT.quantite=gv("f6");EDIT.couleur=gv("f7");EDIT.matiere=gv("f8");EDIT.tags=gv("f9");EDIT.scene=gv("f10");EDIT.role=gv("f11");EDIT.dateJeu=gv("f12");EDIT.continuity=gv("f13");EDIT.loueurId=gv("f14");EDIT.coutLocation=gv("f15");EDIT.coutReel=gv("f16");EDIT.dateDepart=gv("f17");EDIT.dateRetour=gv("f18");EDIT.episode=gv("f19");
