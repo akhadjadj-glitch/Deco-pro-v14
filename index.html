@@ -1718,7 +1718,8 @@ function rDec(){
       if(DC.elements)for(var j=0;j<DC.elements.length;j++){
         if(DC.elements[j].rubrique===r.id){cnt++;if(DC.elements[j].urgent)urg++;if(DC.elements[j].photos)phs+=DC.elements[j].photos.length;}
       }
-      h+='<div class="rub-card'+(urg?' urgent':'')+'" onclick="modal(\'rub\',\''+r.id+'\')" style="border-left:3px solid '+r.c+'">';
+      var rubClick=r.id==="repas"?"setTab(\'repas\')":(r.id==="tel_ordi"?"setTab(\'tel_ordi\')":"modal(\'rub\',\'"+r.id+"\')");
+      h+='<div class="rub-card'+(urg?' urgent':'')+'" onclick="'+rubClick+'" style="border-left:3px solid '+r.c+'">';
       h+='<div class="icon">'+r.i+'</div><h4>'+r.n+'</h4><p>'+cnt+' él.'+(phs?' • '+phs+' 📷':'')+'</p>';
       if(cnt)h+='<div class="count">'+cnt+'</div>';
       h+='</div>';
