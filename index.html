@@ -438,6 +438,7 @@ document.addEventListener("error",function(e){
 },true);
 
 function gs(id){for(var i=0;i<STAT.length;i++)if(STAT[i].id===id)return STAT[i];return STAT[0]}
+function getDeviceIcon(nom){if(!nom)return "📱";var n=nom.toLowerCase();if(n.indexOf("ipad")>=0||n.indexOf("tablette")>=0)return "📱";if(n.indexOf("ordinateur")>=0||n.indexOf("ordi")>=0||n.indexOf("laptop")>=0||n.indexOf("portable")>=0&&n.indexOf("tel")<0)return "💻";if(n.indexOf("ecran")>=0||n.indexOf("moniteur")>=0||n.indexOf("screen")>=0)return "🖥️";return "📞";}
 function gsd(id){for(var i=0;i<STATD.length;i++)if(STATD[i].id===id)return STATD[i];return STATD[0]}
 function gr(id){for(var i=0;i<RUB.length;i++)if(RUB[i].id===id)return RUB[i];return null}
 function gt(id){for(var i=0;i<TPROJ.length;i++)if(TPROJ[i].id===id)return TPROJ[i];return TPROJ[0]}
@@ -1801,12 +1802,15 @@ function rDec(){
       for(var j=0;j<telItems.length;j++){
         var e=telItems[j],st=gs(e.statut);
         h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')">';
-        h+='<div class="card-icon" style="font-size:20px">📱</div>';
+        var dIcon=getDeviceIcon(e.nom);
+        h+='<div class="card-icon" style="font-size:22px">'+dIcon+'</div>';
         h+='<div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3>';
         h+='<p style="font-size:11px;color:#94a3b8">';
         if(e.scene)h+='Sq.'+e.scene+' ';
-        if(e.episode)h+='Ép.'+e.episode+' ';
-        if(e.role)h+='👤 '+e.role+' ';
+        if(e.episode)h+='Ep.'+e.episode+' ';
+        if(e.role)h+='<span style="color:#a5b4fc">👤 '+e.role+'</span> ';
+        if(e.dateJeu)h+='<span style="color:#f9a8d4">🎬 '+fd(new Date(e.dateJeu))+'</span>';
+        if(e.description)h+='<br><span style="color:#475569">'+e.description.substring(0,50)+'</span>';
         h+='</p></div>';
         h+='<span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>';
         h+='</div>';
@@ -2113,24 +2117,28 @@ function rTelOrdi(){
   h+='<div class="filter-chip'+(ASORT==="decor"?" on":"")+'" onclick="setASort(\'decor\')">Par décor</div>';
   h+='<div class="filter-chip'+(ASORT==="date"?" on":"")+'" onclick="setASort(\'date\')">Par date tournage</div>';
   h+='</div>';
-  if(!items.length){h+='<div class="empty"><div class="icon">📱</div><p>Aucun tél / ordi</p><p style="font-size:12px">Ajoutez les téléphones et ordinateurs de jeu</p></div>';}
+  if(!items.length){h+='<div class="empty"><div class="icon">📱</div><p>Aucun tel / ordi</p><p style="font-size:12px">Ajoutez les telephones et ordinateurs de jeu</p></div>';}
   else{
     var lastGroup="";
     for(var i=0;i<items.length;i++){var x=items[i],e=x.e,st=gs(e.statut);
       var grp="";
       if(ASORT==="seq")grp="Sq."+(e.scene||"?");
-      else if(ASORT==="role")grp=e.role||"Sans rôle";
+      else if(ASORT==="role"){grp=e.role||"Sans role";var rc2=0;for(var ri2=0;ri2<items.length;ri2++)if((items[ri2].e.role||"")===(e.role||""))rc2++;grp+=" ("+rc2+" seq.)";}
       else if(ASORT==="decor")grp=x.d.nom;
       else if(ASORT==="date")grp=e.dateJeu?fd(new Date(e.dateJeu)):"Sans date";
       if(grp!==lastGroup){lastGroup=grp;h+='<div class="stit" style="margin-top:12px">'+grp+'</div>';}
+      // Icone selon le type d appareil
+      var devIcon=getDeviceIcon(e.nom);
       h+='<div class="card" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')">';
-      h+='<div class="card-icon" style="font-size:20px">📱</div>';
+      h+='<div class="card-icon" style="font-size:22px">'+devIcon+'</div>';
       h+='<div class="card-info"><h3>'+e.nom+'</h3>';
       h+='<p style="font-size:11px;color:#94a3b8">';
       if(e.scene)h+='Sq.'+e.scene+' ';
-      if(e.role)h+='👤 '+e.role+' ';
-      h+='📍 '+x.d.nom;
-      if(e.dateJeu)h+=' • 🎬 '+fd(new Date(e.dateJeu));
+      if(e.episode)h+='Ep.'+e.episode+' ';
+      if(e.role)h+='<span style="color:#a5b4fc">👤 '+e.role+'</span> ';
+      h+='<span style="color:#64748b">📍 '+x.d.nom+'</span>';
+      if(e.dateJeu)h+=' <span style="color:#f9a8d4">🎬 '+fd(new Date(e.dateJeu))+'</span>';
+      if(e.description)h+='<br><span style="color:#475569">'+e.description.substring(0,60)+(e.description.length>60?"...":"")+'</span>';
       h+='</p></div>';
       h+='<span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div>';
     }
