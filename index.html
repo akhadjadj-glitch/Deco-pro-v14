@@ -1686,7 +1686,14 @@ function rProj(){
       h+='<div class="card" onclick="go(\'dec\',\''+d.id+'\')">';
       h+='<div class="card-icon">'+(d.interieur?'🏠':'🌳')+'</div>';
       var dtour=d.dateTournage?' • 🎬'+fd(d.dateTournage)+(d.dateTournageFin?'→'+fd(d.dateTournageFin):''):'';
-      h+='<div class="card-info"><h3>'+d.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span> '+nel+' él.'+(d.sequences?' • Sq.'+d.sequences:'')+dtour+(bud.total>0?' • '+fm(bud.total):'')+'</p></div>';
+      // Compter accessoires, tel/ordi, repas
+      var nAcc=0,nTel=0,nRep=0;
+      if(d.elements)for(var ei=0;ei<d.elements.length;ei++){var rb=d.elements[ei].rubrique;if(rb==="accessoires")nAcc++;else if(rb==="tel_ordi")nTel++;else if(rb==="repas")nRep++;}
+      var badges="";
+      if(nAcc)badges+=' <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(236,72,153,0.15);color:#ec4899">🎭'+nAcc+'</span>';
+      if(nTel)badges+=' <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(14,165,233,0.15);color:#0ea5e9">📱'+nTel+'</span>';
+      if(nRep)badges+=' <span style="font-size:10px;padding:1px 5px;border-radius:4px;background:rgba(249,115,22,0.15);color:#f97316">🍽️'+nRep+'</span>';
+      h+='<div class="card-info"><h3>'+d.nom+'</h3><p><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span> '+nel+' el.'+(d.sequences?' • Sq.'+d.sequences:'')+dtour+(bud.total>0?' • '+fm(bud.total):'')+badges+'</p></div>';
       // Trouver l'index reel dans P.decors pour edit
       var realIdx=-1;for(var j=0;j<P.decors.length;j++)if(P.decors[j].id===d.id){realIdx=j;break;}
       h+='<div class="card-actions"><div class="card-act edit" onclick="event.stopPropagation();DC=P.decors['+realIdx+'];edit(\'decor\',DC)">✏️</div></div>';
