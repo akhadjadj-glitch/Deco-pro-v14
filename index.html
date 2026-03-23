@@ -2162,13 +2162,54 @@ function rTelOrdi(){
         h+='</div>';
       }
     }
+  }else if(ASORT==="date"){
+    // Vue par date : Date > Role > Type appareil > sequences
+    var dates={};
+    for(var i=0;i<items.length;i++){var e=items[i].e;var dk=e.dateJeu||"9999-99-99";if(!dates[dk])dates[dk]=[];dates[dk].push(items[i]);}
+    var dateKeys=Object.keys(dates);dateKeys.sort();
+    for(var di=0;di<dateKeys.length;di++){
+      var dk=dateKeys[di];var dItems=dates[dk];
+      var dateLabel=dk==="9999-99-99"?"Sans date":fd(new Date(dk));
+      // Trouver le decor pour cette date
+      var decorsJour=[];for(var dj=0;dj<dItems.length;dj++){var dn=dItems[dj].d.nom;if(decorsJour.indexOf(dn)<0)decorsJour.push(dn);}
+      h+='<div style="margin-top:16px;margin-bottom:8px;padding:10px 12px;background:rgba(236,72,153,0.1);border-radius:10px;border-left:3px solid #ec4899">';
+      h+='<div style="font-size:15px;font-weight:700;color:#e2e8f0">🎬 '+dateLabel+'</div>';
+      h+='<div style="font-size:11px;color:#f9a8d4">'+dItems.length+' appareil(s) — '+decorsJour.join(", ")+'</div></div>';
+      // Grouper par role
+      var dRoles={};var dRoleCount={};
+      for(var dri=0;dri<dItems.length;dri++){var r=dItems[dri].e.role||"Sans role";if(!dRoles[r])dRoles[r]=[];dRoles[r].push(dItems[dri]);dRoleCount[r]=(dRoleCount[r]||0)+1;}
+      var dRoleNames=Object.keys(dRoles);dRoleNames.sort(function(a,b){return dRoleCount[b]-dRoleCount[a];});
+      for(var dri2=0;dri2<dRoleNames.length;dri2++){
+        var rn=dRoleNames[dri2];var rItems=dRoles[rn];
+        h+='<div style="margin-left:8px;margin-bottom:6px">';
+        h+='<div style="font-size:12px;font-weight:600;color:#a5b4fc;margin-bottom:4px;padding:4px 0">👤 '+rn+'</div>';
+        // Grouper par type appareil
+        var dTypes={};
+        for(var dti=0;dti<rItems.length;dti++){var ic=getDeviceIcon(rItems[dti].e.nom);if(!dTypes[ic])dTypes[ic]={icon:ic,label:getDeviceLabel(rItems[dti].e.nom),items:[]};dTypes[ic].items.push(rItems[dti]);}
+        var dTypeKeys=Object.keys(dTypes);
+        for(var dtk=0;dtk<dTypeKeys.length;dtk++){
+          var t=dTypes[dTypeKeys[dtk]];
+          var seqs=[];for(var si=0;si<t.items.length;si++){if(t.items[si].e.scene)seqs.push({seq:t.items[si].e.scene,item:t.items[si]});}
+          seqs.sort(function(a,b){return (parseInt(a.seq)||999)-(parseInt(b.seq)||999);});
+          h+='<div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:8px 10px;margin-bottom:4px;margin-left:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+          h+='<span style="font-size:20px">'+t.icon+'</span>';
+          h+='<span style="font-size:12px;font-weight:600;color:#e2e8f0;min-width:80px">'+t.label+'</span>';
+          for(var sq=0;sq<seqs.length;sq++){
+            var si2=seqs[sq];
+            h+='<div onclick="goTo(\''+si2.item.p.id+'\',\''+si2.item.d.id+'\',\''+si2.item.e.id+'\')" style="cursor:pointer;padding:3px 7px;border-radius:5px;background:rgba(255,255,255,0.06);font-size:11px;border:1px solid rgba(255,255,255,0.08)">';
+            h+='<span style="color:#a5b4fc;font-weight:600">'+si2.seq+'</span></div>';
+          }
+          h+='</div>';
+        }
+        h+='</div>';
+      }
+    }
   }else{
     var lastGroup="";
     for(var i=0;i<items.length;i++){var x=items[i],e=x.e,st=gs(e.statut);
       var grp="";
       if(ASORT==="seq")grp="Sq."+(e.scene||"?");
       else if(ASORT==="decor")grp=x.d.nom;
-      else if(ASORT==="date")grp=e.dateJeu?fd(new Date(e.dateJeu)):"Sans date";
       if(grp!==lastGroup){lastGroup=grp;h+='<div class="stit" style="margin-top:12px">'+grp+'</div>';}
       var devIcon=getDeviceIcon(e.nom);
       h+='<div class="card" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')">';
