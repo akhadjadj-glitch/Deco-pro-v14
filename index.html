@@ -1250,6 +1250,7 @@ function rCalendarStrip(){
     if(alerts.tournage.length)h+='<div class="cal-badge pink" title="'+alerts.tournage.length+' tournage(s)"></div>';
     if(alerts.departs.length)h+='<div class="cal-badge blue" title="'+alerts.departs.length+' départ(s)"></div>';
     if(alerts.retours.length)h+='<div class="cal-badge green" title="'+alerts.retours.length+' retour(s)"></div>';
+    if(alerts.repas.length)h+='<div class="cal-badge" style="background:#f97316;color:#f97316;box-shadow:0 0 4px #f97316" title="'+alerts.repas.length+' repas"></div>';
     if(dayCustomEvts.length)h+='<div class="cal-badge" style="background:#a5b4fc;color:#a5b4fc;box-shadow:0 0 4px #a5b4fc" title="'+dayCustomEvts.length+' événement(s)"></div>';
     h+='</div></div>';
   }
@@ -1262,7 +1263,7 @@ function rCalendarStrip(){
     var MOISL=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
     var selAlerts=getAlertsForDate(selDate);
     var selCustom=(D.planningEvents||[]).filter(function(ev){return ev.date===CALSEL;});
-    var total=selAlerts.projPrepa.length+selAlerts.projTournage.length+selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length+selCustom.length;
+    var total=selAlerts.projPrepa.length+selAlerts.projTournage.length+selAlerts.prepa.length+selAlerts.shoot.length+selAlerts.demontage.length+selAlerts.urgents.length+selAlerts.tournage.length+selAlerts.departs.length+selAlerts.retours.length+selAlerts.nonPrets.length+selAlerts.retards.length+selAlerts.repas.length+selCustom.length;
     h+='<div class="cal-detail">';
     h+='<div style="font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">';
     h+='<span>'+JSEL[selDate.getDay()]+' '+selDate.getDate()+' '+MOISL[selDate.getMonth()]+'</span>';
@@ -1279,6 +1280,8 @@ function rCalendarStrip(){
       for(var i=0;i<selAlerts.retours.length;i++){var x=selAlerts.retours[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📥 <strong>'+x.e.nom+'</strong><span style="color:#10b981;margin-left:auto;font-size:11px">Retour</span></div>';}
       for(var i=0;i<selAlerts.nonPrets.length;i++){var x=selAlerts.nonPrets[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">📦 <strong>'+x.e.nom+'</strong><span style="color:#3b82f6;margin-left:auto;font-size:11px">Non prêt</span></div>';}
       for(var i=0;i<selAlerts.retards.length;i++){var x=selAlerts.retards[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')">⚠️ <strong>'+x.e.nom+'</strong><span style="color:#f59e0b;margin-left:auto;font-size:11px">Retard</span></div>';}
+      // Repas du jour
+      if(selAlerts.repas.length){for(var i=0;i<selAlerts.repas.length;i++){var x=selAlerts.repas[i];h+='<div class="cal-detail-item" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+x.e.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:#f97316;flex-shrink:0"></div><strong>🍽️ '+x.e.nom+'</strong><span style="font-size:10px;color:#64748b;margin-left:4px">'+x.d.nom+(x.d.sequences?" Sq."+x.d.sequences:"")+'</span><span style="color:#f97316;margin-left:auto;font-size:11px">Repas</span></div>';}}
       // Événements personnalisés du planning
       for(var ci=0;ci<selCustom.length;ci++){var cev=selCustom[ci];var pt=getPlanType(cev.type);h+='<div class="cal-detail-item" onclick="openPlanEventModal(\''+CALSEL+'\',\''+cev.id+'\')"><div style="width:10px;height:10px;border-radius:2px;background:'+pt.c+';flex-shrink:0"></div><strong>'+pt.i+' '+pt.l+'</strong>'+(cev.heure?'<span style="color:#94a3b8;margin-left:4px;font-size:11px">'+cev.heure+'</span>':'')+'<span style="color:'+pt.c+';margin-left:auto;font-size:11px">Planning</span></div>';}
     } else {
@@ -1294,7 +1297,7 @@ function rCalendarStrip(){
 
 function getAlertsForDate(date){
   var d0=new Date(date);d0.setHours(12,0,0,0);var d0t=d0.getTime();
-  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[],projPrepa:[],projTournage:[]};
+  var items={urgents:[],retards:[],tournage:[],nonPrets:[],departs:[],retours:[],prepa:[],shoot:[],demontage:[],projPrepa:[],projTournage:[],repas:[]};
   function normD(s){if(!s)return null;var parts=s.split("-");return new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]),12,0,0,0).getTime();}
   for(var i=0;i<D.projets.length;i++){var p=D.projets[i];
     // Dates projet
@@ -1318,6 +1321,8 @@ function getAlertsForDate(date){
         var drt=normD(e.dateRetour);
         if(drt!==null&&d0t===drt){items.retours.push({e:e,d:dc,p:p});if(e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});}
         if(e.urgent&&djt!==null&&d0t===djt)items.urgents.push({e:e,d:dc,p:p});
+        // Repas liés au décor : apparaissent pendant le tournage du décor
+        if(e.rubrique==="repas"){var rTS=normD(dc.dateTournage),rTE=normD(dc.dateTournageFin);if(rTS!==null){if(rTE===null)rTE=rTS;if(d0t>=rTS&&d0t<=rTE)items.repas.push({e:e,d:dc,p:p});}}
       }}}
   var seen={};items.prepa=items.prepa.filter(function(x){var k=x.d.id;if(seen[k])return false;seen[k]=true;return true;});
   var seen2={};items.shoot=items.shoot.filter(function(x){var k=x.d.id;if(seen2[k])return false;seen2[k]=true;return true;});
@@ -2101,6 +2106,15 @@ function rPlanning(){
         if(e.dateJeu)allEvents.push({type:"accessoire",date:e.dateJeu,element:e,decor:d,projet:p});
         if(e.dateDepart)allEvents.push({type:"depart",date:e.dateDepart,element:e,decor:d,projet:p});
         if(e.dateRetour)allEvents.push({type:"retour",date:e.dateRetour,element:e,decor:d,projet:p});
+        // Repas liés au décor via séquence → apparaissent le jour de tournage du décor
+        if(e.rubrique==="repas"&&d.dateTournage){
+          var repStart=new Date(d.dateTournage+"T12:00:00");
+          var repEnd=d.dateTournageFin?new Date(d.dateTournageFin+"T12:00:00"):new Date(repStart);
+          for(var rd=new Date(repStart);rd<=repEnd;rd.setDate(rd.getDate()+1)){
+            var rdy=rd.getFullYear(),rdm=rd.getMonth()+1,rdd=rd.getDate();
+            allEvents.push({type:"repas",date:rdy+'-'+(rdm<10?'0':'')+rdm+'-'+(rdd<10?'0':'')+rdd,element:e,decor:d,projet:p});
+          }
+        }
       }
     }
   }
@@ -2126,6 +2140,7 @@ function rPlanning(){
     var accessoires=dayEvents.filter(function(ev){return ev.type==="accessoire";});
     var departs=dayEvents.filter(function(ev){return ev.type==="depart";});
     var retours=dayEvents.filter(function(ev){return ev.type==="retour";});
+    var repasEvts=dayEvents.filter(function(ev){return ev.type==="repas";});
 
     // Événements personnalisés pour ce jour
     var customEvts=(D.planningEvents||[]).filter(function(ev){return ev.date===ds;});
@@ -2209,6 +2224,28 @@ function rPlanning(){
       // Retours location
       if(retours.length){
         h+='<div style="font-size:11px;color:#10b981;padding:2px 0">📥 '+retours.length+' retour(s) location : '+retours.map(function(x){return x.element.nom}).join(", ")+'</div>';
+      }
+      // Repas / Boissons du jour (liés par séquence via le décor)
+      if(repasEvts.length){
+        // Grouper par décor
+        var repasParDecor={};
+        for(var ri=0;ri<repasEvts.length;ri++){
+          var rev=repasEvts[ri];
+          var dkey=rev.decor.id;
+          if(!repasParDecor[dkey])repasParDecor[dkey]={decor:rev.decor,projet:rev.projet,items:[]};
+          repasParDecor[dkey].items.push(rev.element);
+        }
+        h+='<div style="background:rgba(249,115,22,0.1);border-left:3px solid #f97316;border-radius:6px;padding:8px 10px;margin-bottom:4px">';
+        h+='<div style="font-size:12px;font-weight:600;color:#f97316;margin-bottom:4px">🍽️ Repas / Boissons — '+repasEvts.length+' fiche(s)</div>';
+        for(var dk in repasParDecor){
+          var rg=repasParDecor[dk];
+          h+='<div style="font-size:11px;color:#a5b4fc;margin-bottom:2px">🎬 '+rg.decor.nom+(rg.decor.sequences?' • Sq.'+rg.decor.sequences:'')+'</div>';
+          for(var ri2=0;ri2<rg.items.length;ri2++){
+            var re=rg.items[ri2];
+            h+='<div style="font-size:11px;color:#94a3b8;padding:1px 0;cursor:pointer" onclick="goTo(\''+rg.projet.id+'\',\''+rg.decor.id+'\',\''+re.id+'\')">  • '+re.nom+(re.description?' — '+re.description.substring(0,40):'')+'</div>';
+          }
+        }
+        h+='</div>';
       }
 
       // === ÉVÉNEMENTS PERSONNALISÉS ===
