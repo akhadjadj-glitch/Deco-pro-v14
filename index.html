@@ -392,7 +392,7 @@ function fileToDataUrl(file, callback){
 }
 
 (function(){
-var RUB=[{id:"mobilier",n:"Ensembliage",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires de Jeu",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie D'ex",i:"🏢",c:"#14b8a6"},{id:"graphiques",n:"Graphismes",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"},{id:"repas",n:"Repas / Boissons",i:"🍽️",c:"#f97316"}];
+var RUB=[{id:"mobilier",n:"Ensembliage",i:"🪑",c:"#6366f1"},{id:"accessoires",n:"Accessoires de Jeu",i:"🎭",c:"#ec4899"},{id:"regie",n:"Régie D'ex",i:"🏢",c:"#14b8a6"},{id:"graphiques",n:"Graphismes",i:"📋",c:"#06b6d4"},{id:"consommables",n:"Consommables",i:"📦",c:"#64748b"},{id:"repas",n:"Repas / Boissons",i:"🍽️",c:"#f97316"},{id:"tel_ordi",n:"Tél / Ordi",i:"📱",c:"#0ea5e9"}];
 var STAT=[{id:"a_sourcer",l:"À sourcer",c:"#64748b"},{id:"a_valider",l:"À valider",c:"#f59e0b"},{id:"valide",l:"Validé",c:"#3b82f6"},{id:"loue",l:"Loué",c:"#ec4899"},{id:"achat_neuf",l:"Achat neuf",c:"#10b981"},{id:"achat_occasion",l:"Achat occasion",c:"#14b8a6"},{id:"fabrication",l:"Fabrication",c:"#8b5cf6"},{id:"en_stock",l:"En stock",c:"#06b6d4"},{id:"restitue",l:"Restitué",c:"#22c55e"}];
 var STATD=[{id:"a_preparer",l:"À préparer",c:"#64748b"},{id:"en_cours",l:"En cours",c:"#f59e0b"},{id:"pret",l:"Prêt",c:"#10b981"},{id:"en_tournage",l:"En tournage",c:"#6366f1"},{id:"termine",l:"Terminé",c:"#22c55e"}];
 var TPROJ=[{id:"film",l:"Film",i:"🎬"},{id:"serie",l:"Série",i:"📺"},{id:"pub",l:"Pub",i:"📢"},{id:"clip",l:"Clip",i:"🎵"},{id:"autre",l:"Autre",i:"📁"}];
@@ -1706,6 +1706,7 @@ function rDec(){
   h+='<div class="tab'+(TB==="avalider"?" on":"")+'" onclick="setTab(\'avalider\')">À valider</div>';
   h+='<div class="tab'+(TB==="portfolio"?" on":"")+'" onclick="setTab(\'portfolio\')">Portfolio</div>';
   h+='<div class="tab'+(TB==="repas"?" on":"")+'" onclick="setTab(\'repas\')">🍽️ Repas</div>';
+  h+='<div class="tab'+(TB==="tel_ordi"?" on":"")+'" onclick="setTab(\'tel_ordi\')">📱 Tél/Ordi</div>';
   h+='<div class="tab'+(TB==="info"?" on":"")+'" onclick="setTab(\'info\')">Infos</div>';
   h+='</div>';
   if(TB==="rub"){
@@ -1787,6 +1788,28 @@ function rDec(){
     h+='<button class="btn p" onclick="modal(\'nrepas\')">+ Ajouter repas / boisson</button>';
     h+='<button class="btn s" onclick="window.importRepasJSONForDecor()">📥 Import JSON</button>';
     h+='</div>';
+  }else if(TB==="tel_ordi"){
+    var telItems=[];
+    if(DC.elements)for(var j=0;j<DC.elements.length;j++){if(DC.elements[j].rubrique==="tel_ordi")telItems.push(DC.elements[j]);}
+    if(!telItems.length){
+      h+='<div class="empty"><div class="icon">📱</div><p>Aucun tél / ordi</p><p style="font-size:12px">Ajoutez les téléphones et ordinateurs nécessaires pour ce décor</p></div>';
+    }else{
+      h+='<div class="stit"><span>'+telItems.length+' tél / ordi</span></div>';
+      for(var j=0;j<telItems.length;j++){
+        var e=telItems[j],st=gs(e.statut);
+        h+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')">';
+        h+='<div class="card-icon" style="font-size:20px">📱</div>';
+        h+='<div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3>';
+        h+='<p style="font-size:11px;color:#94a3b8">';
+        if(e.scene)h+='Sq.'+e.scene+' ';
+        if(e.episode)h+='Ép.'+e.episode+' ';
+        if(e.role)h+='👤 '+e.role+' ';
+        h+='</p></div>';
+        h+='<span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span>';
+        h+='</div>';
+      }
+    }
+    h+='<button class="btn p" style="margin-top:12px" onclick="modal(\'ntel\')">+ Ajouter tél / ordi</button>';
   }else if(TB==="info"){
     h+='<div class="box">';
     h+='<div class="row"><span>Type</span><span>'+(DC.interieur?'Intérieur':'Extérieur')+' • '+(DC.studio?'Studio':'Naturel')+'</span></div>';
@@ -2832,6 +2855,18 @@ function rModal(){
     c+='<div class="fld-row"><div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div><div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div></div>';
     c+='<button class="btn p" onclick="saveRepas()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
   }
+  else if(M==="ntel"){
+    // Ajout tél/ordi depuis la fiche decor (DC est déjà défini)
+    c='<div class="mbar"></div><div class="mtit">📱 Nouveau Tél / Ordi</div>';
+    c+='<div class="fld-row"><div class="fld"><label>Séquence</label><input id="f10" placeholder="Ex: 106" oninput="autoFillFromSeq(this.value)"></div><div class="fld"><label>Épisode</label><input id="f19" placeholder="Ex: 1"></div></div>';
+    c+='<div id="seq-info" style="margin-bottom:10px"></div>';
+    c+='<div class="fld"><label>Nom / Description *</label><input id="f1" placeholder="Ex: iPhone 15 Pro — écran allumé"></div>';
+    c+='<div class="fld"><label>Rôles / Personnages</label><input id="f11" placeholder="Ex: Rickwaert, Chalon"></div>';
+    c+='<div class="fld"><label>Détails / Contenu écran</label><textarea id="f4" placeholder="Ex: SMS visible à l\'écran — photo profil WhatsApp — fond d\'écran personnalisé"></textarea></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Date jeu</label><input type="date" id="f12"></div><div class="fld"><label>Statut</label><select id="f3">';for(var i=0;i<STAT.length;i++)c+='<option value="'+STAT[i].id+'">'+STAT[i].l+'</option>';c+='</select></div></div>';
+    c+='<div class="fld-row"><div class="fld"><label>Quantité</label><input type="number" id="f6" value="1"></div><div class="fld"><label>Urgent</label><select id="urgent"><option value="0">Non</option><option value="1">Oui</option></select></div></div>';
+    c+='<button class="btn p" onclick="saveTelOrdi()">Ajouter</button><button class="btn s" onclick="modal(null)">Annuler</button>';
+  }
   else if(M==="repas_add"){
     // Ajout repas depuis la vue globale (choisir décor)
     var allDecs=[];
@@ -3027,6 +3062,14 @@ window.saveAccFromTab=function(){
 };
 
 // Sauvegarder repas depuis fiche decor
+window.saveTelOrdi=function(){
+  var n=gv("f1");if(!n)return alert("Nom requis");
+  if(!DC)return alert("Aucun décor sélectionné");
+  if(!DC.elements)DC.elements=[];
+  var el={id:uid(),nom:n,rubrique:"tel_ordi",statut:gv("f3")||"a_sourcer",description:gv("f4"),scene:gv("f10"),episode:gv("f19"),role:gv("f11"),dateJeu:gv("f12"),quantite:gv("f6")||1,urgent:gv("urgent")==="1",photos:[]};
+  DC.elements.push(el);sv();modal(null);
+  toast("📱 "+n+" ajouté");
+};
 window.saveRepas=function(){
   var n=gv("f1");if(!n)return alert("Nom requis");
   if(!DC)return alert("Aucun décor sélectionné");
