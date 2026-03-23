@@ -1321,8 +1321,8 @@ function getAlertsForDate(date){
         var drt=normD(e.dateRetour);
         if(drt!==null&&d0t===drt){items.retours.push({e:e,d:dc,p:p});if(e.statut!=="restitue")items.retards.push({e:e,d:dc,p:p});}
         if(e.urgent&&djt!==null&&d0t===djt)items.urgents.push({e:e,d:dc,p:p});
-        // Repas liés au décor : apparaissent pendant le tournage du décor
-        if(e.rubrique==="repas"){var rTS=normD(dc.dateTournage),rTE=normD(dc.dateTournageFin);if(rTS!==null){if(rTE===null)rTE=rTS;if(d0t>=rTS&&d0t<=rTE)items.repas.push({e:e,d:dc,p:p});}}
+        // Repas liés au jour de la séquence (dateJeu de l'élément)
+        if(e.rubrique==="repas"){var rjt=normD(e.dateJeu);if(rjt!==null&&d0t===rjt)items.repas.push({e:e,d:dc,p:p});}
       }}}
   var seen={};items.prepa=items.prepa.filter(function(x){var k=x.d.id;if(seen[k])return false;seen[k]=true;return true;});
   var seen2={};items.shoot=items.shoot.filter(function(x){var k=x.d.id;if(seen2[k])return false;seen2[k]=true;return true;});
@@ -2106,14 +2106,9 @@ function rPlanning(){
         if(e.dateJeu)allEvents.push({type:"accessoire",date:e.dateJeu,element:e,decor:d,projet:p});
         if(e.dateDepart)allEvents.push({type:"depart",date:e.dateDepart,element:e,decor:d,projet:p});
         if(e.dateRetour)allEvents.push({type:"retour",date:e.dateRetour,element:e,decor:d,projet:p});
-        // Repas liés au décor via séquence → apparaissent le jour de tournage du décor
-        if(e.rubrique==="repas"&&d.dateTournage){
-          var repStart=new Date(d.dateTournage+"T12:00:00");
-          var repEnd=d.dateTournageFin?new Date(d.dateTournageFin+"T12:00:00"):new Date(repStart);
-          for(var rd=new Date(repStart);rd<=repEnd;rd.setDate(rd.getDate()+1)){
-            var rdy=rd.getFullYear(),rdm=rd.getMonth()+1,rdd=rd.getDate();
-            allEvents.push({type:"repas",date:rdy+'-'+(rdm<10?'0':'')+rdm+'-'+(rdd<10?'0':'')+rdd,element:e,decor:d,projet:p});
-          }
+        // Repas liés au jour de la séquence (dateJeu)
+        if(e.rubrique==="repas"&&e.dateJeu){
+          allEvents.push({type:"repas",date:e.dateJeu,element:e,decor:d,projet:p});
         }
       }
     }
