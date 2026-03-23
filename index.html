@@ -438,7 +438,8 @@ document.addEventListener("error",function(e){
 },true);
 
 function gs(id){for(var i=0;i<STAT.length;i++)if(STAT[i].id===id)return STAT[i];return STAT[0]}
-function getDeviceIcon(nom){if(!nom)return "📱";var n=nom.toLowerCase();if(n.indexOf("ipad")>=0||n.indexOf("tablette")>=0)return "📱";if(n.indexOf("ordinateur")>=0||n.indexOf("ordi")>=0||n.indexOf("laptop")>=0||n.indexOf("portable")>=0&&n.indexOf("tel")<0)return "💻";if(n.indexOf("ecran")>=0||n.indexOf("moniteur")>=0||n.indexOf("screen")>=0)return "🖥️";return "📞";}
+function getDeviceIcon(nom){if(!nom)return "📞";var n=nom.toLowerCase();if(n.indexOf("ipad")>=0||n.indexOf("tablette")>=0)return "📱";if(n.indexOf("ordinateur")>=0||n.indexOf("ordi")>=0||n.indexOf("laptop")>=0||(n.indexOf("portable")>=0&&n.indexOf("tel")<0))return "💻";if(n.indexOf("ecran")>=0||n.indexOf("moniteur")>=0||n.indexOf("screen")>=0)return "🖥️";return "📞";}
+function getDeviceLabel(nom){if(!nom)return "Telephone";var n=nom.toLowerCase();if(n.indexOf("ipad")>=0||n.indexOf("tablette")>=0)return "iPad / Tablette";if(n.indexOf("ordinateur")>=0||n.indexOf("ordi")>=0||n.indexOf("laptop")>=0||(n.indexOf("portable")>=0&&n.indexOf("tel")<0))return "Ordinateur";if(n.indexOf("ecran")>=0||n.indexOf("moniteur")>=0||n.indexOf("screen")>=0)return "Ecran";return "Telephone";}
 function gsd(id){for(var i=0;i<STATD.length;i++)if(STATD[i].id===id)return STATD[i];return STATD[0]}
 function gr(id){for(var i=0;i<RUB.length;i++)if(RUB[i].id===id)return RUB[i];return null}
 function gt(id){for(var i=0;i<TPROJ.length;i++)if(TPROJ[i].id===id)return TPROJ[i];return TPROJ[0]}
@@ -2118,16 +2119,57 @@ function rTelOrdi(){
   h+='<div class="filter-chip'+(ASORT==="date"?" on":"")+'" onclick="setASort(\'date\')">Par date tournage</div>';
   h+='</div>';
   if(!items.length){h+='<div class="empty"><div class="icon">📱</div><p>Aucun tel / ordi</p><p style="font-size:12px">Ajoutez les telephones et ordinateurs de jeu</p></div>';}
-  else{
+  else if(ASORT==="role"){
+    // Vue speciale par role : Role > Type appareil > sequences
+    var roles={};var roleCount={};
+    for(var i=0;i<items.length;i++){var e=items[i].e;var r=e.role||"Sans role";if(!roles[r])roles[r]=[];roles[r].push(items[i]);roleCount[r]=(roleCount[r]||0)+1;}
+    // Trier roles par nombre de sequences decroissant
+    var roleNames=Object.keys(roles);roleNames.sort(function(a,b){return roleCount[b]-roleCount[a];});
+    for(var ri=0;ri<roleNames.length;ri++){
+      var rn=roleNames[ri];var rItems=roles[rn];
+      h+='<div style="margin-top:16px;margin-bottom:8px;padding:10px 12px;background:rgba(99,102,241,0.1);border-radius:10px;border-left:3px solid #6366f1">';
+      h+='<div style="font-size:15px;font-weight:700;color:#e2e8f0">👤 '+rn+'</div>';
+      h+='<div style="font-size:11px;color:#a5b4fc">'+rItems.length+' appareil(s)</div></div>';
+      // Grouper par type d appareil
+      var types={};
+      for(var ti=0;ti<rItems.length;ti++){var ic=getDeviceIcon(rItems[ti].e.nom);if(!types[ic])types[ic]={icon:ic,label:getDeviceLabel(rItems[ti].e.nom),items:[]};types[ic].items.push(rItems[ti]);}
+      var typeKeys=Object.keys(types);
+      for(var tk=0;tk<typeKeys.length;tk++){
+        var t=types[typeKeys[tk]];
+        // Collecter les sequences
+        var seqs=[];for(var si=0;si<t.items.length;si++){if(t.items[si].e.scene)seqs.push(t.items[si].e.scene);}
+        seqs.sort(function(a,b){return (parseInt(a)||999)-(parseInt(b)||999);});
+        h+='<div style="background:rgba(255,255,255,0.04);border-radius:10px;padding:10px 12px;margin-bottom:6px">';
+        h+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+        h+='<span style="font-size:24px">'+t.icon+'</span>';
+        h+='<div><div style="font-size:13px;font-weight:600;color:#e2e8f0">'+t.label+'</div>';
+        h+='<div style="font-size:11px;color:#64748b">'+t.items.length+' fiche(s)</div></div></div>';
+        // Liste des sequences comme chips
+        if(seqs.length){
+          h+='<div style="display:flex;flex-wrap:wrap;gap:4px">';
+          for(var sq=0;sq<seqs.length;sq++){
+            // Trouver la date et le decor pour cette sequence
+            var sqItem=null;for(var fi=0;fi<t.items.length;fi++){if(t.items[fi].e.scene===seqs[sq]){sqItem=t.items[fi];break;}}
+            var sqDate=sqItem&&sqItem.e.dateJeu?fd(new Date(sqItem.e.dateJeu)):"";
+            var sqDecor=sqItem?sqItem.d.nom:"";
+            h+='<div onclick="goTo(\''+sqItem.p.id+'\',\''+sqItem.d.id+'\',\''+sqItem.e.id+'\')" style="cursor:pointer;padding:4px 8px;border-radius:6px;background:rgba(255,255,255,0.06);font-size:11px;color:#94a3b8;border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:4px" title="'+sqDecor+(sqDate?" — "+sqDate:"")+'">';
+            h+='<span style="color:#a5b4fc;font-weight:600">'+seqs[sq]+'</span>';
+            if(sqDate)h+='<span style="color:#f9a8d4;font-size:10px">'+sqDate+'</span>';
+            h+='</div>';
+          }
+          h+='</div>';
+        }
+        h+='</div>';
+      }
+    }
+  }else{
     var lastGroup="";
     for(var i=0;i<items.length;i++){var x=items[i],e=x.e,st=gs(e.statut);
       var grp="";
       if(ASORT==="seq")grp="Sq."+(e.scene||"?");
-      else if(ASORT==="role"){grp=e.role||"Sans role";var rc2=0;for(var ri2=0;ri2<items.length;ri2++)if((items[ri2].e.role||"")===(e.role||""))rc2++;grp+=" ("+rc2+" seq.)";}
       else if(ASORT==="decor")grp=x.d.nom;
       else if(ASORT==="date")grp=e.dateJeu?fd(new Date(e.dateJeu)):"Sans date";
       if(grp!==lastGroup){lastGroup=grp;h+='<div class="stit" style="margin-top:12px">'+grp+'</div>';}
-      // Icone selon le type d appareil
       var devIcon=getDeviceIcon(e.nom);
       h+='<div class="card" onclick="goTo(\''+x.p.id+'\',\''+x.d.id+'\',\''+e.id+'\')">';
       h+='<div class="card-icon" style="font-size:22px">'+devIcon+'</div>';
