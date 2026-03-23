@@ -2098,6 +2098,11 @@ function rTelOrdi(){
   else if(ASORT==="date"){items.sort(function(a,b){return (a.e.dateJeu||"9")<(b.e.dateJeu||"9")?-1:1;});}
   var h='<div class="tabs" style="margin-bottom:12px"><div class="tab" onclick="go(\'acc\')">🎭 Accessoires</div><div class="tab" onclick="go(\'repas\')">🍽️ Repas</div><div class="tab on" onclick="go(\'telordi\')">📱 Tél/Ordi</div></div>';
   h+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px"><div><div class="page-title" style="margin-bottom:0">📱 Tél / Ordi</div><div class="page-sub">'+items.length+' éléments</div></div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn p" style="padding:8px 16px;font-size:14px;white-space:nowrap" onclick="modal(\'telordi_add\')">+ Ajouter</button></div></div>';
+  h+='<div class="acts" style="margin-bottom:8px">';
+  h+='<div class="abtn" onclick="window.importTelOrdiJSON()">📥 Import JSON</div>';
+  h+='<div class="abtn" onclick="window.exportTelOrdiJSON()">📤 Export JSON</div>';
+  h+='<div class="abtn" onclick="window.downloadTelOrdiTemplate()">📋 Template JSON</div>';
+  h+='</div>';
   h+='<div class="hdr-search" style="margin-bottom:8px"><input placeholder="Rechercher nom, séquence, rôle, décor..." value="'+SQ+'" oninput="setSQ(this.value)"></div>';
   h+='<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">';
   h+='<div class="filter-chip'+(ASORT==="seq"?" on":"")+'" onclick="setASort(\'seq\')">Par séquence</div>';
@@ -3322,6 +3327,98 @@ window.importRepasJSONForDecor=function(){
       }catch(err){alert("Erreur JSON: "+err.message);}
     };
     reader.readAsText(file,"UTF-8");
+  };
+  inp.click();
+};
+
+// === Tél/Ordi JSON Import/Export ===
+window.downloadTelOrdiTemplate=function(){
+  var template=[
+    {"sequence":"217","episode":"1","decor":"Voiture Présidentielle","roles":"Philippe","description":"iPhone 15 Pro noir — écran SMS visible","date_jeu":"2026-07-02"},
+    {"sequence":"335","episode":"2","decor":"Kairos Bureau Tristan","roles":"Tristan, Sam","description":"MacBook Pro 16 — écran dashboard ouvert","date_jeu":"2026-06-29"},
+    {"sequence":"504","episode":"3","decor":"Lycée Parvis","roles":"Chalon","description":"Samsung Galaxy — appel entrant visible","date_jeu":"2026-04-21"}
+  ];
+  var blob=new Blob([JSON.stringify(template,null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download="template_tel_ordi.json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("Template JSON tel/ordi telecharge");
+};
+
+window.exportTelOrdiJSON=function(){
+  var items=[];
+  for(var i=0;i<D.projets.length;i++){var p=D.projets[i];if(!p.decors)continue;
+    for(var j=0;j<p.decors.length;j++){var d=p.decors[j];if(!d.elements)continue;
+      for(var k=0;k<d.elements.length;k++){var e=d.elements[k];
+        if(e.rubrique==="tel_ordi")items.push({sequence:e.scene||"",episode:e.episode||"",decor:d.nom,roles:e.role||"",description:e.nom+(e.description?" — "+e.description:""),date_jeu:e.dateJeu||""});
+      }
+    }
+  }
+  if(!items.length)return toast("Aucun tel/ordi a exporter",true);
+  var blob=new Blob([JSON.stringify(items,null,2)],{type:"application/json"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");
+  a.href=url;a.download="tel_ordi_export_"+(new Date().toISOString().split("T")[0])+".json";
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast(items.length+" tel/ordi exportes");
+};
+
+window.importTelOrdiJSON=function(){
+  var inp=document.createElement("input");
+  inp.type="file";
+  inp.accept=".json";
+  inp.onchange=function(ev){
+    var file=ev.target.files[0];
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      try{
+        var data=JSON.parse(e.target.result);
+        if(!Array.isArray(data))return alert("Le fichier doit contenir un tableau JSON");
+        if(!data.length)return alert("Le fichier est vide");
+        if(!D.projets.length)return alert("Creez d abord un projet");
+        var targetP=P||D.projets[0];
+        if(!targetP.decors)targetP.decors=[];
+        var decorMap={};
+        for(var i=0;i<targetP.decors.length;i++){
+          decorMap[targetP.decors[i].nom.trim().toLowerCase()]=targetP.decors[i];
+        }
+        var imported=0,decorsCreated=0;
+        for(var i=0;i<data.length;i++){
+          var row=data[i];
+          var decorNom=(row.decor||row.Decor||row.DECOR||"").trim();
+          var seq=(row.sequence||row.seq||row.SEQ||"").toString().trim();
+          var ep=(row.episode||row.Episode||row.EP||"").toString().trim();
+          var roles=(row.roles||row.Roles||row.ROLES||"").trim();
+          var desc=(row.description||row.Description||row.nom||row.Nom||"").trim();
+          var dateJeu=(row.date_jeu||row.dateJeu||row.date||"").trim();
+          if(!decorNom&&!desc)continue;
+          // Trouver ou creer le decor
+          var targetD=decorMap[decorNom.toLowerCase()];
+          if(!targetD){
+            // Chercher par sequence
+            if(seq){for(var di=0;di<targetP.decors.length;di++){if(targetP.decors[di].sequences&&targetP.decors[di].sequences.indexOf(seq)>=0){targetD=targetP.decors[di];break;}}}
+          }
+          if(!targetD){
+            targetD={id:uid(),nom:decorNom||"Decor "+seq,adresse:"",interieur:true,studio:false,statut:"a_preparer",sequences:seq,elements:[]};
+            targetP.decors.push(targetD);
+            decorMap[targetD.nom.trim().toLowerCase()]=targetD;
+            decorsCreated++;
+          }
+          if(!targetD.elements)targetD.elements=[];
+          targetD.elements.push({id:uid(),nom:desc||"Tel/Ordi Sq."+seq,rubrique:"tel_ordi",statut:"a_sourcer",description:"",scene:seq,episode:ep,role:roles,dateJeu:dateJeu,quantite:1,urgent:false,photos:[]});
+          imported++;
+        }
+        sv();R();
+        var msg=imported+" tel/ordi importes";
+        if(decorsCreated)msg+=" ("+decorsCreated+" nouveaux decors)";
+        toast(msg);
+      }catch(err){alert("Erreur: "+err.message);}
+    };
+    reader.readAsText(file);
   };
   inp.click();
 };
