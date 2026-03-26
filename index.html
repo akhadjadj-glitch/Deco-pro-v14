@@ -2966,7 +2966,7 @@ function rModal(){
     var phs=[];for(var i=0;i<els.length;i++)if(els[i].photos)for(var j=0;j<els[i].photos.length;j++)phs.push({data:els[i].photos[j],nom:els[i].nom});
     if(phs.length){c+='<div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px">';for(var i=0;i<phs.length;i++)c+='<img src="'+phs[i].data+'" onclick="event.stopPropagation();openRubPh(\''+RB+'\','+i+')" style="width:70px;height:70px;object-fit:cover;border-radius:8px;flex-shrink:0;cursor:pointer">';c+='</div>';}
     if(!els.length){c+='<div class="empty"><div class="icon">📦</div><p>Aucun élément</p></div>';}else{c+='<div style="max-height:45vh;overflow-y:auto">';for(var i=0;i<els.length;i++){var e=els[i],st=gs(e.statut);c+='<div class="card'+(e.urgent?' urgent':'')+'" onclick="goToRubEl(\''+e.id+'\')" style="margin-bottom:2px"><div class="card-icon" style="width:40px;height:40px;font-size:18px">';if(e.photos&&e.photos.length)c+='<img src="'+e.photos[0]+'" style="width:40px;height:40px;object-fit:cover;border-radius:8px">';else c+='📦';c+='</div><div class="card-info"><h3>'+e.nom+(e.urgent?' 🚨':'')+'</h3><span class="badge" style="background:'+st.c+'30;color:'+st.c+'">'+st.l+'</span></div></div>';}c+='</div>';}
-    c+='<button class="btn p" style="margin-top:12px" onclick="modal(\'ne\')">+ Ajouter</button>';
+    c+='<button class="btn p" style="margin-top:12px" onclick="M=\'ne\';R()">+ Ajouter</button>';
   }
   else if(M==="acc_add"){
     // Etape 1 : choisir projet et decor
